@@ -1,0 +1,42 @@
+
+
+export const PANTALLAS = [
+    { key: 'home', label: 'Home' },
+    { key: 'reportes', label: 'Reportes' },
+    { key: 'permiso', label: 'Permisos' },
+    { key: 'programa', label: 'Programas' },
+    { key: 'inspeccion', label: 'Inspección' },
+    { key: 'planificacion', label: 'Planificación' },
+    { key: 'solicitud', label: 'Solicitud' },
+    { key: 'propiedad', label: 'Propiedad' },
+    { key: 'productor', label: 'Productor' },
+    { key: 'laboratorio', label: 'Laboratorios' },
+    { key: 'plaga', label: 'Plagas' },
+    { key: 'cultivo', label: 'Cultivos' },
+    { key: 'tipo_inspeccion', label: 'Tipos de Inspección' },
+    { key: 'tipo_solicitud', label: 'Tipos de Solicitud' },
+    { key: 'tipo_permiso', label: 'Tipos de Permisos' },
+    { key: 'tipo_evento', label: 'Tipos de Eventos' },
+    { key: 'tipo_propiedad', label: 'Tipos de Propiedad' },
+    { key: 'tipo_productor', label: 'Tipos de Productor' },
+    { key: 'tipo_programa', label: 'Tipos de Programas' },
+    { key: 'tipo_laboratorio', label: 'Tipos de Laboratorios' },
+    { key: 'tipo_plaga', label: 'Tipos de plagas' },
+    { key: 'tipo_cultivo', label: 'Tipos de cultivos' },
+    { key: 'estado', label: 'estados' },
+    { key: 'municipio', label: 'Municipios' },
+    { key: 'parroquia', label: 'Parroquias' },
+    { key: 'usuarios', label: 'Usuarios' },
+    { key: 'empleados', label: 'Empleados' },
+    { key: 'cargos', label: 'Cargos' },
+    { key: 'tipo_usuario', label: 'Roles & Permisos' },
+    { key: 'bitacora', label: 'Bitacora' },
+
+    ];
+
+export const ACCIONES = [
+    { key: 'ver', label: 'Ver' },
+    { key: 'crear', label: 'Crear' },
+    { key: 'editar', label: 'Editar' },
+    { key: 'eliminar', label: 'Eliminar' },
+    ];

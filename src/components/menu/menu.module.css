@@ -1,0 +1,224 @@
+.container {
+    position: absolute;
+    top: 50%;
+    display: flex;
+    overflow: hidden; 
+    width: 0;
+    position: fixed;
+    left: 0;
+    z-index: 1;
+}
+
+.sidebar {
+    position: fixed; 
+    top: 5px; 
+    left: 0; 
+    background-color: var(--grey); 
+    color: var(--black); 
+    width: 280px; 
+    height: 100vh; 
+    transition: width 0.3s ease-in-out; 
+    overflow: hidden; 
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; 
+    z-index: 200;
+}
+
+.container.collapsed .sidebar {
+    width: 65px; /* Ancho del menú colapsado */
+}
+
+.navList {
+    position: relative;
+    top: 60px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    max-height: calc(100vh - 60px - 60px); /* Resta la altura del footer */
+    scrollbar-width: thin; /* Para navegadores como Firefox */
+    scrollbar-color: #555 #e0e0e0; /* Color del scroll y del fondo */
+}
+
+.navList {
+    scroll-behavior: smooth; /* Desplazamiento suave */
+}
+
+/* Estilo para navegadores basados en WebKit (Chrome, Edge, Safari) */
+.navList::-webkit-scrollbar {
+    width: 8px; /* Ancho del scroll */
+}
+
+.navList::-webkit-scrollbar-track {
+    background: #e0e0e0; /* Color del fondo del scroll */
+    border-radius: 10px; /* Bordes redondeados */
+}
+
+.navList::-webkit-scrollbar-thumb {
+    background-color: #555; /* Color del scroll */
+    border-radius: 10px; /* Bordes redondeados */
+    border: 2px solid #e0e0e0; /* Espaciado entre el scroll y el fondo */
+}
+
+.navList::-webkit-scrollbar-thumb:hover {
+    background-color: #333; /* Color del scroll al pasar el mouse */
+}
+
+
+
+.navItem {
+    display: flex;
+    flex-direction: column; /* Ajusta para sublistas */
+    align-items: flex-start; /* Alinea el contenido de forma adecuada */
+    padding: 15px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease-in-out;
+}
+
+.navItem:hover {
+    background-color: #6c6b6b7c;
+    color: #343434;
+}
+
+.navItem.selected {
+    background-color: #5554548d; /* Color para el ítem seleccionado */
+    color: var(--white); /* Cambia el color del texto */
+}
+
+.navLink {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+    font-size: 15.5px;
+}
+
+.icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 15px;
+    transition: margin 0.3s ease;
+}
+
+.container.collapsed .icon {
+    margin-right: 0; /* Elimina el margen en el menú colapsado */
+}
+
+.navLabel {
+    white-space: nowrap;
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.container.collapsed .navLabel {
+    opacity: 0; /* Oculta el texto en el menú colapsado */
+}
+
+.submenuContainer {
+    max-height: 0; /* Oculta el submenú inicialmente */
+    overflow: hidden; /* Oculta el contenido que exceda el contenedor */
+    opacity: 0; /* Submenú invisible por defecto */
+    width: 100%; /* Para mantener alineado con el contenedor principal */
+    transition: max-height 0.4s ease, opacity 0.4s ease; /* Transición suave para el despliegue */
+}
+
+.submenuOpen {
+    max-height: 1100px; /* Altura máxima para mostrar el submenú */
+    opacity: 1; /* Hace visible el submenú */
+}
+
+.submenu {
+    list-style: none;
+    padding-left: 18px; /* Desplaza las sublistas a la derecha */
+    margin: 0;
+}
+
+.submenuItem {
+    font-size: 14.5px;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #444444;
+    border: 1px solid transparent;
+    display: block;
+    transition: color 0.3s ease, padding-left 0.3s ease, border-bottom 0.3s ease-in-out; /* Animación suave */
+}
+
+.submenuItem:hover {
+    color: #fff;
+    padding-left: 20px; /* Añade un efecto de desplazamiento al pasar el mouse */
+    border-bottom: 1px solid var(--vino-red);
+}
+
+.content {
+    flex: 1;
+    margin-left: 200px; /* Deja espacio para el menú expandido */
+    padding: 20px;
+    background-color: #ecf0f1;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+.container.collapsed .content {
+    margin-left: 60px; /* Ajusta el margen cuando el menú está colapsado */
+}
+
+/* Estilos para el ícono de flecha */
+.iconFlecha {
+    width: 16px;
+    height: 16px;
+    margin-left: auto; /* Alinea la flecha al lado derecho */
+    transition: transform 0.4s ease; /* Transición suave para la rotación */
+}
+
+.iconRotated {
+    transform: rotate(90deg); /* Rota la flecha 90 grados */
+}
+/* footer menu */
+.footer {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    padding: 10px 10px;
+    text-align: center;
+    border-top: 1px solid var(--vino-red);
+    background-color: #343434; 
+    transition: opacity 0.3s ease, transform 0.3s ease; 
+    /* z-index: 1000; */
+}
+.container.collapsed .footer {
+    opacity: 0; /* Oculta el footer cuando el menú está colapsado */
+    transform: translateY(20px); /* Desplaza el footer hacia abajo */
+    pointer-events: none; /* Evita que sea interactivo cuando está oculto */
+}
+
+
+.iconsalida {
+    width: 20px; 
+    height: 20px;
+    flex-shrink: 0; /* Evita que el ícono cambie de tamaño */
+}
+
+.logoutButton {
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 10px; 
+    width: 100%;
+    padding: 10px 0;
+    background-color: #e74c3c;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease, opacity 0.3s ease; /* Transición suave */
+}
+
+
+.logoutButton:hover {
+    background-color: #c0392b;
+}

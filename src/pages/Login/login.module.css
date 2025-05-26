@@ -1,0 +1,178 @@
+/* Contenedor principal */
+.loginContainer {
+    display: flex;
+    height: 100vh;
+    /* background: linear-gradient(to bottom, #0a0f24, #1b1f38);  */
+    background: var(--white2);
+    align-items: center;
+    justify-content: center;
+}
+
+/* Formulario */
+.loginCard {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: var(--white); 
+    padding: 5px;
+    border-radius: 10px; 
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2); 
+    order: 2;
+    margin: auto;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+}
+
+.loginTitle {
+    margin-bottom: 20px;
+    font-size: 2rem;
+    color: var(--black);
+    display: flex;
+    align-items: center;
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+}
+
+.inputGroup {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.icon {
+    position: relative;
+    right: 5%;
+    cursor: pointer;
+    width: 25px;
+    height: 25px;
+}
+
+.iconbtn{
+    width: 20px;
+    height: 15px;
+    position: relative;
+    left: 10px;
+}
+.inputField {
+    flex: 1;
+    padding: 10px 10px;
+    background: var(--grey1);
+    border: 1px solid transparent;
+    border-radius: 5px;
+    box-shadow: inset 0px 2px 5px rgba(0, 0, 0, 0.1); 
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 0.8rem;
+    color: var(--black);
+    transition: border-color 0.3s ease-in-out,  box-shadow 0.3s ease-in-out;
+    outline: none;
+}
+.inputField:focus{
+    border-color: var(--lithg-green); 
+    box-shadow: 0 0 5px var(--lithg-green);
+}
+
+.submitButton {
+    width: 100%;
+    margin-top: 20px;
+    padding: 5px 0;
+    background-color: var(--green6); 
+    color: var(--white);
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.submitButton:hover {
+    background-color: var(--green-hover);
+}
+::placeholder{
+    color: var(--grey3);
+}
+
+/* Slider */
+.slider {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: var(--green-hover); /* Fondo oscuro con gradiente */
+    padding: 10px;
+    box-shadow: inset 0 0 50px rgb(0, 0, 0); 
+    order: 1; 
+}
+
+.sliderImage {
+    max-width: 70%;
+    height: 50vh;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.619);
+}
+
+.sliderText {
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: var(--white2);
+    text-align: center;
+}
+
+.oldpass {
+    margin-top: 20px;
+}
+
+.oldpass a {
+    color: #007bff;
+    text-decoration: none;
+    margin: 0 10px;
+    font-size: 0.7rem;
+}
+
+.oldpass a:hover {
+    text-decoration: underline;
+}
+
+.frases{
+    margin-top: 20px;
+}
+/* Footer */
+.footer {
+    position: relative;
+    top: 40px;
+    bottom: 0;
+    text-align: center;
+    color: #888888;
+    font-size: 0.9rem;
+}
+
+.footer p {
+    margin: 0;
+    padding: 5px 0;
+}
+
+.footer a {
+    color: #007bff;
+    text-decoration: none;
+    margin: 0 10px;
+    font-size: 0.9rem;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+

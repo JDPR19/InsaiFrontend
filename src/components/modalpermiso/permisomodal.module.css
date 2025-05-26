@@ -1,0 +1,86 @@
+.saveButton {
+    padding: 5px 5px;
+    background-color: var(--lithg-green);
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    grid-column: 2;
+    margin-top: 15px;
+    width: 100%;
+}
+
+.saveButton:hover {
+    background-color: #539252;
+}
+
+.modalOverlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 10px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: auto;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+.modal h2 {
+    margin-bottom: 15px;
+}
+
+.modal table {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+    background: #fafafa;
+}
+
+.modal th, .modal td {
+    border: 1px solid #e0e0e0;
+    padding: 8px;
+}
+
+.modal thead th {
+    background: #f0f0f0;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.tableScroll {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-width: 80vw;
+    margin: 0 auto;
+}
+
+.modal::-webkit-scrollbar {
+    width: 8px;
+    height: 10px;
+    background: #545454;
+    border-radius: 15px;
+}
+
+.modal::-webkit-scrollbar-thumb {
+    background: var(--lithg-green);
+    border-radius: 4px;
+}
+
+.modal::-webkit-scrollbar-thumb:hover {
+    background: var(--green-hover1);
+}

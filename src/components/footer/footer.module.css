@@ -1,0 +1,31 @@
+/* Estilo general del footer */
+.footer {
+    position: relative; 
+    bottom: 1.4em;
+    left: 0;
+    width: 100%; 
+    background-color: var(--white1);
+    color: #242424;
+    text-align: center;
+    padding: 5px 0; 
+    font-size: 14px;
+}
+
+.footer a {     
+    color: #007bff;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+/* Asegura que el footer sea visible en pantallas pequeñas */
+@media (max-width: 770px) {
+    .footer {
+        border-radius: 0;
+    }
+}
+
+@media (max-width: 470px) {
+    .footer {
+        opacity: 1; /* Asegura que sea visible */
+    }
+}
