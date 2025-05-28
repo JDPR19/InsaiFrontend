@@ -31,9 +31,12 @@ import Cargo from './pages/Cargo/Cargo';
 import TipoUsuario from './pages/Usuario/TipoUsuario';
 import Planificacion from './pages/Planificacion/Planificacion';
 import MuestraPlaga from './pages/MuestraPlaga/MuestraPlaga';
+import MiUsuario from './pages/Miusuario/MiUsuario';
 import ProtectedRoute from './ProtectedRoute';
 
+
 function App() {
+
   return (
     <BrowserRouter>
       <Routes>
@@ -47,6 +50,16 @@ function App() {
             <ProtectedRoute pantalla="home">
               <MainLayout>
                 <Home />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/MiUsuario"
+          element={
+            <ProtectedRoute pantalla="miusuario">
+              <MainLayout>
+                <MiUsuario />
               </MainLayout>
             </ProtectedRoute>
           }
@@ -134,7 +147,7 @@ function App() {
         <Route
           path="/MuestraPlaga"
           element={
-            <ProtectedRoute pantalla="reporte">
+            <ProtectedRoute pantalla="muestras">
               <MainLayout>
                 <MuestraPlaga />
               </MainLayout>

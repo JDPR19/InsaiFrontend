@@ -536,7 +536,8 @@
 .iconver,
 .iconeditar,
 .iconpdf,
-.iconeliminar {
+.iconeliminar,
+.icondeshabilitar {
   width: 20px;
   height: 20px;
   cursor: pointer;
@@ -549,8 +550,15 @@
 .iconver:hover,
 .iconeditar:hover,
 .iconpdf:hover,
-.iconeliminar:hover {
+.iconeliminar:hover,
+.icondeshabilitar:hover {
   transform: scale(1.1); /* Aumenta ligeramente el tamaño al pasar el mouse */
+}
+
+
+.usuarioDeshabilitado {
+    opacity: 0.5;
+    pointer-events: none; 
 }
 
 
@@ -560,15 +568,15 @@
   font-weight: 500;
   display: flex;
   align-items: center;
-  justify-content: space-evenly;
-  gap: 2px; 
+  justify-content: center;
+  gap: 60px; 
   margin-top: 20px; 
 }
 
 
 .iconBack, .iconNext {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
   transition: transform 0.3s ease-in-out;
   display: flex;

@@ -22,7 +22,7 @@ function Cargo() {
     const [selectedCargoId, setSelectedCargoId] = useState(null);
 
     const { notifications, addNotification, removeNotification } = useNotification();
-    const itemsPerPage = 5;
+    const itemsPerPage = 8;
 
     // Reiniciar el modal luego de cerrar
     const resetFormData = () => {
@@ -175,6 +175,15 @@ function Cargo() {
         if (indexOfLastItem < datosFiltrados.length) setCurrentPage(currentPage + 1);
     };
 
+    const handlePreviousThreePages = () => {
+    setCurrentPage((prev) => Math.max(prev - 3, 1));
+    };
+
+    const handleNextThreePages = () => {
+        const maxPage = Math.ceil(datosFiltrados.length / itemsPerPage);
+        setCurrentPage((prev) => Math.min(prev + 3, maxPage));
+    };
+
     // Abrir y cerrar modal
     const openModal = () => {
         resetFormData();
@@ -309,7 +318,9 @@ function Cargo() {
                 </table>
                 <div className='tableFooter'>
                     <img onClick={handlePreviousPage} src={icon.flecha3} className='iconBack' title='Anterior'/>
+                    <img onClick={handlePreviousThreePages} src={icon.flecha5} className='iconBack' title='Anterior' />
                     <span>{currentPage}</span>
+                    <img onClick={handleNextThreePages} src={icon.flecha4} className='iconNext' title='Siguiente' />
                     <img onClick={handleNextPage} src={icon.flecha2} className='iconNext' title='Siguiente'/>
                 </div>
             </div>

@@ -126,7 +126,7 @@
 }
 
 .submenuOpen {
-    max-height: 1100px; /* Altura máxima para mostrar el submenú */
+    max-height: 1400px; /* Altura máxima para mostrar el submenú */
     opacity: 1; /* Hace visible el submenú */
 }
 

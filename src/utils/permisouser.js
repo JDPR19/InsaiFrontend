@@ -2,7 +2,7 @@
 
 export const PANTALLAS = [
     { key: 'home', label: 'Home' },
-    { key: 'reportes', label: 'Reportes' },
+    { key: 'muestras', label: 'Muestras' },
     { key: 'permiso', label: 'Permisos' },
     { key: 'programa', label: 'Programas' },
     { key: 'inspeccion', label: 'Inspección' },
@@ -26,17 +26,18 @@ export const PANTALLAS = [
     { key: 'estado', label: 'estados' },
     { key: 'municipio', label: 'Municipios' },
     { key: 'parroquia', label: 'Parroquias' },
+    { key: 'miusuario', label: 'Mi Usuario'},
     { key: 'usuarios', label: 'Usuarios' },
     { key: 'empleados', label: 'Empleados' },
     { key: 'cargos', label: 'Cargos' },
     { key: 'tipo_usuario', label: 'Roles & Permisos' },
     { key: 'bitacora', label: 'Bitacora' },
-
     ];
 
 export const ACCIONES = [
     { key: 'ver', label: 'Ver' },
     { key: 'crear', label: 'Crear' },
     { key: 'editar', label: 'Editar' },
+    { key: 'deshabilitar', label: 'Deshabilitar' },
     { key: 'eliminar', label: 'Eliminar' },
     ];

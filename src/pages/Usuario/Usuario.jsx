@@ -8,6 +8,9 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
+import { getCurrentUser } from '../../utils/usernameauth';
+import { usePermiso } from '../../hooks/usePermiso';
+
 
 function Usuario() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -16,6 +19,8 @@ function Usuario() {
     const [currentModal, setCurrentModal] = useState(null);
     const [cedulas, setCedulas] = useState([]);
     const [tiposUsuario, setTiposUsuario] = useState([]);
+    const user = getCurrentUser();
+    const tienePermiso = usePermiso(); 
     const [formData, setFormData] = useState({
         id: '',
         empleado_id: '',
@@ -30,7 +35,7 @@ function Usuario() {
     const [selectedEmpleadoId, setSelectedEmpleadoId] = useState(null);
 
     const { notifications, addNotification, removeNotification } = useNotification();
-    const itemsPerPage = 5;
+    const itemsPerPage = 8;
 
     // Reiniciar el modal luego de cerrar
     const resetFormData = () => {
@@ -205,6 +210,34 @@ function Usuario() {
         }
     };
 
+    // deshabilitar 
+    const disableUser = async (id, estado) => {
+    try {
+        await axios.patch(`http://localhost:4000/usuarios/${id}/estado`, { estado }, {
+            headers: {
+                Authorization : `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        // Usa el valor real de estado
+        const updatedData = datosOriginales.map((usuario) =>
+            usuario.id === id ? { ...usuario, estado } : usuario
+        );
+
+        
+        setDatosOriginales(updatedData);
+        setDatosFiltrados(updatedData);
+        
+        addNotification(
+            estado ? 'Usuario habilitado con éxito' : 'Usuario deshabilitado con éxito',
+            estado ? 'success' : 'error'
+        );
+        } catch (error) {
+            console.error('Error al cambiar el estado del usuario',error);
+            addNotification('Error al cambiar estado del usuario', 'error');
+        }
+    };
+
     // Eliminar usuario
     const handleDelete = async (id) => {
         try {
@@ -233,6 +266,15 @@ function Usuario() {
 
     const handleNextPage = () => {
         if (indexOfLastItem < datosFiltrados.length) setCurrentPage(currentPage + 1);
+    };
+
+    const handlePreviousThreePages = () => {
+    setCurrentPage((prev) => Math.max(prev - 3, 1));
+    };
+
+    const handleNextThreePages = () => {
+        const maxPage = Math.ceil(datosFiltrados.length / itemsPerPage);
+        setCurrentPage((prev) => Math.min(prev + 3, maxPage));
     };
 
     // Abrir y cerrar modal
@@ -271,6 +313,7 @@ function Usuario() {
         setSelectedEmpleadoId(null);
         setConfirmDeleteModal(false);
     };
+
 
     // Mostrar nombre y apellido del empleado seleccionado
     const empleadoSeleccionado = cedulas.find((c) => c.id === parseInt(formData.empleado_id));
@@ -387,6 +430,7 @@ function Usuario() {
                 </div>
             )}
 
+
             <div className='tableSection'>
                 <div className='filtersContainer'>
                     <button 
@@ -416,24 +460,54 @@ function Usuario() {
                     </thead>
                     <tbody>
                         {currentData.map((usuario) => (
-                            <tr key={usuario.id || `${usuario.username}-${usuario.email}`}>
+                            <tr
+                                key={usuario.id || `${usuario.username}-${usuario.email}`}
+                                className={!usuario.estado ? styles.usuarioDeshabilitado : ''}
+                            >
                                 <td>{usuario.username}</td>
-                                <td>{usuario.email}</td> 
+                                <td>{usuario.email}</td>
                                 <td>{usuario.tipo_usuario_nombre}</td>
                                 <td>
                                     <div className='iconContainer'>
-                                        <img
-                                            onClick={() => openEditModal(usuario)}
-                                            src={icon.editar}
-                                            className='iconeditar'
-                                            title='Editar'
-                                        />
-                                        <img 
+                                        {/* Editar y eliminar: solo el propio usuario */}
+                                        {tienePermiso('usuarios','editar') && user.id === usuario.id && (
+                                            <img
+                                                onClick={() => openEditModal(usuario)}
+                                                src={icon.editar}
+                                                className='iconeditar'
+                                                title='Editar'
+                                            />
+                                        )}
+
+                                        {tienePermiso('usuarios','eliminar') && user.id === usuario.id &&( 
+                                            <img 
                                             onClick={() => openConfirmDeleteModal(usuario.id)} 
                                             src={icon.eliminar} 
                                             className='iconeliminar' 
                                             title='eliminar'
-                                        />
+                                            />
+                                        )}
+
+                                    
+                                        {/* Deshabilitar: solo administradores, a cualquier usuario */}
+                                        {tienePermiso('usuarios', 'deshabilitar') && user.id !== usuario.id && usuario.estado && (
+                                            <img 
+                                                onClick={() => disableUser(usuario.id, false)} 
+                                                src={icon.deshabilitar} 
+                                                className='icondeshabilitar' 
+                                                title='deshabilitar'
+                                            />
+                                        )}
+                                        
+                                        {/* Habilitar: solo administradores, a cualquier usuario deshabilitado */}
+                                        {tienePermiso('usuarios', 'deshabilitar') && user.id !== usuario.id && !usuario.estado && (
+                                            <img 
+                                                onClick={() => disableUser(usuario.id, true)} 
+                                                src={icon.habilitar} 
+                                                className='icondeshabilitar' 
+                                                title='habilitar'
+                                            />
+                                        )}
                                     </div>
                                 </td>
                             </tr>
@@ -442,7 +516,9 @@ function Usuario() {
                 </table>
                 <div className='tableFooter'>
                     <img onClick={handlePreviousPage} src={icon.flecha3} className='iconBack' title='Anterior'/>
+                    <img onClick={handlePreviousThreePages} src={icon.flecha5} className='iconBack' title='Anterior' />
                     <span>{currentPage}</span>
+                    <img onClick={handleNextThreePages} src={icon.flecha4} className='iconNext' title='Siguiente' />
                     <img onClick={handleNextPage} src={icon.flecha2} className='iconNext' title='Siguiente'/>
                 </div>
             </div>

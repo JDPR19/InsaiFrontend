@@ -16,7 +16,7 @@ function Bitacora() {
     const [currentPage, setCurrentPage] = useState(1); // Página actual para la paginación
     const [registroSeleccionado, setRegistroSeleccionado] = useState(null); // Registro seleccionado para el modal
     const { notifications, addNotification, removeNotification } = useNotification(); // Hook para las notificaciones
-    const itemsPerPage = 5; // Número de registros por página
+    const itemsPerPage = 8; 
 
     // Obtener datos de la bitácora al cargar el componente
     useEffect(() => {
@@ -54,6 +54,15 @@ function Bitacora() {
 
     const handleNextPage = () => {
         if (indexOfLastItem < datosFiltrados.length) setCurrentPage(currentPage + 1);
+    };
+
+    const handlePreviousThreePages = () => {
+    setCurrentPage((prev) => Math.max(prev - 3, 1));
+    };
+
+    const handleNextThreePages = () => {
+        const maxPage = Math.ceil(datosFiltrados.length / itemsPerPage);
+        setCurrentPage((prev) => Math.min(prev + 3, maxPage));
     };
 
     // Manejar la apertura del modal
@@ -121,7 +130,9 @@ function Bitacora() {
                 </table>
                 <div className='tableFooter'>
                     <img onClick={handlePreviousPage} src={icon.flecha3} className='iconBack' title='Anterior' />
+                    <img onClick={handlePreviousThreePages} src={icon.flecha5} className='iconBack' title='Anterior' />
                     <span>{currentPage}</span>
+                    <img onClick={handleNextThreePages} src={icon.flecha4} className='iconNext' title='Siguiente' />
                     <img onClick={handleNextPage} src={icon.flecha2} className='iconNext' title='Siguiente' />
                 </div>
             </div>

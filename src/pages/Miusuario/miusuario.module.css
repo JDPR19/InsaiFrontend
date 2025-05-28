@@ -1,0 +1,76 @@
+.miuserContainer {
+    padding: 70px;
+    background-color: var(--white1);
+    min-height: calc(100vh - 60px); 
+    margin-left: 150px; 
+    margin-top: 50px;
+    margin-right: 50px;
+    transition: margin-left 0.3s ease-in-out; 
+}
+
+.modal {
+    background: #fff;
+    border-radius: 16px;
+    padding: 40px 32px 32px 32px;
+    max-width: 1180px;
+    min-width: 650px;
+    margin: 60px auto;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    position: relative;
+}
+
+
+.infoGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 24px; /* 8px entre filas, 24px entre columnas */
+    margin-bottom: 18px;
+    max-width: 420px;
+}
+.formColumns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+
+.formGroup {
+    flex: 1 1 180px;
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
+}
+
+.formGroup label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Poppins',sans-serif;
+    margin-bottom: 25px;
+}
+
+.infoLabel {
+    color: #555;
+    font-weight: 700;
+    margin-right: 8px;
+    font-size: 1.09rem;
+}
+
+.infoValue {
+    color: #222;
+    font-weight: 500;
+    font-size: 1.09rem;
+}
+
+.infoRow {
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}

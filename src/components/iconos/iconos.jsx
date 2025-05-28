@@ -38,7 +38,10 @@ import farmer2 from '../../../public/farmer2.svg';
 import cultivo from '../../../public/cultivo.svg';
 import zanahoria from '../../../public/zana.svg';
 import calendario from '../../../public/calendario.svg';
-
+import deshabilitar from '../../../public/deshabilitar.svg';
+import habilitar from '../../../public/habilitar.svg';
+import flecha4 from '../../../public/flecha4.svg';
+import flecha5 from '../../../public/flecha5.svg';
 
 const Iconos = {
     crear,
@@ -59,6 +62,8 @@ const Iconos = {
     flecha,
     flecha2,
     flecha3,
+    flecha4,
+    flecha5,
     error,
     apagar,
     barras,
@@ -80,7 +85,9 @@ const Iconos = {
     farmer2,
     cultivo,
     zanahoria,
-    calendario
+    calendario,
+    deshabilitar,
+    habilitar
 };
 
 export default Iconos;

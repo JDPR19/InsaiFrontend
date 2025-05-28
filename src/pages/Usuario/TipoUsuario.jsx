@@ -26,7 +26,7 @@ function TipoUsuario() {
     const [tipoSeleccionado, setTipoSeleccionado] = useState(null);
 
     const { notifications, addNotification, removeNotification } = useNotification();
-    const itemsPerPage = 5;
+    const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
 
     // Reiniciar el formulario
@@ -156,6 +156,15 @@ function TipoUsuario() {
 
     const handleNextPage = () => {
         if (indexOfLastItem < datosFiltrados.length) setCurrentPage(currentPage + 1);
+    };
+
+    const handlePreviousThreePages = () => {
+    setCurrentPage((prev) => Math.max(prev - 3, 1));
+    };
+
+    const handleNextThreePages = () => {
+        const maxPage = Math.ceil(datosFiltrados.length / itemsPerPage);
+        setCurrentPage((prev) => Math.min(prev + 3, maxPage));
     };
 
     // Modal registro/edición
@@ -351,7 +360,9 @@ function TipoUsuario() {
                 </table>
                 <div className='tableFooter'>
                     <img onClick={handlePreviousPage} src={icon.flecha3} className='iconBack' title='Anterior'/>
+                    <img onClick={handlePreviousThreePages} src={icon.flecha5} className='iconBack' title='Anterior' />
                     <span>{currentPage}</span>
+                    <img onClick={handleNextThreePages} src={icon.flecha4} className='iconNext' title='Siguiente' />
                     <img onClick={handleNextPage} src={icon.flecha2} className='iconNext' title='Siguiente'/>
                 </div>
             </div>
