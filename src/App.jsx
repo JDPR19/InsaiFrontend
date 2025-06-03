@@ -31,6 +31,7 @@ import Cargo from './pages/Cargo/Cargo';
 import TipoUsuario from './pages/Usuario/TipoUsuario';
 import Planificacion from './pages/Planificacion/Planificacion';
 import MuestraPlaga from './pages/MuestraPlaga/MuestraPlaga';
+import TipoSolicitud from './pages/Solicitud/TipoSolicitud';
 import MiUsuario from './pages/Miusuario/MiUsuario';
 import ProtectedRoute from './ProtectedRoute';
 
@@ -214,6 +215,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+        path="/TipoSolicitud"
+        element={
+          <ProtectedRoute pantalla="tipo_solicitud"> 
+          <MainLayout>
+            <TipoSolicitud/>
+          </MainLayout>
+          </ProtectedRoute> 
+        }/>
+
         <Route
           path="/TipoProductor"
           element={

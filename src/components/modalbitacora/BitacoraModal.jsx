@@ -12,7 +12,7 @@ function BitacoraModal({ registro, onClose }) {
         laboratorio: 'Laboratorio',
         empleado_id: 'Empleado',
         cargo_id: 'Cargo',
-        tipo_usuario_id: 'Tipo de Usuario',
+        roles_id: 'Tipo de Usuario',
         email: 'Correo',
         username: 'Usuario',
         cultivo_id: 'Cultivo',
@@ -40,9 +40,9 @@ function BitacoraModal({ registro, onClose }) {
         <div className={styles.modalOverlay}>
             <div className={styles.modalContent}>
                 <h2>Detalles del Registro</h2>
-                {/* <p><strong>Fecha:</strong> {registro.fecha || 'No disponible'}</p> */}
-                {/* <p><strong>Acción:</strong> {registro.accion || 'No disponible'}</p> */}
-                {/* <p><strong>Tabla:</strong> {registro.tabla || 'No disponible'}</p> */}
+                <p><strong>Fecha:</strong> {registro.fecha || 'No disponible'}</p>
+                <p><strong>Acción:</strong> {registro.accion || 'No disponible'}</p>
+                <p><strong>Tabla:</strong> {registro.tabla || 'No disponible'}</p>
                 <p><strong>Usuario:</strong> {registro.usuario || 'No disponible'}</p>
                 <p><strong>Descripción:</strong> {registro.descripcion || 'No disponible'}</p>
                 <h3>Datos Antiguos:</h3>

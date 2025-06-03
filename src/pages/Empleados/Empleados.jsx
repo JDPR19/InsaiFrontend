@@ -347,8 +347,8 @@ function Empleado() {
                         onClick={openModal} 
                         className='create'
                         title='Registrar Empleado'>
-                        <img src={icon.crear} alt="Crear" className='icon' />
-                        Registrar
+                        <img src={icon.plus} alt="Crear" className='icon' />
+                        Agregar
                     </button>
 
                     <h2>Empleados</h2>

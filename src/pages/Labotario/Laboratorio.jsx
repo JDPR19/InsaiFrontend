@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styles from './insumos.module.css';
+import styles from './laboratorios.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import SearchBar from "../../components/searchbart/SearchBar";

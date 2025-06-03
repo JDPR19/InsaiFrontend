@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from './laboratorios.module.css';
+import styles from './solicitud.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
@@ -9,7 +9,7 @@ import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 
-function TipoLaboratorio() {
+function TipoSolicitud() {
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -19,7 +19,7 @@ function TipoLaboratorio() {
         nombre: '',
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
-    const [selectedTipoLaboratorioId, setSelectedTipoLaboratorioId] = useState(null);
+    const [selectedTipoSolicitudId, setSelectedTipoSolicitudId] = useState(null);
 
     const { notifications, addNotification, removeNotification } = useNotification();
     const itemsPerPage = 8;
@@ -53,9 +53,9 @@ function TipoLaboratorio() {
     };
 
     // obterner o listar los cargos
-    const fetchTipoLaboratorio = async () => {
+    const fetchTipoSolicitud = async () => {
         try {
-            const response = await axios.get('http://localhost:4000/tipo_laboratorio', {
+            const response = await axios.get('http://localhost:4000/tipo_solicitud', {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -63,16 +63,17 @@ function TipoLaboratorio() {
             setDatosOriginales(response.data);
             setDatosFiltrados(response.data);
         } catch (error) {
-            console.error('Error obteniendo el tipo de laboratorio:', error);
-            addNotification('Error al obtener el tipo de laboratorio', 'error');
+            console.error('Error obteniendo tipos de solicitud:', error);
+            addNotification('Error al obtener el tipo solicitud', 'error');
         }
     };
 
     useEffect(() => {
-        fetchTipoLaboratorio();
+        fetchTipoSolicitud();
     },[]);
 
 
+    // Crear cargo
     const handleSave = async () => {
         
         for (const field in formData) {
@@ -88,7 +89,7 @@ function TipoLaboratorio() {
         }
 
         try {
-            const response = await axios.post('http://localhost:4000/tipo_laboratorio', {
+            const response = await axios.post('http://localhost:4000/tipo_solicitud', {
                 ...formData,
             }, {
                 headers: {
@@ -97,12 +98,12 @@ function TipoLaboratorio() {
             });
             setDatosOriginales([response.data, ...datosOriginales]);
             setDatosFiltrados([response.data, ...datosFiltrados]);
-            addNotification('Tipo de Laboratorio registrada con éxito', 'success');
-            fetchTipoLaboratorio();
+            addNotification('Tipo de Solicitud registrado con éxito', 'success');
+            fetchTipoSolicitud();
             closeModal();
         } catch (error) {
-            console.error('Error creando tipo de Laboratorio:', error);
-            addNotification('Error al registrar tipo de laboratorio', 'error');
+            console.error('Error creando Tipo de Solicitud:', error);
+            addNotification('Error al registrando tipo de solicitud', 'error');
         }
     };
 
@@ -118,41 +119,40 @@ function TipoLaboratorio() {
         }
 
         try {
-            const response = await axios.put(`http://localhost:4000/tipo_laboratorio/${formData.id}`, {
+            const response = await axios.put(`http://localhost:4000/tipo_solicitud/${formData.id}`, {
                 ...formData,
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            const updatedData = datosOriginales.map((tipo_laboratorio) =>
-                tipo_laboratorio.id === response.data.id ? response.data : tipo_laboratorio
+            const updatedData = datosOriginales.map((tipo_solicitud) =>
+                tipo_solicitud.id === response.data.id ? response.data : tipo_solicitud
             );
             setDatosOriginales(updatedData);
             setDatosFiltrados(updatedData);
             closeModal();
-            addNotification('Tipo de Laboratorio actualizado con éxito', 'success');
+            addNotification('Tipo de solicitud actualizado con éxito', 'success');
         } catch (error) {
-            console.error('Error editando tipo de laboratorio:', error);
-            addNotification('Error al actualizar tipo de laboratorio', 'error');
+            console.error('Error editando Tipo de solicitud:', error);
+            addNotification('Error al actualizar Tipo de solicitud', 'error');
         }
     };
 
-    
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`http://localhost:4000/tipo_laboratorio/${id}`, {
+            await axios.delete(`http://localhost:4000/tipo_solicitud/${id}`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
             });
 
-            setDatosOriginales(datosOriginales.filter((tipo_laboratorio) => tipo_laboratorio.id !== id));
-            setDatosFiltrados(datosFiltrados.filter((tipo_laboratorio) => tipo_laboratorio.id !== id));
-            addNotification('Tipo de Laboratorio eliminado con éxito', 'error');
+            setDatosOriginales(datosOriginales.filter((tipo_solicitud) => tipo_solicitud.id !== id));
+            setDatosFiltrados(datosFiltrados.filter((tipo_solicitud) => tipo_solicitud.id !== id));
+            addNotification('Tipo de solicitud eliminada con éxito', 'error');
         } catch (error) {
-            console.error('Error eliminando tipo de laboratorio:', error);
-            addNotification('Error al eliminar tipo de laboratorio', 'error');
+            console.error('Error eliminando tipo de solicitud:', error);
+            addNotification('Error al eliminar tipo de solicitud', 'error');
         }
     };
 
@@ -181,34 +181,34 @@ function TipoLaboratorio() {
     // Abrir y cerrar modal
     const openModal = () => {
         resetFormData();
-        setCurrentModal('tipo_laboratorio');
+        setCurrentModal('tipo_solicitud');
     };
 
     const closeModal = () => setCurrentModal(null);
 
     // Abrir para editar con el modal
-    const openEditModal = async (tipo_laboratorio) => {
+    const openEditModal = async (tipo_solicitud) => {
         setFormData({
-            id: tipo_laboratorio.id,
-            nombre: tipo_laboratorio.nombre || '',
+            id: tipo_solicitud.id,
+            nombre: tipo_solicitud.nombre || '',
             
         });
-        setCurrentModal('tipo_laboratorio');
+        setCurrentModal('tipo_solicitud');
     };
 
     // Abrir modal de confirmación para eliminar
     const openConfirmDeleteModal = (id) => {
-        setSelectedTipoLaboratorioId(id);
+        setSelectedTipoSolicitudId(id);
         setConfirmDeleteModal(true);
     };
     const closeConfirmDeleteModal = () => {
-        setSelectedTipoLaboratorioId(null);
+        setSelectedTipoSolicitudId(null);
         setConfirmDeleteModal(false);
     };
 
 
     return (
-        <div className={styles.tipolaboratorioContainer}>
+        <div className={styles.tipo_solicitudContainer}>
             {notifications.map((notification) => (
                 <Notification
                     key={notification.id}
@@ -219,16 +219,16 @@ function TipoLaboratorio() {
             ))}
 
             {/* modal registro y editar */}
-            {currentModal === 'tipo_laboratorio' && (
+            {currentModal === 'tipo_solicitud' && (
                 <div className='modalOverlay'>
                     <div className={styles.modal}>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
-                        <h2>{formData.id ? 'Editar Tipo de Laboratorio' : 'Registrar Tipo de Laboratorio'}</h2>
+                        <h2>{formData.id ? 'Editar Tipo de Solicitud' : 'Registrar Tipo de Solicitud'}</h2>
                         <form className='modalForm'>
                             <div>
 
                                 <div className='formGroup'>
-                                    <label htmlFor="tipo_laboratorio">Tipo de Laboratorio:</label>
+                                    <label htmlFor="tipo_solicitud">Tipo de Solicitud:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>
@@ -239,7 +239,7 @@ function TipoLaboratorio() {
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Tipo de Laboratorio' : 'Registrar Tipo de Laboratorio'}>
+                                title={formData.id ? 'Actualizar Tipo de Solicitud' : 'Registrar Tipo de Solicitud'}>
                                     Guardar
                             </button>
                         </form>
@@ -252,10 +252,10 @@ function TipoLaboratorio() {
                 <div className='modalOverlay'>
                     <div className='modal'>
                         <h2>Confirmar Eliminación</h2>
-                        <p>¿Estás seguro de que deseas eliminar este Tipo de Laboratorio?</p>
+                        <p>¿Estás seguro de que deseas eliminar esta Tipo de Solicitud?</p>
                         <div className='modalActions'>
                             <button className='cancelButton' onClick={closeConfirmDeleteModal}>Cancelar</button>
-                            <button className='confirmButton' onClick={() => { handleDelete(selectedTipoLaboratorioId); closeConfirmDeleteModal(); }}>Confirmar</button>
+                            <button className='confirmButton' onClick={() => { handleDelete(selectedTipoSolicitudId); closeConfirmDeleteModal(); }}>Confirmar</button>
                         </div>
                     </div>
                 </div>
@@ -267,12 +267,12 @@ function TipoLaboratorio() {
                         type='button'
                         onClick={openModal} 
                         className='create'
-                        title='Registrar Tipo de Laboratorio'>
+                        title='Registrar Tipo de Solicitud'>
                         <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
 
-                    <h2>Tipos de Laboratorio</h2>
+                    <h2>Tipos de Solicitud</h2>
 
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
@@ -288,20 +288,20 @@ function TipoLaboratorio() {
                         </tr>
                     </thead>
                     <tbody>
-                        {currentData.map((tipo_laboratorio, idx) => (
-                            <tr key={tipo_laboratorio.id} >
+                        {currentData.map((tipo_solicitud, idx) => (
+                            <tr key={tipo_solicitud.id} >
                                 <td>{indexOfFirstItem + idx + 1}</td>
-                                <td>{tipo_laboratorio.nombre}</td>
+                                <td>{tipo_solicitud.nombre}</td>
                                 <td>
                                     <div className={styles.iconContainer}>
                                         <img
-                                            onClick={() => openEditModal(tipo_laboratorio)}
+                                            onClick={() => openEditModal(tipo_solicitud)}
                                             src={icon.editar}
                                             className='iconeditar'
                                             title='Editar'
                                         />
                                         <img 
-                                            onClick={() => openConfirmDeleteModal(tipo_laboratorio.id)} 
+                                            onClick={() => openConfirmDeleteModal(tipo_solicitud.id)} 
                                             src={icon.eliminar} 
                                             className='iconeliminar' 
                                             title='eliminar'
@@ -324,4 +324,4 @@ function TipoLaboratorio() {
     );
 }
 
-export default TipoLaboratorio;
+export default TipoSolicitud;

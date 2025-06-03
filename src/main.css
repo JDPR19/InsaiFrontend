@@ -262,7 +262,8 @@
 }
 
 .formGroup label {
-  margin-bottom: 5px;
+  margin-bottom: 4px;
+  margin-top: 10px;
 }
 
 .text_empleado {
@@ -502,7 +503,7 @@
   border-bottom: 1px solid var(--grey2);
   max-width: 140px; 
   line-height: 1;
-  white-space: normal; 
+  white-space: nowrap;
   word-wrap: break-word; 
   overflow: hidden; 
   text-overflow: ellipsis; 
@@ -516,7 +517,7 @@
 
 .table td {
   /* text-align: justify; */
-  font-size: 0.8rem;
+  font-size: 0.9rem;
 }
 
 .table tr:hover {
@@ -619,6 +620,12 @@
     border-color: #98c79a;
     box-shadow: 0 0 5px rgba(152, 199, 154, 0.5);
 }
+
+.select {
+  overflow-y: auto;
+  padding: 7px;
+}
+
 .select:hover{
   cursor: pointer; 
 }
@@ -627,7 +634,21 @@
     color: #242424; 
     padding: 5px;
     cursor: pointer;
+    max-width: 50%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
+
+.select::-webkit-scrollbar {
+  width: 8px;
+  background: var(--grey4);
+}
+.select::-webkit-scrollbar-thumb {
+  background: #98c79a;
+  border-radius: 4px;
+}
+
 
 .date::-webkit-calendar-picker-indicator {
   cursor: pointer; 

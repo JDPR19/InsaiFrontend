@@ -42,6 +42,8 @@ import deshabilitar from '../../../public/deshabilitar.svg';
 import habilitar from '../../../public/habilitar.svg';
 import flecha4 from '../../../public/flecha4.svg';
 import flecha5 from '../../../public/flecha5.svg';
+import plus from '../../../public/plus.svg';
+
 
 const Iconos = {
     crear,
@@ -87,7 +89,8 @@ const Iconos = {
     zanahoria,
     calendario,
     deshabilitar,
-    habilitar
+    habilitar,
+    plus
 };
 
 export default Iconos;

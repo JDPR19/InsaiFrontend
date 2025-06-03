@@ -252,7 +252,7 @@ function MiUsuario() {
                                             style={{ cursor: 'pointer' }}
                                         />
                                     )}
-                                    {tienePermiso('miusuario', 'eliminar') && (
+                                    {/* {tienePermiso('miusuario', 'eliminar') && (
                                         <img
                                             onClick={() => setConfirmDeleteModal(true)}
                                             src={icon.eliminar}
@@ -260,7 +260,7 @@ function MiUsuario() {
                                             title='Eliminar'
                                             style={{ cursor: 'pointer', marginLeft: 10 }}
                                         />
-                                    )}
+                                    )} */}
                                 </div>
                             </td>
                         </tr>

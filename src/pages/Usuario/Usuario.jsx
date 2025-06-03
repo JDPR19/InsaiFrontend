@@ -27,7 +27,7 @@ function Usuario() {
         cedula: '',
         username: '',
         email: '',
-        tipo_usuario_id: '',
+        roles_id: '',
         password: '',
         confirmarpassword: ''
     });
@@ -45,7 +45,7 @@ function Usuario() {
             cedula: '',
             username: '',
             email: '',
-            tipo_usuario_id: '',
+            roles_id: '',
             password: '',
             confirmarpassword: ''
         });
@@ -297,7 +297,7 @@ function Usuario() {
             cedula: usuario.cedula || '',
             username: usuario.username || '',
             email: usuario.email || '',
-            tipo_usuario_id: usuario.tipo_usuario_id || '',
+            roles_id: usuario.roles_id || '',
             password: '',
             confirmarpassword: ''
         });
@@ -375,9 +375,9 @@ function Usuario() {
                                 <div className='formGroup'>
                                     <label htmlFor="tipo_usuario_id">Tipo de Usuario:</label>
                                     <select
-                                        id="tipo_usuario_id"
+                                        id="roles_id"
                                         className='select'
-                                        value={formData.tipo_usuario_id || ''}
+                                        value={formData.roles_id || ''}
                                         onChange={handleChange}
                                         disabled={!!formData.id}
                                     >
@@ -388,7 +388,7 @@ function Usuario() {
                                             </option>
                                         ))}
                                     </select>
-                                    {errors.tipo_usuario_id && <span className='errorText'>{errors.tipo_usuario_id}</span>}
+                                    {errors.roles_id && <span className='errorText'>{errors.roles_id}</span>}
                                 </div>
 
                                 <div className='formGroup'>
@@ -438,8 +438,8 @@ function Usuario() {
                         onClick={openModal} 
                         className='create'
                         title='Registrar Empleado'>
-                        <img src={icon.crear} alt="Crear" className='icon' />
-                        Registrar
+                        <img src={icon.plus} alt="Crear" className='icon' />
+                        Agregar
                     </button>
 
                     <h2>Usuarios</h2>
@@ -466,7 +466,7 @@ function Usuario() {
                             >
                                 <td>{usuario.username}</td>
                                 <td>{usuario.email}</td>
-                                <td>{usuario.tipo_usuario_nombre}</td>
+                                <td>{usuario.roles_nombre}</td>
                                 <td>
                                     <div className='iconContainer'>
                                         {/* Editar y eliminar: solo el propio usuario */}

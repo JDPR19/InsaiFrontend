@@ -39,11 +39,7 @@ function Cargo() {
         const { id, value } = e.target;
         setFormData({ ...formData, [id]: value });
 
-        // Validar el campo en tiempo real
-        if (id === 'confirmarpassword') {
-            const confirmPasswordValidation = validationRules.confirmarpassword.validate(value, formData.password);
-            setErrors({ ...errors, confirmarpassword: confirmPasswordValidation.valid ? '' : confirmPasswordValidation.message });
-        } else if (validationRules[id]) {
+        if (validationRules[id]) {
             const { regex, errorMessage } = validationRules[id];
             const { valid, message } = validateField(value, regex, errorMessage);
             setErrors({ ...errors, [id]: valid ? '' : message });
@@ -106,8 +102,8 @@ function Cargo() {
             fetchCargos();
             closeModal();
         } catch (error) {
-            console.error('Error creando usuario:', error);
-            addNotification('Error al registrar usuario', 'error');
+            console.error('Error creando Cargo:', error);
+            addNotification('Error al registrar cargo', 'error');
         }
     };
 
@@ -231,7 +227,7 @@ function Cargo() {
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Cargo' : 'Registrar Cargo'}</h2>
                         <form className='modalForm'>
-                            <div className={styles.formCollumns}>
+                            <div>
 
                                 <div className='formGroup'>
                                     <label htmlFor="cargo">Cargo:</label>
@@ -245,7 +241,7 @@ function Cargo() {
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Usuario' : 'Registrar Usuario'}>
+                                title={formData.id ? 'Actualizar Cargo' : 'Registrar Cargo'}>
                                     Guardar
                             </button>
                         </form>
@@ -274,8 +270,8 @@ function Cargo() {
                         onClick={openModal} 
                         className='create'
                         title='Registrar Cargo'>
-                        <img src={icon.crear} alt="Crear" className='icon' />
-                        Registrar
+                        <img src={icon.plus} alt="Crear" className='icon' />
+                        Agregar
                     </button>
 
                     <h2>Cargos</h2>
@@ -288,13 +284,15 @@ function Cargo() {
                 <table className={styles.table}>
                     <thead>
                         <tr>
-                            <th>nombre</th>
+                            <th>ID</th>
+                            <th>Nombre</th>
                             <th>Acción</th>
                         </tr>
                     </thead>
                     <tbody>
                         {currentData.map((cargo) => (
                             <tr key={cargo.id} >
+                                <td>{cargo.id}</td>
                                 <td>{cargo.nombre}</td>
                                 <td>
                                     <div className={styles.iconContainer}>

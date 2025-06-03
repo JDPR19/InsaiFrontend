@@ -8,7 +8,8 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
-import PermisosModal from '../../components/modalpermiso/PermisosModal';
+import { PANTALLAS, ACCIONES } from '../../utils/permisouser';
+
 
 function TipoUsuario() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -19,11 +20,13 @@ function TipoUsuario() {
         id: '',
         nombre: '',
         descripcion: '',
+        permisos: {}
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedTipoId, setSelectedTipoId] = useState(null);
-    const [modalPermisosOpen, setModalPermisosOpen] = useState(false);
-    const [tipoSeleccionado, setTipoSeleccionado] = useState(null);
+
+    const [permisoModalOpen, setPermisoModalOpen] = useState(false);
+    const [permisoSeleccionado, setPermisoSeleccionado] = useState(null);
 
     const { notifications, addNotification, removeNotification } = useNotification();
     const itemsPerPage = 8;
@@ -35,24 +38,25 @@ function TipoUsuario() {
             id: '',
             nombre: '',
             descripcion: '',
+            permisos: {}
         });
         setErrors({});
     };
 
     // Buscar
     const handleSearch = (searchTerm) => {
-        const filtered = filterData(datosOriginales, searchTerm, ['id','nombre']);
+        const filtered = filterData(datosOriginales, searchTerm, ['id','nombre','descripcion']);
         setDatosFiltrados(filtered);
     };
 
     // Obtener tipos de usuario
     const fetchTiposUsuario = async () => {
         try {
-            const response = await axios.get('http://localhost:4000/tipo_usuario', {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}`
-            }
-        });
+            const response = await axios.get('http://localhost:4000/roles', {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            });
             setDatosOriginales(response.data);
             setDatosFiltrados(response.data);
         } catch (error) {
@@ -79,14 +83,11 @@ function TipoUsuario() {
             }
         }
         try {
-            await axios.post('http://localhost:4000/tipo_usuario', {
-            ...formData,
-                    permisos: {},
-                }, {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
+            await axios.post('http://localhost:4000/roles', formData, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            });
 
             addNotification('Tipo de usuario registrado con éxito', 'success');
             fetchTiposUsuario();
@@ -109,15 +110,11 @@ function TipoUsuario() {
             }
         }
         try {
-            await axios.put(`http://localhost:4000/tipo_usuario/${formData.id}`, {
-                nombre: formData.nombre,
-                descripcion: formData.descripcion
-            }, {
+            await axios.put(`http://localhost:4000/roles/${formData.id}`, formData, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
-
 
             addNotification('Tipo de usuario actualizado con éxito', 'success');
             fetchTiposUsuario();
@@ -131,11 +128,11 @@ function TipoUsuario() {
     // Eliminar tipo de usuario
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`http://localhost:4000/tipo_usuario/${id}`, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}`
-            }
-        });
+            await axios.delete(`http://localhost:4000/roles/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            });
 
             addNotification('Tipo de usuario eliminado con éxito', 'error');
             fetchTiposUsuario();
@@ -159,7 +156,7 @@ function TipoUsuario() {
     };
 
     const handlePreviousThreePages = () => {
-    setCurrentPage((prev) => Math.max(prev - 3, 1));
+        setCurrentPage((prev) => Math.max(prev - 3, 1));
     };
 
     const handleNextThreePages = () => {
@@ -180,6 +177,7 @@ function TipoUsuario() {
             id: tipo.id,
             nombre: tipo.nombre || '',
             descripcion: tipo.descripcion || '',
+            permisos: tipo.permisos || {}
         });
         setCurrentModal('tipo_usuario');
     };
@@ -194,36 +192,17 @@ function TipoUsuario() {
         setConfirmDeleteModal(false);
     };
 
-    // Modal permisos
+    // Modal solo lectura de permisos
     const openPermisosModal = (tipo) => {
-        setTipoSeleccionado(tipo);
-        setModalPermisosOpen(true);
+        setPermisoSeleccionado(tipo);
+        setPermisoModalOpen(true);
     };
-    const handleGuardarPermisos = async (permisos) => {
-        try {
-            await axios.put(
-            `http://localhost:4000/tipo_usuario/${tipoSeleccionado.id}`,
-            {
-                ...tipoSeleccionado,
-                permisos
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-
-            
-            addNotification('Permisos actualizados', 'success');
-            setModalPermisosOpen(false);
-            fetchTiposUsuario();
-        } catch (error) {
-            console.error('Error al actualizar permisos', error);
-            addNotification('Error al actualizar permisos', 'error');
-        }
+    const closePermisosModal = () => {
+        setPermisoSeleccionado(null);
+        setPermisoModalOpen(false);
     };
 
-    // Formulario
+    // Manejar cambios en los inputs
     const handleChange = (e) => {
         const { id, value } = e.target;
         setFormData({ ...formData, [id]: value });
@@ -232,6 +211,20 @@ function TipoUsuario() {
             const { valid, message } = validateField(value, regex, errorMessage);
             setErrors({ ...errors, [id]: valid ? '' : message });
         }
+    };
+
+    // Manejar cambios en los permisos
+    const handlePermisoChange = (pantalla, accion) => {
+        setFormData((prev) => ({
+            ...prev,
+            permisos: {
+                ...prev.permisos,
+                [pantalla]: {
+                    ...prev.permisos[pantalla],
+                    [accion]: !prev.permisos?.[pantalla]?.[accion]
+                }
+            }
+        }));
     };
 
     return (
@@ -247,21 +240,41 @@ function TipoUsuario() {
 
             {/* Modal registro/edición */}
             {currentModal === 'tipo_usuario' && (
-                <div className='modalOverlay'>
+                <div className={styles.modalOverlay}>
                     <div className={styles.modal}>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Tipo de Usuario' : 'Registrar Tipo de Usuario'}</h2>
                         <form className='modalForm'>
-                            <div className={styles.formColumns}>
-                                <div className='formGroup'>
+                            <div className={styles.formGroup}>
+                                <div>
                                     <label htmlFor="nombre">Nombre:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>
-                                <div className='formGroup'>
+                                <div>
                                     <label htmlFor="descripcion">Descripción:</label>
                                     <textarea id="descripcion" value={formData.descripcion} onChange={handleChange} className='textarea' placeholder='Rellene el Campo'/>
                                     {errors.descripcion && <span className='errorText'>{errors.descripcion}</span>}
+                                </div>
+                            </div>
+                            <div>
+                                <label>Permisos:</label>
+                                <div className={styles.permisosGrid}>
+                                    {PANTALLAS.map((pantalla) => (
+                                        <div key={pantalla.key} className={styles.permisoPantalla}>
+                                            <strong>{pantalla.label}</strong>
+                                            {ACCIONES.map((accion) => (
+                                                <label key={accion.key} className={styles.permisoCheckbox}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={!!formData.permisos?.[pantalla.key]?.[accion.key]}
+                                                        onChange={() => handlePermisoChange(pantalla.key, accion.key)}
+                                                    />
+                                                    {accion.label}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                             <button 
@@ -272,6 +285,34 @@ function TipoUsuario() {
                                     Guardar
                             </button>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal solo lectura de permisos */}
+            {permisoModalOpen && permisoSeleccionado && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modal}>
+                        <button className='closeButton' onClick={closePermisosModal}>&times;</button>
+                        <h2>Permisos de {permisoSeleccionado.nombre}</h2>
+                        <div className={styles.permisosGrid}>
+                            {PANTALLAS.map((pantalla) => (
+                                <div key={pantalla.key} className={styles.permisoPantalla}>
+                                    <strong>{pantalla.label}</strong>
+                                    {ACCIONES.map((accion) => (
+                                        <label key={accion.key} className={styles.permisoCheckbox}>
+                                            <input
+                                                type="checkbox"
+                                                checked={!!permisoSeleccionado.permisos?.[pantalla.key]?.[accion.key]}
+                                                readOnly
+                                                disabled
+                                            />
+                                            {accion.label}
+                                        </label>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}
@@ -289,16 +330,7 @@ function TipoUsuario() {
                     </div>
                 </div>
             )}
-
-            {/* Modal de permisos */}
-            {modalPermisosOpen && tipoSeleccionado && (
-                <PermisosModal
-                    tipoUsuario={tipoSeleccionado}
-                    onSave={handleGuardarPermisos}
-                    onClose={() => setModalPermisosOpen(false)}
-                />
-            )}
-
+            
             {/* Tabla de tipos de usuario */}
             <div className='tableSection'>
                 <div className='filtersContainer'>
@@ -307,8 +339,8 @@ function TipoUsuario() {
                         onClick={openModal} 
                         className='create'
                         title='Registrar Tipo de Usuario'>
-                        <img src={icon.crear} alt="Crear" className='icon' />
-                        Registrar
+                        <img src={icon.plus} alt="Crear" className='icon' />
+                        Agregar
                     </button>
                     <h2>Roles & Permisos</h2>
                     <div className='searchContainer'>
@@ -334,8 +366,10 @@ function TipoUsuario() {
                                     <button
                                         className={styles.btnPermiso}
                                         onClick={() => openPermisosModal(tipo)}
+                                        title="Ver permisos"
+                                        type="button"
                                     >
-                                        Editar permisos
+                                        Ver permisos
                                     </button>
                                 </td>
                                 <td>
