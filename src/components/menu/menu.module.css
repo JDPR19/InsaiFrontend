@@ -15,7 +15,7 @@
     left: 0; 
     background-color: var(--grey); 
     color: var(--black); 
-    width: 280px; 
+    width: 320px; 
     height: 100vh; 
     transition: width 0.3s ease-in-out; 
     overflow: hidden; 
@@ -26,7 +26,7 @@
 }
 
 .container.collapsed .sidebar {
-    width: 65px; /* Ancho del menú colapsado */
+    width: 65px; 
 }
 
 .navList {
@@ -37,7 +37,7 @@
     margin: 0;
     overflow-y: auto;
     max-height: calc(100vh - 60px - 60px); /* Resta la altura del footer */
-    scrollbar-width: thin; /* Para navegadores como Firefox */
+    scrollbar-width: thin;
     scrollbar-color: #555 #e0e0e0; /* Color del scroll y del fondo */
 }
 
@@ -65,8 +65,6 @@
     background-color: #333; /* Color del scroll al pasar el mouse */
 }
 
-
-
 .navItem {
     display: flex;
     flex-direction: column; /* Ajusta para sublistas */
@@ -82,8 +80,8 @@
 }
 
 .navItem.selected {
-    background-color: #5554548d; /* Color para el ítem seleccionado */
-    color: var(--white); /* Cambia el color del texto */
+    background-color: #5554548d; 
+    color: var(--white); 
 }
 
 .navLink {

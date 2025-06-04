@@ -289,7 +289,7 @@ function Municipio() {
                     <thead>
                         <tr>
                             <th>N°</th>
-                            <th>nombre</th>
+                            <th>Municipio</th>
                             <th>Estado</th>
                             <th>Acción</th>
                         </tr>

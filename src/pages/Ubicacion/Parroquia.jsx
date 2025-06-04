@@ -57,7 +57,7 @@ function Parroquia() {
     };
 
     const handleSearch = (searchTerm) => {
-        const filtered = filterData(datosOriginales, searchTerm, ['id','nombre']);
+        const filtered = filterData(datosOriginales, searchTerm, ['id','nombre','municipio','estado']);
         setDatosFiltrados(filtered);
     };
 
@@ -348,7 +348,7 @@ function Parroquia() {
                     <thead>
                         <tr>
                             <th>N°</th>
-                            <th>nombre</th>
+                            <th>Parroquia</th>
                             <th>Municipio</th>
                             <th>Estado</th>
                             <th>Acción</th>
