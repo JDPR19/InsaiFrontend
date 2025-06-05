@@ -9,28 +9,32 @@ import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 
-function Municipio() {
+function Sector() {
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [estados, setEstados] = useState([]);
+    const [municipios, setMunicipios] = useState([]);
+    const [parroquias, setParroquias] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
     const [formData, setFormData] = useState({
         id: '',
         nombre: '',
         estado_id: '',
+        municipio_id: '',
+        parroquia_id: '',
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
-    const [selectedMunicipioId, setSelectedMunicipioId] = useState(null);
+    const [selectedSectorId, setSelectedSectorId] = useState(null);
 
     const { notifications, addNotification, removeNotification } = useNotification();
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
 
     // --- Fetchers ---
-    const fetchMunicipios = async () => {
+    const fetchSectores = async () => {
         try {
-            const response = await axios.get('http://localhost:4000/municipio', {
+            const response = await axios.get('http://localhost:4000/sector', {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -38,14 +42,14 @@ function Municipio() {
             setDatosOriginales(response.data);
             setDatosFiltrados(response.data);
         } catch (error) {
-            console.error('Error obteniendo municipios:', error);
-            addNotification('Error al obtener municipios', 'error');
+            console.error('Error obteniendo sectores:', error);
+            addNotification('Error al obtener sectores', 'error');
         }
     };
 
     const fetchEstados = async () => {
         try {
-            const response = await axios.get('http://localhost:4000/municipio/estados/all', {
+            const response = await axios.get('http://localhost:4000/sector/estados/all', {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -57,23 +61,73 @@ function Municipio() {
         }
     };
 
+    const fetchMunicipios = async (estadoId) => {
+        try {
+            if (!estadoId) {
+                setMunicipios([]);
+                return;
+            }
+            const response = await axios.get('http://localhost:4000/sector/municipios/all', {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            setMunicipios(response.data.filter(m => Number(m.estado_id) === Number(estadoId)));
+        } catch (error) {
+            console.error('Error obteniendo municipios:', error);
+            addNotification('Error al obtener municipios', 'error');
+        }
+    };
+
+    const fetchParroquias = async (municipioId) => {
+        try {
+            if (!municipioId) {
+                setParroquias([]);
+                return;
+            }
+            const response = await axios.get('http://localhost:4000/sector/parroquias/all', {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            setParroquias(response.data.filter(p => Number(p.municipio_id) === Number(municipioId)));
+        } catch (error) {
+            console.error('Error obteniendo parroquias:', error);
+            addNotification('Error al obtener parroquias', 'error');
+        }
+    };
+
     useEffect(() => {
-        fetchMunicipios();
+        fetchSectores();
         fetchEstados();
     }, []);
 
-    // --- Handlers ---
+    
     const resetFormData = () => {
         setFormData({
             id: '',
             nombre: '',
             estado_id: '',
+            municipio_id: '',
+            parroquia_id: '',
         });
+        setMunicipios([]);
+        setParroquias([]);
     };
 
     const handleChange = (e) => {
         const { id, value } = e.target;
         setFormData(prev => ({ ...prev, [id]: value }));
+
+        if (id === 'estado_id') {
+            setFormData(prev => ({ ...prev, estado_id: value, municipio_id: '', parroquia_id: '' }));
+            fetchMunicipios(value);
+            setParroquias([]);
+        }
+        if (id === 'municipio_id') {
+            setFormData(prev => ({ ...prev, municipio_id: value, parroquia_id: '' }));
+            fetchParroquias(value);
+        }
 
         if (validationRules[id]) {
             const { regex, errorMessage } = validationRules[id];
@@ -83,12 +137,14 @@ function Municipio() {
     };
 
     const handleSearch = (searchTerm) => {
-        const filtered = filterData(datosOriginales, searchTerm, ['id','nombre','estado_nombre']);
+        const filtered = filterData(datosOriginales, searchTerm, [
+            'id','nombre','parroquia_nombre','municipio_nombre','estado_nombre'
+        ]);
         setDatosFiltrados(filtered);
     };
 
     const handleSave = async () => {
-        for (const field in formData) {
+        for (const field of ['nombre', 'parroquia_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
             if (regex) {
@@ -101,26 +157,25 @@ function Municipio() {
         }
 
         try {
-            await axios.post('http://localhost:4000/municipio', {
+            await axios.post('http://localhost:4000/sector', {
                 nombre: formData.nombre,
-                estado_id: formData.estado_id,
+                parroquia_id: formData.parroquia_id,
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            addNotification('Municipio registrado con éxito', 'success');
-            fetchMunicipios();
+            addNotification('Sector registrado con éxito', 'success');
+            fetchSectores();
             closeModal();
         } catch (error) {
-            console.error('Error creando Municipio:', error);
-            addNotification('Error al registrar municipio', 'error');
+            console.error('Error creando Sector:', error);
+            addNotification('Error al registrar sector', 'error');
         }
     };
 
     const handleEdit = async () => {
-        const camposObligatorios = ['nombre', 'estado_id'];
-        for (const field of camposObligatorios) {
+        for (const field of ['nombre', 'parroquia_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
             const { valid, message } = validateField(formData[field], regex, errorMessage);
@@ -131,36 +186,36 @@ function Municipio() {
         }
 
         try {
-            await axios.put(`http://localhost:4000/municipio/${formData.id}`, {
+            await axios.put(`http://localhost:4000/sector/${formData.id}`, {
                 nombre: formData.nombre,
-                estado_id: formData.estado_id,
+                parroquia_id: formData.parroquia_id,
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            addNotification('Municipio actualizado con éxito', 'success');
-            fetchMunicipios();
+            addNotification('Sector actualizado con éxito', 'success');
+            fetchSectores();
             closeModal();
         } catch (error) {
-            console.error('Error editando Municipio:', error);
-            addNotification('Error al actualizar municipio', 'error');
+            console.error('Error editando Sector:', error);
+            addNotification('Error al actualizar sector', 'error');
         }
     };
 
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`http://localhost:4000/municipio/${id}`, {
+            await axios.delete(`http://localhost:4000/sector/${id}`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
             });
 
-            fetchMunicipios();
-            addNotification('Municipio eliminado con éxito', 'error');
+            fetchSectores();
+            addNotification('Sector eliminado con éxito', 'error');
         } catch (error) {
-            console.error('Error eliminando Municipio:', error);
-            addNotification('Error al eliminar municipio', 'error');
+            console.error('Error eliminando Sector:', error);
+            addNotification('Error al eliminar sector', 'error');
         }
     };
 
@@ -187,26 +242,30 @@ function Municipio() {
 
     const openModal = () => {
         resetFormData();
-        setCurrentModal('municipio');
+        setCurrentModal('sector');
     };
 
     const closeModal = () => setCurrentModal(null);
 
-    const openEditModal = (municipio) => {
+    const openEditModal = (sector) => {
         setFormData({
-            id: municipio.id,
-            nombre: municipio.nombre || '',
-            estado_id: municipio.estado_id || '',
+            id: sector.id,
+            nombre: sector.nombre || '',
+            estado_id: sector.estado_id || '',
+            municipio_id: sector.municipio_id || '',
+            parroquia_id: sector.parroquia_id || '',
         });
-        setCurrentModal('municipio');
+        fetchMunicipios(sector.estado_id);
+        fetchParroquias(sector.municipio_id);
+        setCurrentModal('sector');
     };
 
     const openConfirmDeleteModal = (id) => {
-        setSelectedMunicipioId(id);
+        setSelectedSectorId(id);
         setConfirmDeleteModal(true);
     };
     const closeConfirmDeleteModal = () => {
-        setSelectedMunicipioId(null);
+        setSelectedSectorId(null);
         setConfirmDeleteModal(false);
     };
 
@@ -221,15 +280,15 @@ function Municipio() {
                 />
             ))}
 
-            {currentModal === 'municipio' && (
+            {currentModal === 'sector' && (
                 <div className='modalOverlay'>
                     <div className={styles.modal}>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
-                        <h2>{formData.id ? 'Editar Municipio' : 'Registrar Municipio'}</h2>
+                        <h2>{formData.id ? 'Editar Sector' : 'Registrar Sector'}</h2>
                         <form className='modalForm'>
                             <div>
                                 <div className='formGroup'>
-                                    <label htmlFor="nombre">Municipio:</label>
+                                    <label htmlFor="nombre">Sector:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>
@@ -243,12 +302,32 @@ function Municipio() {
                                     </select>
                                     {errors.estado_id && <span className='errorText'>{errors.estado_id}</span>}
                                 </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="municipio_id">Municipio:</label>
+                                    <select id="municipio_id" value={formData.municipio_id} onChange={handleChange} className='select'>
+                                        <option value="">Seleccione un municipio</option>
+                                        {municipios.map((municipio) => (
+                                            <option key={municipio.id} value={municipio.id}>{municipio.nombre}</option>
+                                        ))}
+                                    </select>
+                                    {errors.municipio_id && <span className='errorText'>{errors.municipio_id}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="parroquia_id">Parroquia:</label>
+                                    <select id="parroquia_id" value={formData.parroquia_id} onChange={handleChange} className='select'>
+                                        <option value="">Seleccione una parroquia</option>
+                                        {parroquias.map((parroquia) => (
+                                            <option key={parroquia.id} value={parroquia.id}>{parroquia.nombre}</option>
+                                        ))}
+                                    </select>
+                                    {errors.parroquia_id && <span className='errorText'>{errors.parroquia_id}</span>}
+                                </div>
                             </div>
                             <button 
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Municipio' : 'Registrar Municipio'}>
+                                title={formData.id ? 'Actualizar Sector' : 'Registrar Sector'}>
                                     Guardar
                             </button>
                         </form>
@@ -260,10 +339,10 @@ function Municipio() {
                 <div className='modalOverlay'>
                     <div className='modal'>
                         <h2>Confirmar Eliminación</h2>
-                        <p>¿Estás seguro de que deseas eliminar este municipio?</p>
+                        <p>¿Estás seguro de que deseas eliminar este sector?</p>
                         <div className='modalActions'>
                             <button className='cancelButton' onClick={closeConfirmDeleteModal}>Cancelar</button>
-                            <button className='confirmButton' onClick={() => { handleDelete(selectedMunicipioId); closeConfirmDeleteModal(); }}>Confirmar</button>
+                            <button className='confirmButton' onClick={() => { handleDelete(selectedSectorId); closeConfirmDeleteModal(); }}>Confirmar</button>
                         </div>
                     </div>
                 </div>
@@ -275,12 +354,12 @@ function Municipio() {
                         type='button'
                         onClick={openModal} 
                         className='create'
-                        title='Registrar Municipio'>
+                        title='Registrar Sector'>
                         <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
 
-                    <h2>Municipios</h2>
+                    <h2>Sectores</h2>
 
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
@@ -291,27 +370,31 @@ function Municipio() {
                     <thead>
                         <tr>
                             <th>N°</th>
+                            <th>Sector</th>
+                            <th>Parroquia</th>
                             <th>Municipio</th>
                             <th>Estado</th>
                             <th>Acción</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {currentData.map((municipio, idx) => (
-                            <tr key={municipio.id} >
+                        {currentData.map((sector, idx) => (
+                            <tr key={sector.id} >
                                 <td>{indexOfFirstItem + idx + 1}</td>
-                                <td>{municipio.nombre}</td>
-                                <td>{municipio.estado_nombre}</td>
+                                <td>{sector.nombre}</td>
+                                <td>{sector.parroquia_nombre}</td>
+                                <td>{sector.municipio_nombre}</td>
+                                <td>{sector.estado_nombre}</td>
                                 <td>
                                     <div className={styles.iconContainer}>
                                         <img
-                                            onClick={() => openEditModal(municipio)}
+                                            onClick={() => openEditModal(sector)}
                                             src={icon.editar}
                                             className='iconeditar'
                                             title='Editar'
                                         />
                                         <img 
-                                            onClick={() => openConfirmDeleteModal(municipio.id)} 
+                                            onClick={() => openConfirmDeleteModal(sector.id)} 
                                             src={icon.eliminar} 
                                             className='iconeliminar' 
                                             title='eliminar'
@@ -334,4 +417,4 @@ function Municipio() {
     );
 }
 
-export default Municipio;
+export default Sector;

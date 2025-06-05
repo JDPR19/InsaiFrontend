@@ -71,7 +71,7 @@ function Usuario() {
 
     // Filtrar datos en la barra de búsqueda
     const handleSearch = (searchTerm) => {
-        const filtered = filterData(datosOriginales, searchTerm, ['username', 'email', 'tipo_usuario_nombre']);
+        const filtered = filterData(datosOriginales, searchTerm, ['username', 'email', 'roles_nombre']);
         setDatosFiltrados(filtered);
     };
 

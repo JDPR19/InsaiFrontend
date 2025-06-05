@@ -26,6 +26,7 @@ export const PANTALLAS = [
     { key: 'estado', label: 'estados' },
     { key: 'municipio', label: 'Municipios' },
     { key: 'parroquia', label: 'Parroquias' },
+    { key: 'sector', label: 'Sector' },
     { key: 'miusuario', label: 'Mi Usuario'},
     { key: 'usuarios', label: 'Usuarios' },
     { key: 'empleados', label: 'Empleados' },

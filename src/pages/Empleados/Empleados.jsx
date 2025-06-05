@@ -59,7 +59,7 @@ function Empleado() {
 
     // Filtrar datos en la barra de búsqueda
     const handleSearch = (searchTerm) => {
-        const filtered = filterData(datosOriginales, searchTerm, ['cedula', 'nombre', 'apellido', 'contacto', 'cargo']);
+        const filtered = filterData(datosOriginales, searchTerm, ['cedula', 'nombre', 'apellido', 'contacto', 'cargo_nombre']);
         setDatosFiltrados(filtered);
     };
 

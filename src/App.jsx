@@ -27,6 +27,7 @@ import TipoPropiedad from './pages/Propiedad/TipoPropiedad';
 import Estados from './pages/Ubicacion/Estados';
 import Municipios from './pages/Ubicacion/Municipio';
 import Parroquias from './pages/Ubicacion/Parroquia';
+import Sector from './pages/Ubicacion/Sector';
 import Cargo from './pages/Cargo/Cargo';
 import TipoUsuario from './pages/Usuario/TipoUsuario';
 import Planificacion from './pages/Planificacion/Planificacion';
@@ -321,6 +322,16 @@ function App() {
             <ProtectedRoute pantalla="parroquia">
               <MainLayout>
                 <Parroquias />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/Sector"
+          element={
+            <ProtectedRoute pantalla="sector">
+              <MainLayout>
+                <Sector />
               </MainLayout>
             </ProtectedRoute>
           }

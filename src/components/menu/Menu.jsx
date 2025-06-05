@@ -417,7 +417,7 @@ function Menu() {
 
                     {/* Catálogo de Datos ///////////////////// */}
                     {( tienePermiso('estado', 'ver') ||
-                    tienePermiso('municipio', 'ver') || tienePermiso('parroquia', 'ver')) && (
+                    tienePermiso('municipio', 'ver') || tienePermiso('parroquia', 'ver') || tienePermiso('sector', 'ver')) && (
                         <NavItem
                             id="miscelaneos"
                             openSubmenus={openSubmenus}
@@ -461,6 +461,18 @@ function Menu() {
                                             onClick={() => setSelectedItem('parroquia')}
                                         >
                                             Parroquias
+                                        </Link>
+                                    </li>
+                                )}
+
+                                {tienePermiso('sector', 'ver') && (
+                                    <li>
+                                        <Link
+                                            to="/Sector"
+                                            className={`${styles.submenuItem} ${selectedItem === 'sector' ? styles.selected : ''}`}
+                                            onClick={() => setSelectedItem('sector')}
+                                        >
+                                            Sector
                                         </Link>
                                     </li>
                                 )}

@@ -13,8 +13,7 @@ function Parroquia() {
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [estados, setEstados] = useState([]);
-    const [municipios, setMunicipios] = useState([]); // Municipios filtrados por estado
-    const [todosLosMunicipios, setTodosLosMunicipios] = useState([]); // Todos los municipios
+    const [municipios, setMunicipios] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
     const [formData, setFormData] = useState({
@@ -28,38 +27,7 @@ function Parroquia() {
 
     const { notifications, addNotification, removeNotification } = useNotification();
     const itemsPerPage = 8;
-
-    const resetFormData = () => {
-        setFormData({
-            id: '',
-            nombre: '',
-            estado_id: '',
-            municipio_id: '',
-        });
-    };
-
     const [errors, setErrors] = useState({});
-
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-        setFormData({ ...formData, [id]: value });
-
-        if (id === 'estado_id') {
-            setFormData({ ...formData, estado_id: value, municipio_id: '' });
-            fetchMunicipios(value);
-        }
-
-        if (validationRules[id]) {
-            const { regex, errorMessage } = validationRules[id];
-            const { valid, message } = validateField(value, regex, errorMessage);
-            setErrors({ ...errors, [id]: valid ? '' : message });
-        }
-    };
-
-    const handleSearch = (searchTerm) => {
-        const filtered = filterData(datosOriginales, searchTerm, ['id','nombre','municipio','estado']);
-        setDatosFiltrados(filtered);
-    };
 
     const fetchParroquias = async () => {
         try {
@@ -90,21 +58,6 @@ function Parroquia() {
         }
     };
 
-    // Cargar todos los municipios para la tabla
-    const fetchTodosLosMunicipios = async () => {
-        try {
-            const response = await axios.get('http://localhost:4000/parroquia/municipios/all', {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            setTodosLosMunicipios(response.data);
-        } catch (error) {
-            console.error('Error obteniendo todos los municipios:', error);
-        }
-    };
-
-    // Cargar municipios filtrados por estado para el select dependiente
     const fetchMunicipios = async (estadoId) => {
         try {
             if (!estadoId) {
@@ -126,8 +79,40 @@ function Parroquia() {
     useEffect(() => {
         fetchParroquias();
         fetchEstados();
-        fetchTodosLosMunicipios();
-    },[]);
+    }, []);
+
+    
+    const resetFormData = () => {
+        setFormData({
+            id: '',
+            nombre: '',
+            estado_id: '',
+            municipio_id: '',
+        });
+        setMunicipios([]);
+    };
+
+    const handleChange = (e) => {
+        const { id, value } = e.target;
+        setFormData(prev => ({ ...prev, [id]: value }));
+
+        if (id === 'estado_id') {
+            setFormData(prev => ({ ...prev, estado_id: value, municipio_id: '' }));
+            fetchMunicipios(value);
+        }
+
+        if (validationRules[id]) {
+            const { regex, errorMessage } = validationRules[id];
+            const { valid, message } = validateField(value, regex, errorMessage);
+            setErrors(prev => ({ ...prev, [id]: valid ? '' : message }));
+        }
+    };
+
+    const handleSearch = (searchTerm) => {
+        // Busca por nombre, municipio_nombre y estado_nombre (campos que devuelve el backend)
+        const filtered = filterData(datosOriginales, searchTerm, ['id','nombre','municipio_nombre','estado_nombre']);
+        setDatosFiltrados(filtered);
+    };
 
     const handleSave = async () => {
         for (const field in formData) {
@@ -234,17 +219,14 @@ function Parroquia() {
 
     const closeModal = () => setCurrentModal(null);
 
-    const openEditModal = async (parroquia) => {
-        // Buscar municipio y estado relacionados
-        const municipio = todosLosMunicipios.find(m => m.id === parroquia.municipio_id);
-        const estado_id = municipio ? municipio.estado_id : '';
+    const openEditModal = (parroquia) => {
         setFormData({
             id: parroquia.id,
             nombre: parroquia.nombre || '',
-            estado_id: estado_id,
+            estado_id: parroquia.estado_id || '',
             municipio_id: parroquia.municipio_id || '',
         });
-        if (estado_id) fetchMunicipios(estado_id);
+        fetchMunicipios(parroquia.estado_id);
         setCurrentModal('parroquia');
     };
 
@@ -355,34 +337,30 @@ function Parroquia() {
                         </tr>
                     </thead>
                     <tbody>
-                        {currentData.map((parroquia, idx) => {
-                            const municipio = todosLosMunicipios.find(m => m.id === parroquia.municipio_id);
-                            const estado = estados.find(e => e.id === municipio?.estado_id);
-                            return (
-                                <tr key={parroquia.id} >
-                                    <td>{indexOfFirstItem + idx + 1}</td>
-                                    <td>{parroquia.nombre}</td>
-                                    <td>{municipio?.nombre || ''}</td>
-                                    <td>{estado?.nombre || ''}</td>
-                                    <td>
-                                        <div className={styles.iconContainer}>
-                                            <img
-                                                onClick={() => openEditModal(parroquia)}
-                                                src={icon.editar}
-                                                className='iconeditar'
-                                                title='Editar'
-                                            />
-                                            <img 
-                                                onClick={() => openConfirmDeleteModal(parroquia.id)} 
-                                                src={icon.eliminar} 
-                                                className='iconeliminar' 
-                                                title='eliminar'
-                                            />
-                                        </div>
-                                    </td>
-                                </tr>
-                            );
-                        })}
+                        {currentData.map((parroquia, idx) => (
+                            <tr key={parroquia.id} >
+                                <td>{indexOfFirstItem + idx + 1}</td>
+                                <td>{parroquia.nombre}</td>
+                                <td>{parroquia.municipio_nombre}</td>
+                                <td>{parroquia.estado_nombre}</td>
+                                <td>
+                                    <div className={styles.iconContainer}>
+                                        <img
+                                            onClick={() => openEditModal(parroquia)}
+                                            src={icon.editar}
+                                            className='iconeditar'
+                                            title='Editar'
+                                        />
+                                        <img 
+                                            onClick={() => openConfirmDeleteModal(parroquia.id)} 
+                                            src={icon.eliminar} 
+                                            className='iconeliminar' 
+                                            title='eliminar'
+                                        />
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
                 <div className='tableFooter'>
