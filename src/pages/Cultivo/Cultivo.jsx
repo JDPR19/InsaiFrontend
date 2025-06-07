@@ -1,218 +1,401 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import styles from './cultivo.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
+import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-
+import Notification from '../../components/notification/Notification';
+import { useNotification } from '../../utils/useNotification';
+import { validateField, validationRules } from '../../utils/validation';
 
 function Cultivo() {
+    const [datosOriginales, setDatosOriginales] = useState([]);
+    const [datosFiltrados, setDatosFiltrados] = useState([]);
+    const [tipos, setTipos] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [currentModal, setCurrentModal] = useState(null);
+    const [detalleModal, setDetalleModal] = useState({ abierto: false, cultivo: null });
+    const [formData, setFormData] = useState({
+        id: '',
+        nombre: '',
+        nombre_cientifico: '',
+        descripcion: '',
+        tipo_cultivo_id: ''
+    });
+    const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
+    const [selectedCultivoId, setSelectedCultivoId] = useState(null);
 
+    const { notifications, addNotification, removeNotification } = useNotification();
+    const itemsPerPage = 8;
+    const [errors, setErrors] = useState({});
 
-      // Datos iniciales
-        const datosIniciales = [
-        {
-            id: "1",
-            nombre: "Papa",
-            nombrecientifico: "Solanum tuberosum",
-            tipo: "Tuberculo",
-        },
-        {
-            id: "2",
-            nombre: "Frijoles",
-            nombrecientifico: "Phaseolus vulgaris",
-            tipo: "Leguminosas",
-        },
-        {
-            id: "3",
-            nombre: "Manzana",
-            nombrecientifico: "Malus domestica",
-            tipo: "Fruta",
+    // Fetchers
+    const fetchCultivos = async () => {
+        try {
+            const response = await axios.get('http://localhost:4000/cultivo', {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            setDatosOriginales(response.data);
+            setDatosFiltrados(response.data);
+        } catch (error) {
+            console.error('error obteniendo todos los cultivos',error);
+            addNotification('Error al obtener cultivos', 'error');
         }
-        // Agrega más datos si es necesario
-        ];
+    };
 
+    const fetchTipos = async () => {
+        try {
+            const response = await axios.get('http://localhost:4000/cultivo/tipos/all', {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            setTipos(response.data);
+        } catch (error) {
+            console.error('error obteniendo todos los tipos de cultivos',error);
+            addNotification('Error al obtener tipos de cultivo', 'error');
+        }
+    };
 
-    const [currentModal, setCurrentModal] = useState(null); // Estado para controlar cuál modal está abierto
-    const [datosFiltrados, setDatosFiltrados] = useState(datosIniciales);
-    const [currentPage, setCurrentPage] = useState(1); // Página actual
-    const itemsPerPage = 3; // Número de elementos por página
+    useEffect(() => {
+        fetchCultivos();
+        fetchTipos();
+    }, []);
 
-    // Calcular los datos para la página actual
+    // Handlers
+    const resetFormData = () => {
+        setFormData({
+            id: '',
+            nombre: '',
+            nombre_cientifico: '',
+            descripcion: '',
+            tipo_cultivo_id: ''
+        });
+    };
+
+    const handleChange = (e) => {
+        const { id, value } = e.target;
+        setFormData(prev => ({ ...prev, [id]: value }));
+
+        if (validationRules[id]) {
+            const { regex, errorMessage } = validationRules[id];
+            const { valid, message } = validateField(value, regex, errorMessage);
+            setErrors(prev => ({ ...prev, [id]: valid ? '' : message }));
+        }
+    };
+
+    const handleSearch = (searchTerm) => {
+        const filtered = filterData(datosOriginales, searchTerm, [
+            'id','nombre','nombre_cientifico','descripcion','tipo_cultivo_nombre'
+        ]);
+        setDatosFiltrados(filtered);
+    };
+
+    const handleSave = async () => {
+        for (const field of ['nombre', 'tipo_cultivo_id']) {
+            if (!validationRules[field]) continue;
+            const { regex, errorMessage } = validationRules[field];
+            if (regex) {
+                const { valid, message } = validateField(formData[field], regex, errorMessage);
+                if (!valid) {
+                    addNotification(message, 'warning');
+                    return;
+                }
+            }
+        }
+
+        try {
+            await axios.post('http://localhost:4000/cultivo', {
+                nombre: formData.nombre,
+                nombre_cientifico: formData.nombre_cientifico,
+                descripcion: formData.descripcion,
+                tipo_cultivo_id: formData.tipo_cultivo_id
+            }, {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            addNotification('Cultivo registrado con éxito', 'success');
+            fetchCultivos();
+            closeModal();
+        } catch (error) {
+            console.error('error registrando cultivo',error);
+            addNotification('Error al registrar cultivo', 'error');
+        }
+    };
+
+    const handleEdit = async () => {
+        for (const field of ['nombre', 'tipo_cultivo_id']) {
+            if (!validationRules[field]) continue;
+            const { regex, errorMessage } = validationRules[field];
+            const { valid, message } = validateField(formData[field], regex, errorMessage);
+            if (!valid) {
+                addNotification(message, 'warning');
+                return;
+            }
+        }
+
+        try {
+            await axios.put(`http://localhost:4000/cultivo/${formData.id}`, {
+                nombre: formData.nombre,
+                nombre_cientifico: formData.nombre_cientifico,
+                descripcion: formData.descripcion,
+                tipo_cultivo_id: formData.tipo_cultivo_id
+            }, {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            addNotification('Cultivo actualizado con éxito', 'success');
+            fetchCultivos();
+            closeModal();
+        } catch (error) {
+            console.error('error actualizando cultivos',error);
+            addNotification('Error al actualizar cultivo', 'error');
+        }
+    };
+
+    const handleDelete = async (id) => {
+        try {
+            await axios.delete(`http://localhost:4000/cultivo/${id}`, {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            fetchCultivos();
+            addNotification('Cultivo eliminado con éxito', 'error');
+        } catch (error) {
+            console.error('error eliminando cultivo',error);
+            addNotification('Error al eliminar cultivo', 'error');
+        }
+    };
+
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentData = datosFiltrados.slice(indexOfFirstItem, indexOfLastItem);
 
-      // Cambiar a la página anterior
     const handlePreviousPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage(currentPage - 1);
-        }
+        if (currentPage > 1) setCurrentPage(currentPage - 1);
     };
 
-    // Cambiar a la página siguiente
     const handleNextPage = () => {
-        if (indexOfLastItem < datosFiltrados.length) {
-            setCurrentPage(currentPage + 1);
-        }
+        if (indexOfLastItem < datosFiltrados.length) setCurrentPage(currentPage + 1);
     };
 
-    // modal //////////////////////////
-    const openModal = (modalName) => {
-        setCurrentModal(modalName); // Abre el modal especificado
+    const handlePreviousThreePages = () => {
+        setCurrentPage((prev) => Math.max(prev - 3, 1));
     };
 
-    const closeModal = () => {
-        setCurrentModal(null); // Cierra cualquier modal
+    const handleNextThreePages = () => {
+        const maxPage = Math.ceil(datosFiltrados.length / itemsPerPage);
+        setCurrentPage((prev) => Math.min(prev + 3, maxPage));
     };
 
-    const handleSave = () => {
-        console.log('Registro guardado');
-        closeModal(); // Cierra el modal después de guardar
+    const openModal = () => {
+        resetFormData();
+        setCurrentModal('cultivo');
     };
 
-        // Componente para el encabezado de la tabla
-        const EncabezadoTabla = () => (
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Nombre Cientifico</th>
-                    <th>Tipo</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-        );
-         // Componente para el cuerpo de la tabla
-        const CuerpoTabla = ({ datos }) => (
-            <tbody>
-                {datos.map((item, index) => (
-                <tr key={index}>
-                    <td>{item.id}</td>
-                    <td>{item.nombre}</td>
-                    <td>{item.nombrecientifico}</td>
-                    <td>{item.tipo}</td>
-                    <td>
-                    <div className='iconContainer'>
-                        <img
-                        src={icon.editar}
-                        alt="Editar"
-                        className='iconeditar'
-                        title="Editar"
-                        />
-                        <img 
-                        src={icon.eliminar} 
-                        alt="Eliminar" 
-                        className='iconeliminar' 
-                        title="Eliminar" 
-                        />
-                    </div>
-                    </td>
-                </tr>
-                ))}
-            </tbody>
-        );
-        
-            // Componente para el pie de la tabla (paginación)
-            const PieTabla = () => (
-            <div className='tableFooter'>
-                <img
-                src={icon.flecha3}
-                alt="Anterior"
-                className='iconBack'
-                title="Anterior"
-                onClick={handlePreviousPage}
-                />
-                <span>{currentPage}</span>
-                <img
-                src={icon.flecha2}
-                alt="Siguiente"
-                className='iconNext'
-                title="Siguiente"
-                onClick={handleNextPage}
-                />
-            </div>
-            );
+    const closeModal = () => setCurrentModal(null);
+
+    const openEditModal = (cultivo) => {
+        setFormData({
+            id: cultivo.id,
+            nombre: cultivo.nombre || '',
+            nombre_cientifico: cultivo.nombre_cientifico || '',
+            descripcion: cultivo.descripcion || '',
+            tipo_cultivo_id: cultivo.tipo_cultivo_id || ''
+        });
+        setCurrentModal('cultivo');
+    };
+
+    const openConfirmDeleteModal = (id) => {
+        setSelectedCultivoId(id);
+        setConfirmDeleteModal(true);
+    };
+    const closeConfirmDeleteModal = () => {
+        setSelectedCultivoId(null);
+        setConfirmDeleteModal(false);
+    };
+
+    // MODAL DETALLE
+    const openDetalleModal = (cultivo) => setDetalleModal({ abierto: true, cultivo });
+    const closeDetalleModal = () => setDetalleModal({ abierto: false, cultivo: null });
+
     return (
         <div className={styles.cultivoContainer}>
-        
+            {notifications.map((notification) => (
+                <Notification
+                    key={notification.id}
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => removeNotification(notification.id)}
+                />
+            ))}
 
-            {/* Modal /////////////////////////////////////// */}
-            {currentModal === 'Cultivos' && (
+            {/* Modal Detalle */}
+            {detalleModal.abierto && (
                 <div className='modalOverlay'>
-                    <div className='modal'>
-                        
-                        <button className='closeButton'  onClick={closeModal}>
-                            &times; {/* Ícono de cerrar */}
-                        </button>
-                        
-                        <h2>Registrar Cultivo</h2>
-                        
-                        <form className='modalForm'>
-                            
-                            <div className='formGroup'>
-                                <label htmlFor="nombre">Nombre:</label>
-                                <input
-                                    type="text"
-                                    id="nombre"
-                                    placeholder="Rellene el Campo"
-                                    className='input'
-                                />
-                            </div>
-                            <div className='formGroup'>
-                                <label htmlFor="nombre_cientifico">Nombre Cientifico:</label>
-                                <input
-                                    type="text"
-                                    id="nombre_cientifico"
-                                    placeholder="Rellene el Campo"
-                                    className='input'
-                                />
-                            </div>
-                            <div className='formGroup'>
-                                <label htmlFor="cultivotipo">Tipo:</label>
-                                <input
-                                    type="text"
-                                    id="cultivotipo"
-                                    placeholder="Rellene el Campo"
-                                    className='input'
-                                />
-                            </div>
+                    <div className='modalDetalle'>
+                        <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
+                        <h2>Detalles del Cultivo</h2>
+                        <table className='detalleTable'>
+                            <tbody>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <td>{detalleModal.cultivo.nombre}</td>
+                                </tr>
+                                <tr>
+                                    <th>Nombre Científico</th>
+                                    <td>{detalleModal.cultivo.nombre_cientifico}</td>
+                                </tr>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <td>{detalleModal.cultivo.tipo_cultivo_nombre}</td>
+                                </tr>
+                                <tr>
+                                    <th>Descripción</th>
+                                    <td>{detalleModal.cultivo.descripcion}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
-                            <button type="button" className='saveButton' onClick={handleSave}>
-                                Guardar
+            {/* Modal registro y editar */}
+            {currentModal === 'cultivo' && (
+                <div className='modalOverlay'>
+                    <div className={styles.modal}>
+                        <button className='closeButton' onClick={closeModal}>&times;</button>
+                        <h2>{formData.id ? 'Editar Cultivo' : 'Registrar Cultivo'}</h2>
+                        <form className='modalForm'>
+                            <div className={styles.formColumns}>
+                                <div className='formGroup'>
+                                    <label htmlFor="nombre">Nombre:</label>
+                                    <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Nombre del cultivo'/>
+                                    {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="nombre_cientifico">Nombre Científico:</label>
+                                    <input type="text" id="nombre_cientifico" value={formData.nombre_cientifico} onChange={handleChange} className='input' placeholder='Nombre científico'/>
+                                    {errors.nombre_cientifico && <span className='errorText'>{errors.nombre_cientifico}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="tipo_cultivo_id">Tipo:</label>
+                                    <select id="tipo_cultivo_id" value={formData.tipo_cultivo_id} onChange={handleChange} className='select'>
+                                        <option value="">Seleccione un tipo</option>
+                                        {tipos.map((tipo) => (
+                                            <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>
+                                        ))}
+                                    </select>
+                                    {errors.tipo_cultivo_id && <span className='errorText'>{errors.tipo_cultivo_id}</span>}
+                                </div>
+                                <div className='formGroup' style={{ gridColumn: '1 / -1' }}>
+                                    <label htmlFor="descripcion">Descripción:</label>
+                                    <textarea id="descripcion" value={formData.descripcion} onChange={handleChange} className='input' placeholder='Descripción'/>
+                                    {errors.descripcion && <span className='errorText'>{errors.descripcion}</span>}
+                                </div>
+                            </div>
+                            <button 
+                                type="button" 
+                                className='saveButton' 
+                                onClick={formData.id ? handleEdit : handleSave}
+                                title={formData.id ? 'Actualizar Cultivo' : 'Registrar Cultivo'}>
+                                    Guardar
                             </button>
                         </form>
                     </div>
                 </div>
             )}
 
-            {/* Tabla */}
+            {/* Modal de confirmación para eliminar */}
+            {confirmDeleteModal && (
+                <div className='modalOverlay'>
+                    <div className='modal'>
+                        <h2>Confirmar Eliminación</h2>
+                        <p>¿Estás seguro de que deseas eliminar este cultivo?</p>
+                        <div className='modalActions'>
+                            <button className='cancelButton' onClick={closeConfirmDeleteModal}>Cancelar</button>
+                            <button className='confirmButton' onClick={() => { handleDelete(selectedCultivoId); closeConfirmDeleteModal(); }}>Confirmar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
             <div className='tableSection'>
-                 {/* Contenedor para filtros y acciones */}
                 <div className='filtersContainer'>
                     <button 
                         type='button'
-                        onClick={() => openModal('Cultivos')}
+                        onClick={openModal} 
                         className='create'
-                        title='Registrar Cultivo'
-                    >
-                        <img src={icon.crear} alt="Crear" className='icon' />
-                        Cultivo
+                        title='Registrar Cultivo'>
+                        <img src={icon.plus} alt="Crear" className='icon' />
+                        Agregar
                     </button>
-                
+
                     <h2>Cultivos</h2>
-                    
+
                     <div className='searchContainer'>
-                        <SearchBar data={datosIniciales} onSearch={setDatosFiltrados} />
+                        <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-            
-                <table className='table'>
-                    <EncabezadoTabla />
-                    <CuerpoTabla datos={currentData} />
+                <table className={styles.table}>
+                    <thead>
+                        <tr>
+                            <th>N°</th>
+                            <th>Nombre</th>
+                            <th>Nombre Científico</th>
+                            <th>Tipo</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {currentData.map((cultivo, idx) => (
+                            <tr key={cultivo.id} >
+                                <td>{indexOfFirstItem + idx + 1}</td>
+                                <td>{cultivo.nombre}</td>
+                                <td>{cultivo.nombre_cientifico}</td>
+                                <td>{cultivo.tipo_cultivo_nombre}</td>
+                                <td>
+                                    <div className={styles.iconContainer}>
+                                        <img
+                                            onClick={() => openDetalleModal(cultivo)}
+                                            src={icon.ver}
+                                            className='iconver'
+                                            title='Ver más'
+                                            style={{ cursor: 'pointer' }}
+                                        />
+                                        <img
+                                            onClick={() => openEditModal(cultivo)}
+                                            src={icon.editar}
+                                            className='iconeditar'
+                                            title='Editar'
+                                        />
+                                        <img 
+                                            onClick={() => openConfirmDeleteModal(cultivo.id)} 
+                                            src={icon.eliminar} 
+                                            className='iconeliminar' 
+                                            title='eliminar'
+                                        />
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
                 </table>
-                 {/* Contenedor para Footer en tabla */}
-                <PieTabla />
+                <div className='tableFooter'>
+                    <img onClick={handlePreviousPage} src={icon.flecha3} className='iconBack' title='Anterior'/>
+                    <img onClick={handlePreviousThreePages} src={icon.flecha5} className='iconBack' title='Anterior' />
+                    <span>{currentPage}</span>
+                    <img onClick={handleNextThreePages} src={icon.flecha4} className='iconNext' title='Siguiente' />
+                    <img onClick={handleNextPage} src={icon.flecha2} className='iconNext' title='Siguiente'/>
+                </div>
             </div>
         </div>
     );

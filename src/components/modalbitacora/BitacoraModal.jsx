@@ -1,4 +1,4 @@
-import styles from './bitacoraModal.module.css';
+import '../../main.css';
 
 function BitacoraModal({ registro, onClose }) {
     if (!registro) return null;
@@ -16,9 +16,12 @@ function BitacoraModal({ registro, onClose }) {
         email: 'Correo',
         username: 'Usuario',
         cultivo_id: 'Cultivo',
+        tipo_cultivo_id: 'Tipo de Cultivo',
+        nombre_cientifico: 'Nombre Cientifico',
+        tipo_plaga_fito_id: 'Tipo de Plaga',
+        observaciones: 'Observaciones',
     };
 
-    // Filtrar los datos nuevos para excluir los campos no deseados
     const datosNuevos = registro.dato?.nuevos
         ? Object.fromEntries(
             Object.entries(registro.dato.nuevos).filter(
@@ -27,7 +30,6 @@ function BitacoraModal({ registro, onClose }) {
         )
         : {};
 
-    // Filtrar los datos antiguos para excluir los campos no deseados
     const datosAntiguos = registro.dato?.antiguos
         ? Object.fromEntries(
             Object.entries(registro.dato.antiguos).filter(
@@ -37,35 +39,62 @@ function BitacoraModal({ registro, onClose }) {
         : {};
 
     return (
-        <div className={styles.modalOverlay}>
-            <div className={styles.modalContent}>
+        <div className="modalOverlay">
+            <div className="modalDetalle">
+                <button className="closeButton" onClick={onClose}>&times;</button>
                 <h2>Detalles del Registro</h2>
-                <p><strong>Fecha:</strong> {registro.fecha || 'No disponible'}</p>
-                <p><strong>Acción:</strong> {registro.accion || 'No disponible'}</p>
-                <p><strong>Tabla:</strong> {registro.tabla || 'No disponible'}</p>
-                <p><strong>Usuario:</strong> {registro.usuario || 'No disponible'}</p>
-                <p><strong>Descripción:</strong> {registro.descripcion || 'No disponible'}</p>
-                <h3>Datos Antiguos:</h3>
-                {Object.keys(datosAntiguos).length > 0 ? (
-                    <ul>
-                        {Object.entries(datosAntiguos).map(([key, value]) => (
-                            <li key={key}><strong>{etiquetas[key] || key}:</strong> {value}</li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p>No hay datos antiguos disponibles.</p>
-                )}
-                <h3>Datos Nuevos:</h3>
-                {Object.keys(datosNuevos).length > 0 ? (
-                    <ul>
-                        {Object.entries(datosNuevos).map(([key, value]) => (
-                            <li key={key}><strong>{etiquetas[key] || key}:</strong> {value}</li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p>No hay datos nuevos disponibles.</p>
-                )}
-                <button onClick={onClose} className={styles.closeButton}>Cerrar</button>
+                <table className="detalleTable">
+                    <tbody>
+                        <tr>
+                            <th>Fecha</th>
+                            <td>{registro.fecha || 'No disponible'}</td>
+                        </tr>
+                        <tr>
+                            <th>Acción</th>
+                            <td>{registro.accion || 'No disponible'}</td>
+                        </tr>
+                        <tr>
+                            <th>Tabla</th>
+                            <td>{registro.tabla || 'No disponible'}</td>
+                        </tr>
+                        <tr>
+                            <th>Usuario</th>
+                            <td>{registro.usuario || 'No disponible'}</td>
+                        </tr>
+                        <tr>
+                            <th>Descripción</th>
+                            <td>{registro.descripcion || 'No disponible'}</td>
+                        </tr>
+                        <tr>
+                            <th>Datos Antiguos</th>
+                            <td>
+                                {Object.keys(datosAntiguos).length > 0 ? (
+                                    <ul>
+                                        {Object.entries(datosAntiguos).map(([key, value]) => (
+                                            <li key={key}><strong>{etiquetas[key] || key}:</strong> {value}</li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <span>No hay datos antiguos disponibles.</span>
+                                )}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Datos Nuevos</th>
+                            <td>
+                                {Object.keys(datosNuevos).length > 0 ? (
+                                    <ul>
+                                        {Object.entries(datosNuevos).map(([key, value]) => (
+                                            <li key={key}><strong>{etiquetas[key] || key}:</strong> {value}</li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <span>No hay datos nuevos disponibles.</span>
+                                )}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     );

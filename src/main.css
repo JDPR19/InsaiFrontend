@@ -179,12 +179,26 @@
   z-index: 1000;
 }
 
+.modal_mono {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 10px;
+    width: auto;
+    min-width: 20vh;
+    min-height: 30vh;
+    max-height: 90vh;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
 .modal {
   background-color: #ffffff;
-  padding: 20px;
+  padding: 25px;
   border-radius: 10px;
-  width: 450px;
-  height: auto;
+  width: auto;
+  min-width: 90vh;
+  min-height: 30vh;
+  max-height: 90vh;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
   position: relative;
 }
@@ -192,6 +206,7 @@
 .modal h2 {
   margin-bottom: 15px;
 }
+
 
 .closeButton {
   position: absolute;
@@ -262,7 +277,7 @@
 }
 
 .formGroup label {
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   margin-top: 10px;
 }
 
@@ -300,6 +315,67 @@
   background-color: #539252;
 }
 
+/* Para el modal de detalles tipo tabla */
+.modalDetalle {
+    background: #fff;
+    padding: 30px 30px 20px 30px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 50vw;
+    max-height: 80vh;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+    position: relative;
+    overflow: auto;
+}
+.detalleTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.detalleTable th,
+.detalleTable td {
+    text-align: left;
+    padding: 10px 20px;
+    border-bottom: 2px solid #cecece6c;
+    font-size: 1rem;
+    vertical-align: top;
+    max-width: 200px;
+    word-break: break-word;
+    white-space: normal;
+}
+
+.detalleTable th {
+    background: var(--lithg-green);
+    color: #444;
+    font-weight: 600;
+}
+.detalleTable tr:last-child td {
+    border-bottom: #b4b4b4c2;
+}
+
+.detalleTable ul,
+.detalleTable li {
+    list-style: none;
+    padding-left: 0;
+    margin-left: 0;
+}
+
+.modalDetalle::-webkit-scrollbar {
+    width: 8px;
+    height: 10px;
+    background: #545454;
+    border-radius: 15px;
+}
+
+.modalDetalle::-webkit-scrollbar-thumb {
+    background: var(--lithg-green);
+    border-radius: 4px;
+}
+
+.modalDetalle::-webkit-scrollbar-thumb:hover {
+    background: var(--green-hover1);
+}
 
 /* estilo para tablas ////////////////////////////////// */
 

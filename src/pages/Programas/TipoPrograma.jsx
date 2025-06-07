@@ -222,7 +222,7 @@ function TipoPrograma() {
             {/* modal registro y editar */}
             {currentModal === 'tipo_programa' && (
                 <div className='modalOverlay'>
-                    <div className={styles.modal}>
+                    <div className='modal_mono'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Tipo de Programa' : 'Registrar Tipo de Programa'}</h2>
                         <form className='modalForm'>

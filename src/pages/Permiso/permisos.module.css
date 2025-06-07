@@ -40,6 +40,15 @@
     font-size: 1rem;
 }
 
+.table tr:hover {
+    background-color: var(--green8);
+}
+
+.table tr:hover {
+    background-color: var(--green8);
+}
+
+
 .iconContainer {
     display: flex; 
     align-items: center; 

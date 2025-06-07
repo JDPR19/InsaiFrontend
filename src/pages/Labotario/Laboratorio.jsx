@@ -1,283 +1,589 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import styles from './laboratorios.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
+import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
+import Notification from '../../components/notification/Notification';
+import { useNotification } from '../../utils/useNotification';
+import { validateField, validationRules } from '../../utils/validation';
 
+function Laboratorio() {
+    const [datosOriginales, setDatosOriginales] = useState([]);
+    const [datosFiltrados, setDatosFiltrados] = useState([]);
+    const [tipos, setTipos] = useState([]);
+    const [estados, setEstados] = useState([]);
+    const [municipios, setMunicipios] = useState([]);
+    const [parroquias, setParroquias] = useState([]);
+    const [sectores, setSectores] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [currentModal, setCurrentModal] = useState(null);
+    const [detalleModal, setDetalleModal] = useState({ abierto: false, laboratorio: null });
+    const [formData, setFormData] = useState({
+        id: '',
+        nombre: '',
+        descripcion: '',
+        ubicación: '',
+        tipo_laboratorio_id: '',
+        estado_id: '',
+        municipio_id: '',
+        parroquia_id: '',
+        sector_id: ''
+    });
+    const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
+    const [selectedLabId, setSelectedLabId] = useState(null);
 
-function Insumos() {
+    const { notifications, addNotification, removeNotification } = useNotification();
+    const itemsPerPage = 8;
+    const [errors, setErrors] = useState({});
 
-
-      // Datos iniciales
-        const datosIniciales = [
-        {
-            id: "1",
-            nombre: "Alcohol Etilico",
-            descripcion: "Desinfectante para herramientas",
-            cantidad: "50",
-            unidadmedida: "Litros",
-            adquisicion: "10/03/2025",
-            vencimiento: "10/03/2027",
-            ubicacion: "Almacenamiento Central",
-        },
-        {
-            id: "2",
-            nombre: "Trampas para insecto",
-            descripcion: "Monitoreo de plagas agricolas",
-            cantidad: "100",
-            unidadmedida: "Unidades",
-            adquisicion: "20/04/2025",
-            vencimiento: "20/04/2026",
-            ubicacion: "Area de inspecciòn",
-        },
-        {
-            id: "3",
-            nombre: "Guantes de Nitrilo",
-            descripcion: "Protecciòn para Manipuladores",
-            cantidad: "60",
-            unidadmedida: "Pares",
-            adquisicion: "15/02/2025",
-            vencimiento: "N/A",
-            ubicacion: "Almacenamiento Central",
+    
+    const fetchLaboratorios = async () => {
+        try {
+            const response = await axios.get('http://localhost:4000/laboratorio', {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            setDatosOriginales(response.data);
+            setDatosFiltrados(response.data);
+        } catch (error) {
+            console.error('Error obteniendo todos los datos de los laboratorios',error);
+            addNotification('Error al obtener laboratorios', 'error');
         }
-        
-        ];
+    };
 
+    const fetchTipos = async () => {
+        try {
+            const response = await axios.get('http://localhost:4000/laboratorio/tipos/all', {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            setTipos(response.data);
+        } catch (error) {
+            console.error('Error obteniendo todo los tipos de laboratorios',error);
+            addNotification('Error al obtener tipos de laboratorio', 'error');
+        }
+    };
 
-    const [currentModal, setCurrentModal] = useState(null); // Estado para controlar cuál modal está abierto
-    const [datosFiltrados, setDatosFiltrados] = useState(datosIniciales);
-    const [currentPage, setCurrentPage] = useState(1); // Página actual
-    const itemsPerPage = 3; // Número de elementos por página
+    const fetchEstados = async () => {
+        try {
+            const response = await axios.get('http://localhost:4000/laboratorio/estados/all', {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            setEstados(response.data);
+        } catch (error) {
+            console.error('Error obteniendo todos los estados',error);
+            addNotification('Error al obtener estados', 'error');
+        }
+    };
 
-    // Calcular los datos para la página actual
+    const fetchMunicipios = async (estadoId) => {
+        try {
+            if (!estadoId) {
+                setMunicipios([]);
+                return;
+            }
+            const response = await axios.get('http://localhost:4000/laboratorio/municipios/all', {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            setMunicipios(response.data.filter(m => Number(m.estado_id) === Number(estadoId)));
+        } catch (error) {
+            console.error('Error obteniendo todos los municipios',error);
+            addNotification('Error al obtener municipios', 'error');
+        }
+    };
+
+    const fetchParroquias = async (municipioId) => {
+        try {
+            if (!municipioId) {
+                setParroquias([]);
+                return;
+            }
+            const response = await axios.get('http://localhost:4000/laboratorio/parroquias/all', {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            setParroquias(response.data.filter(p => Number(p.municipio_id) === Number(municipioId)));
+        } catch (error) {
+            console.error('Error obteniendo todos las parroquias',error);
+            addNotification('Error al obtener parroquias', 'error');
+        }
+    };
+
+    const fetchSectores = async (parroquiaId) => {
+        try {
+            if (!parroquiaId) {
+                setSectores([]);
+                return;
+            }
+            const response = await axios.get('http://localhost:4000/laboratorio/sectores/all', {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            setSectores(response.data.filter(s => Number(s.parroquia_id) === Number(parroquiaId)));
+        } catch (error) {
+            console.error('Error obteniendo todos los sectores',error);
+            addNotification('Error al obtener sectores', 'error');
+        }
+    };
+
+    useEffect(() => {
+        fetchLaboratorios();
+        fetchTipos();
+        fetchEstados();
+    }, []);
+
+    
+    const resetFormData = () => {
+        setFormData({
+            id: '',
+            nombre: '',
+            descripcion: '',
+            ubicación: '',
+            tipo_laboratorio_id: '',
+            estado_id: '',
+            municipio_id: '',
+            parroquia_id: '',
+            sector_id: ''
+        });
+        setMunicipios([]);
+        setParroquias([]);
+        setSectores([]);
+    };
+
+    const handleChange = (e) => {
+        const { id, value } = e.target;
+        setFormData(prev => ({ ...prev, [id]: value }));
+
+        if (id === 'estado_id') {
+            setFormData(prev => ({
+                ...prev,
+                estado_id: value,
+                municipio_id: '',
+                parroquia_id: '',
+                sector_id: ''
+            }));
+            fetchMunicipios(value);
+            setParroquias([]);
+            setSectores([]);
+        }
+        if (id === 'municipio_id') {
+            setFormData(prev => ({
+                ...prev,
+                municipio_id: value,
+                parroquia_id: '',
+                sector_id: ''
+            }));
+            fetchParroquias(value);
+            setSectores([]);
+        }
+        if (id === 'parroquia_id') {
+            setFormData(prev => ({
+                ...prev,
+                parroquia_id: value,
+                sector_id: ''
+            }));
+            fetchSectores(value);
+        }
+
+        if (validationRules[id]) {
+            const { regex, errorMessage } = validationRules[id];
+            const { valid, message } = validateField(value, regex, errorMessage);
+            setErrors(prev => ({ ...prev, [id]: valid ? '' : message }));
+        }
+    };
+
+    const handleSearch = (searchTerm) => {
+        const filtered = filterData(datosOriginales, searchTerm, [
+            'id','nombre','descripcion','ubicación','tipo_laboratorio_nombre','sector_nombre','parroquia_nombre','municipio_nombre','estado_nombre'
+        ]);
+        setDatosFiltrados(filtered);
+    };
+
+    const handleSave = async () => {
+        for (const field of ['nombre', 'tipo_laboratorio_id', 'sector_id']) {
+            if (!validationRules[field]) continue;
+            const { regex, errorMessage } = validationRules[field];
+            if (regex) {
+                const { valid, message } = validateField(formData[field], regex, errorMessage);
+                if (!valid) {
+                    addNotification(message, 'warning');
+                    return;
+                }
+            }
+        }
+
+        try {
+            await axios.post('http://localhost:4000/laboratorio', {
+                nombre: formData.nombre,
+                descripcion: formData.descripcion,
+                ubicación: formData.ubicación,
+                tipo_laboratorio_id: formData.tipo_laboratorio_id,
+                sector_id: formData.sector_id
+            }, {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            addNotification('Laboratorio registrado con éxito', 'success');
+            fetchLaboratorios();
+            closeModal();
+        } catch (error) {
+            console.error('Error al registrar el laboratorio',error);
+            addNotification('Error al registrar laboratorio', 'error');
+        }
+    };
+
+    const handleEdit = async () => {
+        for (const field of ['nombre', 'tipo_laboratorio_id', 'sector_id']) {
+            if (!validationRules[field]) continue;
+            const { regex, errorMessage } = validationRules[field];
+            const { valid, message } = validateField(formData[field], regex, errorMessage);
+            if (!valid) {
+                addNotification(message, 'warning');
+                return;
+            }
+        }
+
+        try {
+            await axios.put(`http://localhost:4000/laboratorio/${formData.id}`, {
+                nombre: formData.nombre,
+                descripcion: formData.descripcion,
+                ubicación: formData.ubicación,
+                tipo_laboratorio_id: formData.tipo_laboratorio_id,
+                sector_id: formData.sector_id
+            }, {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            addNotification('Laboratorio actualizado con éxito', 'success');
+            fetchLaboratorios();
+            closeModal();
+        } catch (error) {
+            console.error('Error al actualizar laboratorio',error);
+            addNotification('Error al actualizar laboratorio', 'error');
+        }
+    };
+
+    const handleDelete = async (id) => {
+        try {
+            await axios.delete(`http://localhost:4000/laboratorio/${id}`, {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            fetchLaboratorios();
+            addNotification('Laboratorio eliminado con éxito', 'error');
+        } catch (error) {
+            console.error('Error al eliminar el laboratorio',error);
+            addNotification('Error al eliminar laboratorio', 'error');
+        }
+    };
+
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentData = datosFiltrados.slice(indexOfFirstItem, indexOfLastItem);
 
-      // Cambiar a la página anterior
     const handlePreviousPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage(currentPage - 1);
-        }
+        if (currentPage > 1) setCurrentPage(currentPage - 1);
     };
 
-    // Cambiar a la página siguiente
     const handleNextPage = () => {
-        if (indexOfLastItem < datosFiltrados.length) {
-            setCurrentPage(currentPage + 1);
-        }
+        if (indexOfLastItem < datosFiltrados.length) setCurrentPage(currentPage + 1);
     };
 
-    // modal //////////////////////////
-    const openModal = (modalName) => {
-        setCurrentModal(modalName); // Abre el modal especificado
+    const handlePreviousThreePages = () => {
+        setCurrentPage((prev) => Math.max(prev - 3, 1));
     };
 
-    const closeModal = () => {
-        setCurrentModal(null); // Cierra cualquier modal
+    const handleNextThreePages = () => {
+        const maxPage = Math.ceil(datosFiltrados.length / itemsPerPage);
+        setCurrentPage((prev) => Math.min(prev + 3, maxPage));
     };
 
-    const handleSave = () => {
-        console.log('Registro guardado');
-        closeModal(); // Cierra el modal después de guardar
+    const openModal = () => {
+        resetFormData();
+        setCurrentModal('laboratorio');
     };
 
-        // Componente para el encabezado de la tabla
-        const EncabezadoTabla = () => (
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Descripciòn</th>
-                    <th>Cantidad</th>
-                    <th>Unidad</th>
-                    <th>Fecha de Adquisiciòn</th>
-                    <th>Fecha de Vencimiento</th>
-                    <th>Ubicaciòn</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-        );
-         // Componente para el cuerpo de la tabla
-        const CuerpoTabla = ({ datos }) => (
-            <tbody>
-                {datos.map((item, index) => (
-                <tr key={index}>
-                    <td>{item.id}</td>
-                    <td>{item.nombre}</td>
-                    <td>{item.descripcion}</td>
-                    <td>{item.cantidad}</td>
-                    <td>{item.unidadmedida}</td>
-                    <td>{item.adquisicion}</td>
-                    <td>{item.vencimiento}</td>
-                    <td>{item.ubicacion}</td>
-                    <td>
-                    <div className='iconContainer'>
-                        <img
-                        src={icon.editar}
-                        alt="Editar"
-                        className='iconeditar'
-                        title="Editar"
-                        />
-                        <img 
-                        src={icon.eliminar} 
-                        alt="Eliminar" 
-                        className='iconeliminar' 
-                        title="Eliminar" 
-                        />
-                    </div>
-                    </td>
-                </tr>
-                ))}
-            </tbody>
-        );
-        
-            // Componente para el pie de la tabla (paginación)
-            const PieTabla = () => (
-            <div className='tableFooter'>
-                <img
-                src={icon.flecha3}
-                alt="Anterior"
-                className='iconBack'
-                title="Anterior"
-                onClick={handlePreviousPage}
-                />
-                <span>{currentPage}</span>
-                <img
-                src={icon.flecha2}
-                alt="Siguiente"
-                className='iconNext'
-                title="Siguiente"
-                onClick={handleNextPage}
-                />
-            </div>
-            );
+    const closeModal = () => setCurrentModal(null);
+
+    const openEditModal = (lab) => {
+        setFormData({
+            id: lab.id,
+            nombre: lab.nombre || '',
+            descripcion: lab.descripcion || '',
+            ubicación: lab.ubicación || '',
+            tipo_laboratorio_id: lab.tipo_laboratorio_id || '',
+            estado_id: lab.estado_id || '',
+            municipio_id: lab.municipio_id || '',
+            parroquia_id: lab.parroquia_id || '',
+            sector_id: lab.sector_id || ''
+        });
+        fetchMunicipios(lab.estado_id);
+        fetchParroquias(lab.municipio_id);
+        fetchSectores(lab.parroquia_id);
+        setCurrentModal('laboratorio');
+    };
+
+    const openConfirmDeleteModal = (id) => {
+        setSelectedLabId(id);
+        setConfirmDeleteModal(true);
+    };
+    const closeConfirmDeleteModal = () => {
+        setSelectedLabId(null);
+        setConfirmDeleteModal(false);
+    };
+
+    const openDetalleModal = (lab) => setDetalleModal({ abierto: true, laboratorio: lab });
+    const closeDetalleModal = () => setDetalleModal({ abierto: false, laboratorio: null });
+
     return (
-        <div className={styles.insumoContainer}>
-        
+        <div className={styles.laboratorioContainer}>
+            {notifications.map((notification) => (
+                <Notification
+                    key={notification.id}
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => removeNotification(notification.id)}
+                />
+            ))}
 
-            {/* Modal /////////////////////////////////////// */}
-            {currentModal === 'insumos' && (
+            {detalleModal.abierto && (
+                <div className='modalOverlay'>
+                    <div className='modalDetalle'>
+                        <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
+                        <h2>Detalles del Laboratorio</h2>
+                        <table className='detalleTable'>
+                            <thead>
+                                <tr>
+                                    
+                                    
+                                    
+                                    
+                                </tr>
+                                
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <td>{detalleModal.laboratorio.nombre}</td>
+                                </tr>
+                                <tr>
+                                    <th>Descripción</th>
+                                    <td>{detalleModal.laboratorio.descripcion}</td>
+                                </tr>
+                                <tr>
+                                    <th>Ubicación</th>
+                                    <td>{detalleModal.laboratorio.ubicación}</td>
+                                </tr>
+                                <tr>
+                                    <th>Tipo de Laboratorio</th>
+                                    <td>{detalleModal.laboratorio.tipo_laboratorio_nombre}</td>
+                                </tr>
+                                <tr>
+                                    <th>Sector</th>
+                                    <td>{detalleModal.laboratorio.sector_nombre}</td>
+                                </tr>
+                                <tr>
+                                    <th>Parroquia</th>
+                                    <td>{detalleModal.laboratorio.parroquia_nombre}</td>
+                                </tr>
+                                <tr>
+                                    <th>Municipio</th>
+                                    <td>{detalleModal.laboratorio.municipio_nombre}</td>
+                                </tr>
+                                <tr>
+                                    <th>Estado</th>
+                                    <td>{detalleModal.laboratorio.estado_nombre}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {currentModal === 'laboratorio' && (
                 <div className='modalOverlay'>
                     <div className={styles.modal}>
-                        
-                        <button className='closeButton'  onClick={closeModal}>
-                            &times; {/* Ícono de cerrar */}
-                        </button>
-                        
-                        <h2>Registrar Insumo</h2>
-                        
+                        <button className='closeButton' onClick={closeModal}>&times;</button>
+                        <h2>{formData.id ? 'Editar Laboratorio' : 'Registrar Laboratorio'}</h2>
                         <form className='modalForm'>
                             <div className={styles.formColumns}>
-                            
-                            <div className='formGroup'>
-                                <label htmlFor="nombre">Nombre:</label>
-                                <input
-                                    type="text"
-                                    id="nombre"
-                                    placeholder="Rellene el Campo"
-                                    className='input'
-                                />
+                                <div className='formGroup'>
+                                    <label htmlFor="nombre">Nombre:</label>
+                                    <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Nombre del laboratorio'/>
+                                    {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="ubicación">Ubicación:</label>
+                                    <input type="text" id="ubicación" value={formData.ubicación} onChange={handleChange} className='input' placeholder='Ubicación'/>
+                                    {errors.ubicación && <span className='errorText'>{errors.ubicación}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="tipo_laboratorio_id">Tipo de laboratorio:</label>
+                                    <select id="tipo_laboratorio_id" value={formData.tipo_laboratorio_id} onChange={handleChange} className='select'>
+                                        <option value="">Seleccione un tipo</option>
+                                        {tipos.map((tipo) => (
+                                            <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>
+                                        ))}
+                                    </select>
+                                    {errors.tipo_laboratorio_id && <span className='errorText'>{errors.tipo_laboratorio_id}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="estado_id">Estado:</label>
+                                    <select id="estado_id" value={formData.estado_id} onChange={handleChange} className='select'>
+                                        <option value="">Seleccione un estado</option>
+                                        {estados.map((estado) => (
+                                            <option key={estado.id} value={estado.id}>{estado.nombre}</option>
+                                        ))}
+                                    </select>
+                                    {errors.estado_id && <span className='errorText'>{errors.estado_id}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="municipio_id">Municipio:</label>
+                                    <select id="municipio_id" value={formData.municipio_id} onChange={handleChange} className='select'>
+                                        <option value="">Seleccione un municipio</option>
+                                        {municipios.map((municipio) => (
+                                            <option key={municipio.id} value={municipio.id}>{municipio.nombre}</option>
+                                        ))}
+                                    </select>
+                                    {errors.municipio_id && <span className='errorText'>{errors.municipio_id}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="parroquia_id">Parroquia:</label>
+                                    <select id="parroquia_id" value={formData.parroquia_id} onChange={handleChange} className='select'>
+                                        <option value="">Seleccione una parroquia</option>
+                                        {parroquias.map((parroquia) => (
+                                            <option key={parroquia.id} value={parroquia.id}>{parroquia.nombre}</option>
+                                        ))}
+                                    </select>
+                                    {errors.parroquia_id && <span className='errorText'>{errors.parroquia_id}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="sector_id">Sector:</label>
+                                    <select id="sector_id" value={formData.sector_id} onChange={handleChange} className='select'>
+                                        <option value="">Seleccione un sector</option>
+                                        {sectores.map((sector) => (
+                                            <option key={sector.id} value={sector.id}>{sector.nombre}</option>
+                                        ))}
+                                    </select>
+                                    {errors.sector_id && <span className='errorText'>{errors.sector_id}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="descripcion">Descripción:</label>
+                                    <textarea id="descripcion" value={formData.descripcion} onChange={handleChange} className='input' placeholder='Descripción'/>
+                                    {errors.descripcion && <span className='errorText'>{errors.descripcion}</span>}
+                                </div>
                             </div>
-
-                            
-                            <div className='formGroup'>
-                                <label htmlFor="cantidad">Cantidad:</label>
-                                <input
-                                    type="text"
-                                    id="cantidad"
-                                    placeholder="Rellene el Campo"
-                                    className='input'
-                                />
-                            </div>
-
-                            <div className='formGroup'>
-                                <label htmlFor="unidad">Unidad de Medida:</label>
-                                    <input
-                                        type="text"
-                                        id="unidad"
-                                        placeholder="Rellene el Campo"
-                                        className='input'
-                                    />
-                            </div>
-
-                            <div className='formGroup'>
-                                <label htmlFor="fecha">Fecha de Adquisiciòn:</label>
-                                <input
-                                    type="text"
-                                    id="fecha"
-                                    placeholder="Rellene el Campo"
-                                    className='input'
-                                />
-                            </div>
-
-                            <div className='formGroup'>
-                                <label htmlFor="vencimiento">Vencimiento:</label>
-                                <input
-                                    type="text"
-                                    id="vencimiento"
-                                    placeholder="Rellene el Campo"
-                                    className='input'
-                                />
-                            </div>
-                           
-                            <div className='formGroup'>
-                                <label htmlFor="lugar">Ubicaciòn del Insumo:</label>
-                                <input
-                                    type="text"
-                                    id="lugar"
-                                    placeholder="Rellene el Campo"
-                                    className='input'
-                                />
-                            </div>
-
-                            <div className='formGroup'>
-                                <label htmlFor="descripcion">Descripciòn:</label>
-                                <textarea className="textarea" id="descripcion"></textarea>
-                            </div>
-
-                            <button type="button" className={styles.saveButton} onClick={handleSave}>
-                                Guardar
+                            <button 
+                                type="button" 
+                                className='saveButton' 
+                                onClick={formData.id ? handleEdit : handleSave}
+                                title={formData.id ? 'Actualizar Laboratorio' : 'Registrar Laboratorio'}>
+                                    Guardar
                             </button>
-                            
-                            </div>
                         </form>
                     </div>
                 </div>
             )}
 
+            {confirmDeleteModal && (
+                <div className='modalOverlay'>
+                    <div className='modal'>
+                        <h2>Confirmar Eliminación</h2>
+                        <p>¿Estás seguro de que deseas eliminar este laboratorio?</p>
+                        <div className='modalActions'>
+                            <button className='cancelButton' onClick={closeConfirmDeleteModal}>Cancelar</button>
+                            <button className='confirmButton' onClick={() => { handleDelete(selectedLabId); closeConfirmDeleteModal(); }}>Confirmar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
-            {/* Tabla */}
             <div className='tableSection'>
-                 {/* Contenedor para filtros y acciones */}
                 <div className='filtersContainer'>
                     <button 
                         type='button'
-                        onClick={() => openModal('insumos')}
+                        onClick={openModal} 
                         className='create'
-                        title='Registrar Empleado'
-                    >
-                        <img src={icon.crear} alt="Crear" className='icon' />
-                        Insumo
+                        title='Registrar Laboratorio'>
+                        <img src={icon.plus} alt="Crear" className='icon' />
+                        Agregar
                     </button>
-                
-                    <h2>Insumos</h2>
-                    
+
+                    <h2>Laboratorios</h2>
+
                     <div className='searchContainer'>
-                        <SearchBar data={datosIniciales} onSearch={setDatosFiltrados} />
+                        <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-            
-                <table className='table'>
-                    <EncabezadoTabla />
-                    <CuerpoTabla datos={currentData} />
+                <table className={styles.table}>
+                    <thead>
+                        <tr>
+                            <th>N°</th>
+                            <th>Nombre</th>
+                            <th>Ubicación</th>
+                            <th>Tipo de Laboratorio</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {currentData.map((lab, idx) => (
+                            <tr key={lab.id} >
+                                <td>{indexOfFirstItem + idx + 1}</td>
+                                <td>{lab.nombre}</td>
+                                <td>{lab.ubicación} </td>
+                                <td>{lab.tipo_laboratorio_nombre}</td>
+                                <td>
+                                    <div className={styles.iconContainer}>
+                                        <img
+                                            onClick={() => openDetalleModal(lab)}
+                                            src={icon.ver}
+                                            className='iconver'
+                                            title='Ver más'
+                                            style={{ cursor: 'pointer' }}
+                                        />
+                                        <img
+                                            onClick={() => openEditModal(lab)}
+                                            src={icon.editar}
+                                            className='iconeditar'
+                                            title='Editar'
+                                        />
+                                        <img 
+                                            onClick={() => openConfirmDeleteModal(lab.id)} 
+                                            src={icon.eliminar} 
+                                            className='iconeliminar' 
+                                            title='eliminar'
+                                        />
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
                 </table>
-                 {/* Contenedor para Footer en tabla */}
-                <PieTabla />
+                <div className='tableFooter'>
+                    <img onClick={handlePreviousPage} src={icon.flecha3} className='iconBack' title='Anterior'/>
+                    <img onClick={handlePreviousThreePages} src={icon.flecha5} className='iconBack' title='Anterior' />
+                    <span>{currentPage}</span>
+                    <img onClick={handleNextThreePages} src={icon.flecha4} className='iconNext' title='Siguiente' />
+                    <img onClick={handleNextPage} src={icon.flecha2} className='iconNext' title='Siguiente'/>
+                </div>
             </div>
         </div>
     );
 }
 
-export default Insumos;
+export default Laboratorio;

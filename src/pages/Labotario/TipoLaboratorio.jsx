@@ -221,7 +221,7 @@ function TipoLaboratorio() {
             {/* modal registro y editar */}
             {currentModal === 'tipo_laboratorio' && (
                 <div className='modalOverlay'>
-                    <div className={styles.modal}>
+                    <div className='modal_mono'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Tipo de Laboratorio' : 'Registrar Tipo de Laboratorio'}</h2>
                         <form className='modalForm'>

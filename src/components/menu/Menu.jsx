@@ -365,13 +365,13 @@ function Menu() {
                     {/* Programas Epidemiologicos///////////////// */}
                     {(tienePermiso('programa', 'ver') || tienePermiso('tipo_programa', 'ver') || tienePermiso('tipo_evento', 'ver')) && (
                         <NavItem
-                            id="programaEpidemia"
+                            id="proteccion"
                             openSubmenus={openSubmenus}
                             setOpenSubmenus={setOpenSubmenus}
                             selectedItem={selectedItem}
                             setSelectedItem={setSelectedItem}
                             iconSrc={icon.escudomalo}
-                            label="Programas Epidemiologicos"
+                            label="Protección Fitosanitaria"
                         >
                             <ul className={styles.submenu}>
 
@@ -382,7 +382,7 @@ function Menu() {
                                             className={`${styles.submenuItem} ${selectedItem === 'programas' ? styles.selected : ''}`}
                                             onClick={() => setSelectedItem('programas')}
                                         >
-                                            Programas
+                                            Programas Epidemiologicos
                                         </Link>
                                     </li>
                                 )}
