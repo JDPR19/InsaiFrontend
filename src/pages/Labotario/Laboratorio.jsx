@@ -8,6 +8,8 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
+import Spinner from '../../components/spinner/Spinner';
+
 
 function Laboratorio() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -17,6 +19,7 @@ function Laboratorio() {
     const [municipios, setMunicipios] = useState([]);
     const [parroquias, setParroquias] = useState([]);
     const [sectores, setSectores] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
     const [detalleModal, setDetalleModal] = useState({ abierto: false, laboratorio: null });
@@ -40,6 +43,7 @@ function Laboratorio() {
 
     
     const fetchLaboratorios = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/laboratorio', {
                 headers: {
@@ -51,10 +55,13 @@ function Laboratorio() {
         } catch (error) {
             console.error('Error obteniendo todos los datos de los laboratorios',error);
             addNotification('Error al obtener laboratorios', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const fetchTipos = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/laboratorio/tipos/all', {
                 headers: {
@@ -65,10 +72,13 @@ function Laboratorio() {
         } catch (error) {
             console.error('Error obteniendo todo los tipos de laboratorios',error);
             addNotification('Error al obtener tipos de laboratorio', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const fetchEstados = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/laboratorio/estados/all', {
                 headers: {
@@ -79,10 +89,13 @@ function Laboratorio() {
         } catch (error) {
             console.error('Error obteniendo todos los estados',error);
             addNotification('Error al obtener estados', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const fetchMunicipios = async (estadoId) => {
+        setLoading(true);
         try {
             if (!estadoId) {
                 setMunicipios([]);
@@ -97,10 +110,11 @@ function Laboratorio() {
         } catch (error) {
             console.error('Error obteniendo todos los municipios',error);
             addNotification('Error al obtener municipios', 'error');
-        }
+        }setLoading(false);
     };
 
     const fetchParroquias = async (municipioId) => {
+        setLoading(true);
         try {
             if (!municipioId) {
                 setParroquias([]);
@@ -115,10 +129,13 @@ function Laboratorio() {
         } catch (error) {
             console.error('Error obteniendo todos las parroquias',error);
             addNotification('Error al obtener parroquias', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const fetchSectores = async (parroquiaId) => {
+        setLoading(true);
         try {
             if (!parroquiaId) {
                 setSectores([]);
@@ -133,6 +150,8 @@ function Laboratorio() {
         } catch (error) {
             console.error('Error obteniendo todos los sectores',error);
             addNotification('Error al obtener sectores', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -210,6 +229,7 @@ function Laboratorio() {
     };
 
     const handleSave = async () => {
+        setLoading(true);
         for (const field of ['nombre', 'tipo_laboratorio_id', 'sector_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -240,10 +260,13 @@ function Laboratorio() {
         } catch (error) {
             console.error('Error al registrar el laboratorio',error);
             addNotification('Error al registrar laboratorio', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const handleEdit = async () => {
+        setLoading(true);
         for (const field of ['nombre', 'tipo_laboratorio_id', 'sector_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -272,10 +295,13 @@ function Laboratorio() {
         } catch (error) {
             console.error('Error al actualizar laboratorio',error);
             addNotification('Error al actualizar laboratorio', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const handleDelete = async (id) => {
+        setLoading(true);
         try {
             await axios.delete(`http://localhost:4000/laboratorio/${id}`, {
                 headers: {
@@ -288,6 +314,8 @@ function Laboratorio() {
         } catch (error) {
             console.error('Error al eliminar el laboratorio',error);
             addNotification('Error al eliminar laboratorio', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -351,6 +379,7 @@ function Laboratorio() {
 
     return (
         <div className={styles.laboratorioContainer}>
+            {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
                     key={notification.id}
@@ -366,15 +395,6 @@ function Laboratorio() {
                         <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
                         <h2>Detalles del Laboratorio</h2>
                         <table className='detalleTable'>
-                            <thead>
-                                <tr>
-                                    
-                                    
-                                    
-                                    
-                                </tr>
-                                
-                            </thead>
                             <tbody>
                                 <tr>
                                     <th>Nombre</th>
@@ -416,7 +436,7 @@ function Laboratorio() {
 
             {currentModal === 'laboratorio' && (
                 <div className='modalOverlay'>
-                    <div className={styles.modal}>
+                    <div className='modal'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Laboratorio' : 'Registrar Laboratorio'}</h2>
                         <form className='modalForm'>
@@ -536,7 +556,7 @@ function Laboratorio() {
                             <th>N°</th>
                             <th>Nombre</th>
                             <th>Ubicación</th>
-                            <th>Tipo de Laboratorio</th>
+                            {/* <th>Tipo de Laboratorio</th> */}
                             <th>Acción</th>
                         </tr>
                     </thead>
@@ -546,7 +566,7 @@ function Laboratorio() {
                                 <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{lab.nombre}</td>
                                 <td>{lab.ubicación} </td>
-                                <td>{lab.tipo_laboratorio_nombre}</td>
+                                {/* <td>{lab.tipo_laboratorio_nombre}</td> */}
                                 <td>
                                     <div className={styles.iconContainer}>
                                         <img

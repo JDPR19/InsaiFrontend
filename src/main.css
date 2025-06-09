@@ -183,9 +183,10 @@
     background-color: #ffffff;
     padding: 25px;
     border-radius: 10px;
-    width: auto;
-    min-width: 20vh;
-    min-height: 30vh;
+    width: 100%;
+    min-width: 0vh;
+    max-width: 60vh;
+    min-height: 0vh;
     max-height: 90vh;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
     position: relative;
@@ -195,9 +196,10 @@
   background-color: #ffffff;
   padding: 25px;
   border-radius: 10px;
-  width: auto;
-  min-width: 90vh;
-  min-height: 30vh;
+  width: 100%;
+  min-width: 0vh;
+  min-height: 0vh;
+  max-width: 90vh;
   max-height: 90vh;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
   position: relative;
@@ -268,7 +270,7 @@
 .formColumns {
   display: grid;
   grid-template-columns: 1fr 1fr; 
-  gap: 20px; 
+  gap: 10px; 
 }
 
 .formGroup {
@@ -321,7 +323,7 @@
     padding: 30px 30px 20px 30px;
     border-radius: 10px;
     width: 100%;
-    max-width: 50vw;
+    max-width: 60vw;
     max-height: 80vh;
     box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
     position: relative;
@@ -340,7 +342,7 @@
     border-bottom: 2px solid #cecece6c;
     font-size: 1rem;
     vertical-align: top;
-    max-width: 200px;
+    max-width: 300px;
     word-break: break-word;
     white-space: normal;
 }
@@ -359,6 +361,7 @@
     list-style: none;
     padding-left: 0;
     margin-left: 0;
+    margin-bottom: 5px;
 }
 
 .modalDetalle::-webkit-scrollbar {
@@ -577,7 +580,7 @@
 .table td {
   padding: 15px 15px;
   border-bottom: 1px solid var(--grey2);
-  max-width: 140px; 
+  max-width: 160px; 
   line-height: 1;
   white-space: nowrap;
   word-wrap: break-word; 
@@ -593,7 +596,7 @@
 
 .table td {
   /* text-align: justify; */
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .table tr:hover {

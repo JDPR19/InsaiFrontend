@@ -8,11 +8,14 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
+import Spinner from '../../components/spinner/Spinner';
+
 
 function TipoLaboratorio() {
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
+    const [loading, setLoading] = useState(false);
     const [currentModal, setCurrentModal] = useState(null);
     const [formData, setFormData] = useState({
         id: '',
@@ -54,6 +57,7 @@ function TipoLaboratorio() {
 
     // obterner o listar los cargos
     const fetchTipoLaboratorio = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/tipo_laboratorio', {
                 headers: {
@@ -65,6 +69,8 @@ function TipoLaboratorio() {
         } catch (error) {
             console.error('Error obteniendo el tipo de laboratorio:', error);
             addNotification('Error al obtener el tipo de laboratorio', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -74,7 +80,7 @@ function TipoLaboratorio() {
 
 
     const handleSave = async () => {
-        
+        setLoading(true);
         for (const field in formData) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -103,10 +109,13 @@ function TipoLaboratorio() {
         } catch (error) {
             console.error('Error creando tipo de Laboratorio:', error);
             addNotification('Error al registrar tipo de laboratorio', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const handleEdit = async () => {
+        setLoading(true);
         const camposObligatorios = ['nombre'];
         for (const field of camposObligatorios) {
             const { regex, errorMessage } = validationRules[field];
@@ -135,11 +144,14 @@ function TipoLaboratorio() {
         } catch (error) {
             console.error('Error editando tipo de laboratorio:', error);
             addNotification('Error al actualizar tipo de laboratorio', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     
     const handleDelete = async (id) => {
+        setLoading(true);
         try {
             await axios.delete(`http://localhost:4000/tipo_laboratorio/${id}`, {
                 headers: {
@@ -153,6 +165,8 @@ function TipoLaboratorio() {
         } catch (error) {
             console.error('Error eliminando tipo de laboratorio:', error);
             addNotification('Error al eliminar tipo de laboratorio', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -209,6 +223,7 @@ function TipoLaboratorio() {
 
     return (
         <div className={styles.tipolaboratorioContainer}>
+            {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
                     key={notification.id}

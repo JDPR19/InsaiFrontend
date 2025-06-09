@@ -8,6 +8,7 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
+import Spinner from '../../components/spinner/Spinner';
 
 function Parroquia() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -16,6 +17,7 @@ function Parroquia() {
     const [municipios, setMunicipios] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         id: '',
         nombre: '',
@@ -30,6 +32,7 @@ function Parroquia() {
     const [errors, setErrors] = useState({});
 
     const fetchParroquias = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/parroquia', {
                 headers: {
@@ -41,10 +44,13 @@ function Parroquia() {
         } catch (error) {
             console.error('Error obteniendo parroquias:', error);
             addNotification('Error al obtener parroquias', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const fetchEstados = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/parroquia/estados/all', {
                 headers: {
@@ -55,10 +61,13 @@ function Parroquia() {
         } catch (error) {
             console.error('Error obteniendo estados:', error);
             addNotification('Error al obtener estados', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const fetchMunicipios = async (estadoId) => {
+        setLoading(true);
         try {
             if (!estadoId) {
                 setMunicipios([]);
@@ -73,6 +82,8 @@ function Parroquia() {
         } catch (error) {
             console.error('Error obteniendo municipios:', error);
             addNotification('Error al obtener municipios', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -115,6 +126,7 @@ function Parroquia() {
     };
 
     const handleSave = async () => {
+        setLoading(true);
         for (const field in formData) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -142,10 +154,13 @@ function Parroquia() {
         } catch (error) {
             console.error('Error creando Parroquia:', error);
             addNotification('Error al registrar parroquia', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const handleEdit = async () => {
+        setLoading(true);
         const camposObligatorios = ['nombre', 'municipio_id'];
         for (const field of camposObligatorios) {
             if (!validationRules[field]) continue;
@@ -172,10 +187,13 @@ function Parroquia() {
         } catch (error) {
             console.error('Error editando Parroquia:', error);
             addNotification('Error al actualizar parroquia', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const handleDelete = async (id) => {
+        setLoading(true);
         try {
             await axios.delete(`http://localhost:4000/parroquia/${id}`, {
                 headers: {
@@ -188,6 +206,8 @@ function Parroquia() {
         } catch (error) {
             console.error('Error eliminando Parroquia:', error);
             addNotification('Error al eliminar parroquia', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -241,6 +261,7 @@ function Parroquia() {
 
     return (
         <div className={styles.ubicacionContainer}>
+            {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
                     key={notification.id}
@@ -252,7 +273,7 @@ function Parroquia() {
 
             {currentModal === 'parroquia' && (
                 <div className='modalOverlay'>
-                    <div className={styles.modal}>
+                    <div className='modal_mono'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Parroquia' : 'Registrar Parroquia'}</h2>
                         <form className='modalForm'>

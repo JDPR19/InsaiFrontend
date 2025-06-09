@@ -8,6 +8,7 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
+import Spinner from '../../components/spinner/Spinner';
 
 function Programas() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -16,6 +17,7 @@ function Programas() {
     const [tipos, setTipos] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [detalleModal, setDetalleModal] = useState({ abierto: false, programa: null });
     const [formData, setFormData] = useState({
         id: '',
@@ -34,6 +36,7 @@ function Programas() {
 
     
     const fetchProgramas = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/programa', {
                 headers: {
@@ -45,10 +48,13 @@ function Programas() {
         } catch (error) {
             console.error('error obteniendo todos los programa',error);
             addNotification('Error al obtener programas', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const fetchPlagas = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/programa/plagas/all', {
                 headers: {
@@ -59,10 +65,13 @@ function Programas() {
         } catch (error) {
             console.error('error obteniendo todas las plagas',error);
             addNotification('Error al obtener plagas', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const fetchTipos = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/programa/tipos/all', {
                 headers: {
@@ -73,6 +82,8 @@ function Programas() {
         } catch (error) {
             console.error('error obteniendo todos los tipos de programa',error);
             addNotification('Error al obtener tipos de programa', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -113,6 +124,7 @@ function Programas() {
     };
 
     const handleSave = async () => {
+        setLoading(true);
         for (const field of ['nombre', 'plaga_fito_id', 'tipo_programa_fito_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -143,10 +155,13 @@ function Programas() {
         } catch (error) {
             console.error('error registrando el programa',error);
             addNotification('Error al registrar programa', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const handleEdit = async () => {
+        setLoading(true);
         for (const field of ['nombre']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -175,10 +190,13 @@ function Programas() {
         } catch (error) {
             console.error('error actualizando el programa',error);
             addNotification('Error al actualizar programa', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const handleDelete = async (id) => {
+        setLoading(true);
         try {
             await axios.delete(`http://localhost:4000/programa/${id}`, {
                 headers: {
@@ -191,6 +209,8 @@ function Programas() {
         } catch (error) {
             console.error('error eliminado el programa',error);
             addNotification('Error al eliminar programa', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -248,6 +268,8 @@ function Programas() {
 
     return (
         <div className={styles.programaContainer}>
+
+            {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
                     key={notification.id}

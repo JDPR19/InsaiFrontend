@@ -7,12 +7,12 @@ import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
-import { validateField, validationRules } from '../../utils/validation'; 
+import { validateField, validationRules } from '../../utils/validation';
+import Spinner from '../../components/spinner/Spinner'; 
 
 
 function Empleado() {
-    
-
+    const [loading, setLoading] = useState(false);
     const [datosOriginales, setDatosOriginales] = useState([]); // Estado para los datos originales
     const [datosFiltrados, setDatosFiltrados] = useState([]); // Estado para los datos filtrados
     const [cargos, setCargos] = useState([]);
@@ -67,6 +67,7 @@ function Empleado() {
     // Obtener empleados desde el servidor
     useEffect(() => {
         const fetchEmpleados = async () => {
+            setLoading(true);
             try {
                 const response = await axios.get('http://localhost:4000/empleados', {
                 headers: {
@@ -79,6 +80,8 @@ function Empleado() {
                 const errorResponse = error.response ? error.response.data : error.message;
                 console.error('Error obteniendo empleados:', errorResponse);
                 addNotification('Error al obtener empleados', 'error');
+            }finally{
+                setLoading(false);
             }
         };
         fetchEmpleados();
@@ -87,6 +90,7 @@ function Empleado() {
     // listar todos los cargos
     useEffect(() => {
         const fetchCargos = async () => {
+            setLoading(true);
             try {
                 const response = await axios.get('http://localhost:4000/empleados/cargos', {
                 headers: {
@@ -98,6 +102,8 @@ function Empleado() {
                 const errorResponse = error.response ? error.response.data : error.message;
                 console.error('Error obteniendo cargos:', errorResponse);
                 addNotification('Error al obtener cargos', 'error');
+            }finally{
+                setLoading(false);
             }
         };
         fetchCargos();
@@ -105,9 +111,8 @@ function Empleado() {
 
     // Crear un nuevo empleado
     const handleSave = async () => {
-
-        // Validar los campos del formulario
-    for (const field in formData) {
+        setLoading(true);
+        for (const field in formData) {
         console.log(`Validando campo: ${formData}`);
         if (!validationRules[field]) {
             continue; // Omitir campos sin reglas de validación
@@ -135,12 +140,14 @@ function Empleado() {
             const errorResponse = error.response ? error.response.data : error.message;
             console.error('Error creando empleado:', errorResponse);
             addNotification('Error al registrar empleado', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     //edita un empleado
     const handleEdit = async () => {
-        // Validar solo campos obligatorios
+        setLoading(true);
         const camposObligatorios = ['cedula', 'nombre', 'apellido'];
         for (const field of camposObligatorios) {
             const { regex, errorMessage } = validationRules[field];
@@ -151,8 +158,6 @@ function Empleado() {
                 return; // Detener el envío del formulario
             }
         }
-
-
         try {
             const response = await axios.put(`http://localhost:4000/empleados/${formData.id}`, formData, {
                 headers: {
@@ -170,11 +175,14 @@ function Empleado() {
         } catch (error) {
             console.error('Error editando empleado:', error);
             addNotification('Error al actualizar empleado', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     // Eliminar un empleado
     const handleDelete = async (id) => {
+        setLoading(true);
         try {
             await axios.delete(`http://localhost:4000/empleados/${id}`, {
                 headers: {
@@ -187,6 +195,8 @@ function Empleado() {
         } catch (error) {
             console.error('Error eliminando empleado:', error);
             addNotification('Error al eliminar empleado', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -235,7 +245,7 @@ function Empleado() {
 
     return (
         <div className={styles.personaContainer}>
-
+            {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
                     key={notification.id}

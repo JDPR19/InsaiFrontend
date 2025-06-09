@@ -8,12 +8,14 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
+import Spinner from '../../components/spinner/Spinner';
 
 function Estados() {
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         id: '',
         nombre: '',
@@ -54,6 +56,7 @@ function Estados() {
 
     // obterner o listar los cargos
     const fetchEstados = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/estado', {
                 headers: {
@@ -65,6 +68,8 @@ function Estados() {
         } catch (error) {
             console.error('Error obteniendo cargos:', error);
             addNotification('Error al obtener cargos', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -75,7 +80,7 @@ function Estados() {
 
     // Crear cargo
     const handleSave = async () => {
-        
+        setLoading(true);
         for (const field in formData) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -104,10 +109,13 @@ function Estados() {
         } catch (error) {
             console.error('Error creando Estado:', error);
             addNotification('Error al registrar cargo', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const handleEdit = async () => {
+        setLoading(true);
         const camposObligatorios = ['nombre'];
         for (const field of camposObligatorios) {
             const { regex, errorMessage } = validationRules[field];
@@ -136,11 +144,13 @@ function Estados() {
         } catch (error) {
             console.error('Error editando Estado:', error);
             addNotification('Error al actualizar Estado', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
-    // Eliminar cargo
     const handleDelete = async (id) => {
+        setLoading(true);
         try {
             await axios.delete(`http://localhost:4000/estado/${id}`, {
                 headers: {
@@ -154,6 +164,8 @@ function Estados() {
         } catch (error) {
             console.error('Error eliminando Estado:', error);
             addNotification('Error al eliminar Estado', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -210,6 +222,7 @@ function Estados() {
 
     return (
         <div className={styles.ubicacionContainer}>
+            {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
                     key={notification.id}
@@ -222,7 +235,7 @@ function Estados() {
             {/* modal registro y editar */}
             {currentModal === 'estado' && (
                 <div className='modalOverlay'>
-                    <div className={styles.modal}>
+                    <div className='modal_mono'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Estado' : 'Registrar Estado'}</h2>
                         <form className='modalForm'>

@@ -20,6 +20,13 @@ function BitacoraModal({ registro, onClose }) {
         nombre_cientifico: 'Nombre Cientifico',
         tipo_plaga_fito_id: 'Tipo de Plaga',
         observaciones: 'Observaciones',
+        tipo_programa_fito_id: 'Tipo de Programa',
+        plaga_fito_id: 'Plaga',
+        tiempo_duracion: 'Tiempo de Duraciòn',
+        parroquia_id: 'Parroquia',
+        municipio_id: 'Municipio',
+        estado_id: 'Estado',
+        sector_id: 'Sector',
     };
 
     const datosNuevos = registro.dato?.nuevos

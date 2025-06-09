@@ -10,6 +10,7 @@ import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import { getCurrentUser } from '../../utils/usernameauth';
 import { usePermiso } from '../../hooks/usePermiso';
+import Spinner from '../../components/spinner/Spinner';
 
 
 function Usuario() {
@@ -17,6 +18,7 @@ function Usuario() {
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [cedulas, setCedulas] = useState([]);
     const [tiposUsuario, setTiposUsuario] = useState([]);
     const user = getCurrentUser();
@@ -76,6 +78,7 @@ function Usuario() {
     };
 
     const fetchUsuarios = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/usuarios', {
                 headers: {
@@ -87,6 +90,8 @@ function Usuario() {
         } catch (error) {
             console.error('Error obteniendo usuarios:', error);
             addNotification('Error al obtener usuarios', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -95,6 +100,7 @@ function Usuario() {
     }, []);
 
     const fetchTiposUsuario = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/usuarios/tipos', {
                 headers: {
@@ -105,10 +111,13 @@ function Usuario() {
         } catch (error) {
             console.error('Error obteniendo tipos de usuario:', error);
             addNotification('Error al obtener tipos de usuario', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
     const fetchCedulas = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/usuarios/empleados/cedulas', {
                 headers: {
@@ -119,6 +128,8 @@ function Usuario() {
         } catch (error) {
             console.error('Error obteniendo cédulas:', error);
             addNotification('Error al obtener cédulas', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -135,6 +146,7 @@ function Usuario() {
 
     // Crear usuario
     const handleSave = async () => {
+        setLoading(true);
         // Validar los campos del formulario
         for (const field in formData) {
             if (!validationRules[field]) continue;
@@ -174,11 +186,14 @@ function Usuario() {
         } catch (error) {
             console.error('Error creando usuario:', error);
             addNotification('Error al registrar usuario', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
     // Editar usuario
     const handleEdit = async () => {
+        setLoading(true);
         const camposObligatorios = ['username', 'email', 'password'];
         for (const field of camposObligatorios) {
             const { regex, errorMessage } = validationRules[field];
@@ -207,11 +222,14 @@ function Usuario() {
         } catch (error) {
             console.error('Error editando usuario:', error);
             addNotification('Error al actualizar usuario', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
     // deshabilitar 
     const disableUser = async (id, estado) => {
+        setLoading(true);
     try {
         await axios.patch(`http://localhost:4000/usuarios/${id}/estado`, { estado }, {
             headers: {
@@ -235,11 +253,14 @@ function Usuario() {
         } catch (error) {
             console.error('Error al cambiar el estado del usuario',error);
             addNotification('Error al cambiar estado del usuario', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
     // Eliminar usuario
     const handleDelete = async (id) => {
+        
         try {
             await axios.delete(`http://localhost:4000/usuarios/${id}`, {
                 headers: {
@@ -252,6 +273,8 @@ function Usuario() {
         } catch (error) {
             console.error('Error eliminando Usuario:', error);
             addNotification('Error al eliminar usuario', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -320,6 +343,8 @@ function Usuario() {
 
     return (
         <div className={styles.usuarioContainer}>
+
+            {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
                     key={notification.id}

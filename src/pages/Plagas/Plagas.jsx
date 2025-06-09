@@ -8,12 +8,14 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
+import Spinner from '../../components/spinner/Spinner';
 
 function Plagas() {
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [tipos, setTipos] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
+    const [loading, setLoading] = useState(false);
     const [currentModal, setCurrentModal] = useState(null);
     const [detalleModal, setDetalleModal] = useState({ abierto: false, plaga: null });
     const [formData, setFormData] = useState({
@@ -32,6 +34,7 @@ function Plagas() {
 
     // Fetchers
     const fetchPlagas = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/plagas', {
                 headers: {
@@ -43,10 +46,13 @@ function Plagas() {
         } catch (error) {
             console.error('error obteniendo todas las plaga',error);
             addNotification('Error al obtener plagas', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const fetchTipos = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/plagas/tipos/all', {
                 headers: {
@@ -57,6 +63,8 @@ function Plagas() {
         } catch (error) {
             console.error('error obteniendo todos los tipos de plagas',error);
             addNotification('Error al obtener tipos de plaga', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -95,6 +103,7 @@ function Plagas() {
     };
 
     const handleSave = async () => {
+        setLoading(true);
         for (const field of ['nombre', 'tipo_plaga_fito_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -124,10 +133,13 @@ function Plagas() {
         } catch (error) {
             console.error('error registrando la plaga',error);
             addNotification('Error al registrar plaga', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const handleEdit = async () => {
+        setLoading(true);
         for (const field of ['nombre', 'tipo_plaga_fito_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -155,10 +167,13 @@ function Plagas() {
         } catch (error) {
             console.error('error actualizando la plaga',error);
             addNotification('Error al actualizar plaga', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const handleDelete = async (id) => {
+        setLoading(true);
         try {
             await axios.delete(`http://localhost:4000/plagas/${id}`, {
                 headers: {
@@ -171,6 +186,8 @@ function Plagas() {
         } catch (error) {
             console.error('error eliminando la plaga',error);
             addNotification('Error al eliminar plaga', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -228,6 +245,8 @@ function Plagas() {
 
     return (
         <div className={styles.plagaContainer}>
+
+            {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
                     key={notification.id}
@@ -270,7 +289,7 @@ function Plagas() {
             {/* Modal registro y editar */}
             {currentModal === 'plaga' && (
                 <div className='modalOverlay'>
-                    <div className={styles.modal}>
+                    <div className='modal_mono'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Plaga' : 'Registrar Plaga'}</h2>
                         <form className='modalForm'>

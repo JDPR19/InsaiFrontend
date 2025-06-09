@@ -8,11 +8,13 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
+import Spinner from '../../components/spinner/Spinner';
 
 function TipoEvento() {
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
+    const [loading, setLoading] = useState(false);
     const [currentModal, setCurrentModal] = useState(null);
     const [formData, setFormData] = useState({
         id: '',
@@ -54,6 +56,7 @@ function TipoEvento() {
 
     // obterner o listar los cargos
     const fetchTipoEvento = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/tipo_evento', {
                 headers: {
@@ -65,6 +68,8 @@ function TipoEvento() {
         } catch (error) {
             console.error('Error obteniendo el tipo de evento:', error);
             addNotification('Error al obtener el tipo de evento', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -74,7 +79,7 @@ function TipoEvento() {
 
 
     const handleSave = async () => {
-        
+        setLoading(true);
         for (const field in formData) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -103,10 +108,13 @@ function TipoEvento() {
         } catch (error) {
             console.error('Error creando tipo de evento:', error);
             addNotification('Error al registrar tipo de evento', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const handleEdit = async () => {
+        setLoading(true);
         const camposObligatorios = ['nombre'];
         for (const field of camposObligatorios) {
             const { regex, errorMessage } = validationRules[field];
@@ -135,11 +143,14 @@ function TipoEvento() {
         } catch (error) {
             console.error('Error editando tipo de evento:', error);
             addNotification('Error al actualizar tipo de evento', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     
     const handleDelete = async (id) => {
+        setLoading(true);
         try {
             await axios.delete(`http://localhost:4000/tipo_evento/${id}`, {
                 headers: {
@@ -153,6 +164,8 @@ function TipoEvento() {
         } catch (error) {
             console.error('Error eliminando tipo de evento:', error);
             addNotification('Error al eliminar tipo de evento', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -209,6 +222,7 @@ function TipoEvento() {
 
     return (
         <div className={styles.inspeccionContainer}>
+            {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
                     key={notification.id}
@@ -221,7 +235,7 @@ function TipoEvento() {
             {/* modal registro y editar */}
             {currentModal === 'tipo_evento' && (
                 <div className='modalOverlay'>
-                    <div className={styles.modal}>
+                    <div className='modal_mono'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Tipo de Evento' : 'Registrar Tipo de Evento'}</h2>
                         <form className='modalForm'>

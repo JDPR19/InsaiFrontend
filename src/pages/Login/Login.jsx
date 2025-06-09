@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './login.module.css';
 import Insai from '../../../public/assets/insai.png';
@@ -8,13 +8,12 @@ import inspecciones from '../../../public/assets/export.png';
 import icon from '../../components/iconos/iconos';
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
-import { useMemo } from 'react';
-import { registrarInicioSesion} from '../../utils/bitacoraService';
+import { registrarInicioSesion } from '../../utils/bitacoraService';
+import Spinner from '../../components/spinner/Spinner';
+import RecuperarModal from '../../components/modalrecuperar/RecuperarModal';
 
 
-    
-
-// Componente Slider: maneja el carrusel de imágenes
+// --- Slider ---
 function Slider({ slides, currentSlide, onMouseEnter, onMouseLeave }) {
     return (
         <div
@@ -32,7 +31,7 @@ function Slider({ slides, currentSlide, onMouseEnter, onMouseLeave }) {
     );
 }
 
-// Componente InputGroup: maneja los campos del formulario
+
 function InputGroup({ iconSrc, type, placeholder, value, onChange, onClick, error }) {
     return (
         <div className={styles.inputGroup}>
@@ -54,7 +53,7 @@ function InputGroup({ iconSrc, type, placeholder, value, onChange, onClick, erro
     );
 }
 
-// Componente PhraseContainer: muestra frases aleatorias
+
 function PhraseContainer({ randomPhrase }) {
     return (
         <div className={styles.phraseContainer}>
@@ -63,16 +62,16 @@ function PhraseContainer({ randomPhrase }) {
     );
 }
 
-// Componente principal Login
 function Login() {
-    // Estados necesarios para manejar la lógica del login
-    const [currentSlide, setCurrentSlide] = useState(0); // Slide actual del carrusel
-    const [randomPhrase, setRandomPhrase] = useState(''); // Frase aleatoria
-    const [showPassword, setShowPassword] = useState(false); // Mostrar/ocultar contraseña
-    const [username, setUsername] = useState(''); // Estado para el usuario
-    const [password, setPassword] = useState(''); // Estado para la contraseña
+    const [currentSlide, setCurrentSlide] = useState(0);
+    const [randomPhrase, setRandomPhrase] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
     const { notifications, addNotification, removeNotification } = useNotification();
-    const [isHovered, setIsHovered] = useState(false); // Pausar el slider al interactuar
+    const [isHovered, setIsHovered] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [showRecuperar, setShowRecuperar] = useState(false);
     const navigate = useNavigate();
 
     const phrases = useMemo(() => [
@@ -84,11 +83,9 @@ function Login() {
 
     // Elegir frase aleatoria
     useEffect(() => {
-
         const randomIndex = Math.floor(Math.random() * phrases.length);
         setRandomPhrase(phrases[randomIndex]);
     }, [phrases]);
-
 
     // Slides del carrusel
     const slides = [
@@ -108,29 +105,28 @@ function Login() {
 
     // Control del slider automático
     useEffect(() => {
-        if (isHovered) return; // Pausa el slider cuando el usuario interactúa
-
+        if (isHovered) return;
         const slideInterval = setInterval(() => {
             setCurrentSlide((prevSlide) => (prevSlide + 1) % slides.length);
         }, 6000);
-
-        return () => clearInterval(slideInterval); // Limpiar el intervalo al desmontar
+        return () => clearInterval(slideInterval);
     }, [isHovered, slides.length]);
-
-    
 
     // Manejo del login
     const handleLogin = async (e) => {
         e.preventDefault();
 
-        // Validaciones de los campos
+        setLoading(true);
+
         if (!username.trim()) {
             addNotification('El campo de usuario no puede estar vacío.', 'error');
+            setLoading(false);
             return;
         }
 
         if (!password.trim()) {
             addNotification('El campo de contraseña no puede estar vacío.', 'error');
+            setLoading(false);
             return;
         }
 
@@ -159,7 +155,6 @@ function Login() {
 
                 addNotification('Inicio de sesión exitoso', 'success');
                 registrarInicioSesion(data.user.id, data.user.username);
-                // Retrasa la redirección para mostrar notificación
                 setTimeout(() => {
                     navigate('/Home');
                 }, 500);
@@ -169,13 +164,16 @@ function Login() {
         } catch (error) {
             console.error('Error al conectar con el servidor:', error);
             addNotification('Error al conectar con el servidor', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
-    // Renderizado del componente principal
     return (
         <div className={styles.loginContainer}>
-            {/* Mostrar notificaciones */}
+            
+            {loading && <Spinner text="Procesando..." />}
+            
             {notifications.map((notification) => (
                 <Notification
                     key={notification.id}
@@ -184,6 +182,9 @@ function Login() {
                     onClose={() => removeNotification(notification.id)}
                 />
             ))}
+
+            
+            {showRecuperar && <RecuperarModal onClose={() => setShowRecuperar(false)} />}
 
             {/* Formulario */}
             <div className={styles.loginCard}>
@@ -209,7 +210,7 @@ function Login() {
                         onClick={() => setShowPassword(!showPassword)}
                     />
 
-                    <button type="submit" title="Entrar" className={styles.submitButton} >
+                    <button type="submit" title="Entrar" className={styles.submitButton} disabled={loading}>
                         Entrar
                         <img src={icon.llave} alt="Cerrar sesión" className={styles.iconbtn} />
                     </button>
@@ -217,7 +218,13 @@ function Login() {
 
                 {/* Recuperación de contraseña */}
                 <div className={styles.oldpass}>
-                    <a href="/terms">¿Has Olvidado la Contraseña?</a>
+                    <button
+                        type="button"
+                        title="Recuperar contraseña"
+                        onClick={() => setShowRecuperar(true)}
+                    >
+                        ¿Has Olvidado la Contraseña?
+                    </button>
                 </div>
 
                 {/* Frases aleatorias */}
@@ -227,9 +234,9 @@ function Login() {
 
                 {/* Footer */}
                 <footer className={styles.footer}>
-                    <p>© 2025 SIGENSAI. Todos los derechos reservados.</p>
-                    <a href="/terms">Términos de Servicio</a>
-                    <a href="/privacy">Política de Privacidad</a>
+                    <p> Gobierno Bolivariano de Venezuela &#x1F1FB;&#x1F1EA;</p>
+                    <p>© 2025  Instituto Nacional de Salud Agrícola Integral, INSAI</p>
+                    
                 </footer>
             </div>
 

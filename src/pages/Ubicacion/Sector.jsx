@@ -8,6 +8,7 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
+import Spinner from '../../components/spinner/Spinner';
 
 function Sector() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -17,6 +18,7 @@ function Sector() {
     const [parroquias, setParroquias] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         id: '',
         nombre: '',
@@ -33,6 +35,7 @@ function Sector() {
 
     // --- Fetchers ---
     const fetchSectores = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/sector', {
                 headers: {
@@ -44,10 +47,13 @@ function Sector() {
         } catch (error) {
             console.error('Error obteniendo sectores:', error);
             addNotification('Error al obtener sectores', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
     const fetchEstados = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/sector/estados/all', {
                 headers: {
@@ -58,10 +64,13 @@ function Sector() {
         } catch (error) {
             console.error('Error obteniendo estados:', error);
             addNotification('Error al obtener estados', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
     const fetchMunicipios = async (estadoId) => {
+        setLoading(true);
         try {
             if (!estadoId) {
                 setMunicipios([]);
@@ -76,10 +85,13 @@ function Sector() {
         } catch (error) {
             console.error('Error obteniendo municipios:', error);
             addNotification('Error al obtener municipios', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const fetchParroquias = async (municipioId) => {
+        setLoading(true);
         try {
             if (!municipioId) {
                 setParroquias([]);
@@ -94,7 +106,7 @@ function Sector() {
         } catch (error) {
             console.error('Error obteniendo parroquias:', error);
             addNotification('Error al obtener parroquias', 'error');
-        }
+        }setLoading(false);
     };
 
     useEffect(() => {
@@ -144,6 +156,7 @@ function Sector() {
     };
 
     const handleSave = async () => {
+        setLoading(true);
         for (const field of ['nombre', 'parroquia_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -171,10 +184,13 @@ function Sector() {
         } catch (error) {
             console.error('Error creando Sector:', error);
             addNotification('Error al registrar sector', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const handleEdit = async () => {
+        setLoading(true);
         for (const field of ['nombre', 'parroquia_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -200,10 +216,13 @@ function Sector() {
         } catch (error) {
             console.error('Error editando Sector:', error);
             addNotification('Error al actualizar sector', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const handleDelete = async (id) => {
+        setLoading(true);
         try {
             await axios.delete(`http://localhost:4000/sector/${id}`, {
                 headers: {
@@ -216,7 +235,7 @@ function Sector() {
         } catch (error) {
             console.error('Error eliminando Sector:', error);
             addNotification('Error al eliminar sector', 'error');
-        }
+        }setLoading(false);
     };
 
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -271,6 +290,7 @@ function Sector() {
 
     return (
         <div className={styles.ubicacionContainer}>
+            {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
                     key={notification.id}
@@ -282,7 +302,7 @@ function Sector() {
 
             {currentModal === 'sector' && (
                 <div className='modalOverlay'>
-                    <div className={styles.modal}>
+                    <div className='modal_mono'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Sector' : 'Registrar Sector'}</h2>
                         <form className='modalForm'>

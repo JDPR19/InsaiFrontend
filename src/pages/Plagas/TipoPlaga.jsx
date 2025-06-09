@@ -8,12 +8,14 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
+import Spinner from '../../components/spinner/Spinner';
 
 function TipoPlaga() {
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         id: '',
         nombre: '',
@@ -54,6 +56,7 @@ function TipoPlaga() {
 
     // obterner o listar los cargos
     const fetchTipoPlaga = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/tipo_plaga', {
                 headers: {
@@ -65,6 +68,8 @@ function TipoPlaga() {
         } catch (error) {
             console.error('Error obteniendo el tipo de plaga:', error);
             addNotification('Error al obtener el tipo de plaga', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -74,7 +79,7 @@ function TipoPlaga() {
 
 
     const handleSave = async () => {
-        
+        setLoading(true);
         for (const field in formData) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -103,10 +108,13 @@ function TipoPlaga() {
         } catch (error) {
             console.error('Error creando tipo de plaga:', error);
             addNotification('Error al registrar tipo de plaga', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const handleEdit = async () => {
+        setLoading(true);
         const camposObligatorios = ['nombre'];
         for (const field of camposObligatorios) {
             const { regex, errorMessage } = validationRules[field];
@@ -135,11 +143,14 @@ function TipoPlaga() {
         } catch (error) {
             console.error('Error editando tipo de plaga:', error);
             addNotification('Error al actualizar tipo de plaga', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     
     const handleDelete = async (id) => {
+        setLoading(true);
         try {
             await axios.delete(`http://localhost:4000/tipo_plaga/${id}`, {
                 headers: {
@@ -153,6 +164,8 @@ function TipoPlaga() {
         } catch (error) {
             console.error('Error eliminando tipo de plaga:', error);
             addNotification('Error al eliminar tipo de plaga', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -209,6 +222,8 @@ function TipoPlaga() {
 
     return (
         <div className={styles.tipoplagaContainer}>
+
+            {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
                     key={notification.id}
@@ -221,7 +236,7 @@ function TipoPlaga() {
             {/* modal registro y editar */}
             {currentModal === 'tipo_plaga' && (
                 <div className='modalOverlay'>
-                    <div className={styles.modal}>
+                    <div className='modal_mono'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Tipo de Plaga' : 'Registrar Tipo de Plaga'}</h2>
                         <form className='modalForm'>

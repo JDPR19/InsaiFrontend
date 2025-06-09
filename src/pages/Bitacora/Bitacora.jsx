@@ -10,6 +10,7 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 
+
 function Bitacora() {
     const [datosOriginales, setDatosOriginales] = useState([]); // Datos originales de la bitácora
     const [datosFiltrados, setDatosFiltrados] = useState([]); // Datos filtrados según la búsqueda
@@ -33,7 +34,8 @@ function Bitacora() {
             .catch((error) => {
                 console.error('Error al obtener los datos de la bitácora:', error);
                 addNotification('Error al cargar los datos de la bitácora', 'error'); // Mostrar notificación de error
-            });
+            } 
+        );
     }, []); // Se ejecuta solo una vez al montar el componente
 
 

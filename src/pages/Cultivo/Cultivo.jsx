@@ -8,11 +8,14 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
+import Spinner from '../../components/spinner/Spinner';
+
 
 function Cultivo() {
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [tipos, setTipos] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
     const [detalleModal, setDetalleModal] = useState({ abierto: false, cultivo: null });
@@ -32,6 +35,7 @@ function Cultivo() {
 
     // Fetchers
     const fetchCultivos = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/cultivo', {
                 headers: {
@@ -43,10 +47,13 @@ function Cultivo() {
         } catch (error) {
             console.error('error obteniendo todos los cultivos',error);
             addNotification('Error al obtener cultivos', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const fetchTipos = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/cultivo/tipos/all', {
                 headers: {
@@ -57,6 +64,8 @@ function Cultivo() {
         } catch (error) {
             console.error('error obteniendo todos los tipos de cultivos',error);
             addNotification('Error al obtener tipos de cultivo', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -95,6 +104,7 @@ function Cultivo() {
     };
 
     const handleSave = async () => {
+        setLoading(true);
         for (const field of ['nombre', 'tipo_cultivo_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -124,10 +134,11 @@ function Cultivo() {
         } catch (error) {
             console.error('error registrando cultivo',error);
             addNotification('Error al registrar cultivo', 'error');
-        }
+        }setLoading(false);
     };
 
     const handleEdit = async () => {
+        setLoading(true);
         for (const field of ['nombre', 'tipo_cultivo_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -155,10 +166,13 @@ function Cultivo() {
         } catch (error) {
             console.error('error actualizando cultivos',error);
             addNotification('Error al actualizar cultivo', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const handleDelete = async (id) => {
+        setLoading(true);
         try {
             await axios.delete(`http://localhost:4000/cultivo/${id}`, {
                 headers: {
@@ -171,6 +185,8 @@ function Cultivo() {
         } catch (error) {
             console.error('error eliminando cultivo',error);
             addNotification('Error al eliminar cultivo', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -222,12 +238,12 @@ function Cultivo() {
         setConfirmDeleteModal(false);
     };
 
-    // MODAL DETALLE
     const openDetalleModal = (cultivo) => setDetalleModal({ abierto: true, cultivo });
     const closeDetalleModal = () => setDetalleModal({ abierto: false, cultivo: null });
 
     return (
         <div className={styles.cultivoContainer}>
+            {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
                     key={notification.id}
@@ -270,7 +286,7 @@ function Cultivo() {
             {/* Modal registro y editar */}
             {currentModal === 'cultivo' && (
                 <div className='modalOverlay'>
-                    <div className={styles.modal}>
+                    <div className='modal_mono'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Cultivo' : 'Registrar Cultivo'}</h2>
                         <form className='modalForm'>

@@ -8,12 +8,14 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
+import Spinner from '../../components/spinner/Spinner';
 
 function TipoSolicitud() {
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         id: '',
         nombre: '',
@@ -54,6 +56,7 @@ function TipoSolicitud() {
 
     // obterner o listar los cargos
     const fetchTipoSolicitud = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('http://localhost:4000/tipo_solicitud', {
                 headers: {
@@ -65,6 +68,8 @@ function TipoSolicitud() {
         } catch (error) {
             console.error('Error obteniendo tipos de solicitud:', error);
             addNotification('Error al obtener el tipo solicitud', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -75,7 +80,7 @@ function TipoSolicitud() {
 
     // Crear cargo
     const handleSave = async () => {
-        
+        setLoading(true);
         for (const field in formData) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -104,10 +109,13 @@ function TipoSolicitud() {
         } catch (error) {
             console.error('Error creando Tipo de Solicitud:', error);
             addNotification('Error al registrando tipo de solicitud', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const handleEdit = async () => {
+        setLoading(true);
         const camposObligatorios = ['nombre'];
         for (const field of camposObligatorios) {
             const { regex, errorMessage } = validationRules[field];
@@ -136,10 +144,13 @@ function TipoSolicitud() {
         } catch (error) {
             console.error('Error editando Tipo de solicitud:', error);
             addNotification('Error al actualizar Tipo de solicitud', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     const handleDelete = async (id) => {
+        setLoading(true);
         try {
             await axios.delete(`http://localhost:4000/tipo_solicitud/${id}`, {
                 headers: {
@@ -153,6 +164,8 @@ function TipoSolicitud() {
         } catch (error) {
             console.error('Error eliminando tipo de solicitud:', error);
             addNotification('Error al eliminar tipo de solicitud', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -209,6 +222,8 @@ function TipoSolicitud() {
 
     return (
         <div className={styles.tipo_solicitudContainer}>
+
+            {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
                     key={notification.id}
@@ -221,7 +236,7 @@ function TipoSolicitud() {
             {/* modal registro y editar */}
             {currentModal === 'tipo_solicitud' && (
                 <div className='modalOverlay'>
-                    <div className={styles.modal}>
+                    <div className='modal_mono'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Tipo de Solicitud' : 'Registrar Tipo de Solicitud'}</h2>
                         <form className='modalForm'>

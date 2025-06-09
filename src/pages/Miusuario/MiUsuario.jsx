@@ -7,6 +7,7 @@ import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import { usePermiso } from '../../hooks/usePermiso';
+import Spinner from '../../components/spinner/Spinner';
 
 function MiUsuario() {
     const [usuario, setUsuario] = useState(null);
@@ -18,11 +19,12 @@ function MiUsuario() {
     });
     const [errors, setErrors] = useState({});
     const [currentModal, setCurrentModal] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const { notifications, addNotification, removeNotification } = useNotification();
     const tienePermiso = usePermiso();
 
-    // Traer datos del usuario autenticado
+
     useEffect(() => {
         axios.get('http://localhost:4000/miusuario', {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -59,6 +61,7 @@ function MiUsuario() {
 
     // Editar usuario
     const handleEdit = async () => {
+        setLoading(true);
         const camposObligatorios = ['username', 'email'];
         for (const field of camposObligatorios) {
             const { regex, errorMessage } = validationRules[field];
@@ -111,11 +114,14 @@ function MiUsuario() {
         } catch (error) {
             console.error('error editando usuario', error)
             addNotification('Error al actualizar usuario', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
     // Eliminar usuario
     const handleDelete = async () => {
+        setLoading(true);
         try {
             await axios.delete('http://localhost:4000/miusuario', {
                 headers: {
@@ -129,6 +135,8 @@ function MiUsuario() {
         } catch (error) {
             console.error('error eliminando usuario', error)
             addNotification('Error al eliminar usuario', 'error');
+        }finally{
+            setLoading(false);
         }
     };
 
@@ -140,6 +148,7 @@ function MiUsuario() {
 
     return (
         <div className={styles.miuserContainer}>
+            {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
                     key={notification.id}
