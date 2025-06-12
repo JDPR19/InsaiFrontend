@@ -574,7 +574,6 @@ function Laboratorio() {
                                             src={icon.ver}
                                             className='iconver'
                                             title='Ver más'
-                                            style={{ cursor: 'pointer' }}
                                         />
                                         <img
                                             onClick={() => openEditModal(lab)}

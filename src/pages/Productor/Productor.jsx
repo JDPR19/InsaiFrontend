@@ -1,329 +1,425 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import styles from './productor.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
+import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-
+import Notification from '../../components/notification/Notification';
+import { useNotification } from '../../utils/useNotification';
+import { validateField, validationRules } from '../../utils/validation';
+import Spinner from '../../components/spinner/Spinner';
 
 function Productor() {
+    const [datosOriginales, setDatosOriginales] = useState([]);
+    const [datosFiltrados, setDatosFiltrados] = useState([]);
+    const [tipos, setTipos] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [currentModal, setCurrentModal] = useState(null);
+    const [detalleModal, setDetalleModal] = useState({ abierto: false, productor: null });
+    const [formData, setFormData] = useState({
+        id: '',
+        codigo: '',
+        cedula: '',
+        nombre: '',
+        apellido: '',
+        contacto: '',
+        tipo_productor_id: '',
+        email: ''
+    });
+    const [errors, setErrors] = useState({});
+    const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
+    const [selectedProductorId, setSelectedProductorId] = useState(null);
 
+    const { notifications, addNotification, removeNotification } = useNotification();
+    const itemsPerPage = 8;
 
-      // Datos iniciales
-        const datosIniciales = [
-        {
-            codigo: "051",
-            cedula: "10246789",
-            nombre: "José",
-            apellido: "Martines",
-            contacto: "04122131256",
-        },
-        {
-            codigo: "082",
-            cedula: "16547789",
-            nombre: "Yulisca",
-            apellido: "Alvares",
-            contacto: "04122678256",
-        },
-        {
-            codigo: "045",
-            cedula: "16547789",
-            nombre: "Campanita",
-            apellido: "Pampanante",
-            contacto: "04122678256",
+    
+    const fetchProductores = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get('http://localhost:4000/productor', {
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
+            });
+            setDatosOriginales(response.data);
+            setDatosFiltrados(response.data);
+        } catch (error) {
+            console.error('Error obteniendo todos los productores',error);
+            addNotification('Error al obtener productores', 'error');
+        } finally {
+            setLoading(false);
         }
-        // Agrega más datos si es necesario
-        ];
+    };
+
+    
+    const fetchTipos = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get('http://localhost:4000/productor/tipos/all', {
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
+            });
+            setTipos(response.data);
+        } catch (error) {
+            console.error('Error obteniendo todos los tipos de productores',error);
+            addNotification('Error al obtener tipos de productores', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchProductores();
+        fetchTipos();
+    }, []);
 
 
-    const [currentModal, setCurrentModal] = useState(null); // Estado para controlar cuál modal está abierto
-    const [datosFiltrados, setDatosFiltrados] = useState(datosIniciales);
-    const [currentPage, setCurrentPage] = useState(1); // Página actual
-    const itemsPerPage = 2; // Número de elementos por página
+    const resetFormData = () => {
+        setFormData({
+            id: '',
+            codigo: '',
+            cedula: '',
+            nombre: '',
+            apellido: '',
+            contacto: '',
+            tipo_productor_id: '',
+            email: ''
+        });
+        setErrors({});
+    };
 
-    // Calcular los datos para la página actual
+    
+    const handleChange = (e) => {
+        const { id, value } = e.target;
+        setFormData(prev => ({ ...prev, [id]: value }));
+
+        if (validationRules[id]) {
+            const { regex, errorMessage } = validationRules[id];
+            const { valid, message } = validateField(value, regex, errorMessage);
+            setErrors(prev => ({ ...prev, [id]: valid ? '' : message }));
+        }
+    };
+
+    
+    const handleSearch = (searchTerm) => {
+        const filtered = filterData(
+            datosOriginales,
+            searchTerm,
+            ['codigo', 'cedula', 'nombre', 'apellido', 'contacto', 'tipo_productor_nombre', 'email']
+        );
+        setDatosFiltrados(filtered);
+    };
+
+    const handleSave = async () => {
+        setLoading(true);
+        for (const field in formData) {
+            if (!validationRules[field]) continue;
+            const { regex, errorMessage } = validationRules[field];
+            const { valid, message } = validateField(formData[field], regex, errorMessage);
+            if (!valid) {
+                addNotification(message, 'warning');
+                setErrors(prev => ({ ...prev, [field]: message }));
+                setLoading(false);
+                return;
+            }
+        }
+        try {
+            await axios.post('http://localhost:4000/productor', formData, {
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
+            });
+            addNotification('Productor registrado con éxito', 'success');
+            fetchProductores();
+            closeModal();
+        } catch (error) {
+            console.error('Error registrando el productor',error);
+            addNotification('Error al registrar productor', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleEdit = async () => {
+        setLoading(true);
+        for (const field of ['codigo', 'cedula', 'nombre', 'apellido', 'tipo_productor_id']) {
+            if (!validationRules[field]) continue;
+            const { regex, errorMessage } = validationRules[field];
+            const { valid, message } = validateField(formData[field], regex, errorMessage);
+            if (!valid) {
+                addNotification(message, 'warning');
+                setErrors(prev => ({ ...prev, [field]: message }));
+                setLoading(false);
+                return;
+            }
+        }
+        try {
+            await axios.put(`http://localhost:4000/productor/${formData.id}`, formData, {
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
+            });
+            addNotification('Productor actualizado con éxito', 'success');
+            fetchProductores();
+            closeModal();
+        } catch (error) {
+            console.error('Error actualizando el productor',error);
+            addNotification('Error al actualizar productor', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async (id) => {
+        setLoading(true);
+        try {
+            await axios.delete(`http://localhost:4000/productor/${id}`, {
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
+            });
+            fetchProductores();
+            addNotification('Productor eliminado con éxito', 'error');
+        } catch (error) {
+            console.error('Error eliminando productor',error);
+            addNotification('Error al eliminar productor', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentData = datosFiltrados.slice(indexOfFirstItem, indexOfLastItem);
 
-      // Cambiar a la página anterior
     const handlePreviousPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage(currentPage - 1);
-        }
+        if (currentPage > 1) setCurrentPage(currentPage - 1);
     };
-
-    // Cambiar a la página siguiente
     const handleNextPage = () => {
-        if (indexOfLastItem < datosFiltrados.length) {
-            setCurrentPage(currentPage + 1);
-        }
+        if (indexOfLastItem < datosFiltrados.length) setCurrentPage(currentPage + 1);
     };
 
-    // modal //////////////////////////
-    const openModal = (modalName) => {
-        setCurrentModal(modalName); // Abre el modal especificado
+    const openModal = () => {
+        resetFormData();
+        setCurrentModal('productor');
+    };
+    const closeModal = () => setCurrentModal(null);
+
+    const openEditModal = (productor) => {
+        setFormData({
+            id: productor.id,
+            codigo: productor.codigo || '',
+            cedula: productor.cedula || '',
+            nombre: productor.nombre || '',
+            apellido: productor.apellido || '',
+            contacto: productor.contacto || '',
+            tipo_productor_id: productor.tipo_productor_id || '',
+            email: productor.email || ''
+        });
+        setErrors({});
+        setCurrentModal('productor');
     };
 
-    const closeModal = () => {
-        setCurrentModal(null); // Cierra cualquier modal
+    const openConfirmDeleteModal = (id) => {
+        setSelectedProductorId(id);
+        setConfirmDeleteModal(true);
+    };
+    const closeConfirmDeleteModal = () => {
+        setSelectedProductorId(null);
+        setConfirmDeleteModal(false);
     };
 
-    const handleSave = () => {
-        console.log('Registro guardado');
-        closeModal(); // Cierra el modal después de guardar
-    };
+    const openDetalleModal = (productor) => setDetalleModal({ abierto: true, productor: productor });
+    const closeDetalleModal = () => setDetalleModal({ abierto: false, productor: null });
 
-        // Componente para el encabezado de la tabla
-        const EncabezadoTabla = () => (
-            <thead>
-                <tr>
-                    <th>Codigo Runsai</th>
-                    <th>Cedula</th>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th>Contacto</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-        );
-         // Componente para el cuerpo de la tabla
-        const CuerpoTabla = ({ datos }) => (
-            <tbody>
-                {datos.map((item, index) => (
-                <tr key={index}>
-                    <td>{item.codigo}</td>
-                    <td>{item.cedula}</td>
-                    <td>{item.nombre}</td>
-                    <td>{item.apellido}</td>
-                    <td>{item.contacto}</td>
-                    <td>
-                    <div className='iconContainer'>
-                        <img 
-                        src={icon.ver} 
-                        alt="Eliminar" 
-                        className='iconver' 
-                        title="Ver Ficha" 
-                        />
-                        <img
-                        src={icon.editar}
-                        alt="Editar"
-                        className='iconeditar'
-                        title="Editar"
-                        />
-                        <img 
-                        src={icon.eliminar} 
-                        alt="Eliminar" 
-                        className='iconeliminar' 
-                        title="Eliminar" 
-                        />
-                    </div>
-                    </td>
-                </tr>
-                ))}
-            </tbody>
-        );
-        
-            // Componente para el pie de la tabla (paginación)
-            const PieTabla = () => (
-            <div className='tableFooter'>
-                <img
-                src={icon.flecha3}
-                alt="Anterior"
-                className='iconBack'
-                title="Anterior"
-                onClick={handlePreviousPage}
-                />
-                <span>{currentPage}</span>
-                <img
-                src={icon.flecha2}
-                alt="Siguiente"
-                className='iconNext'
-                title="Siguiente"
-                onClick={handleNextPage}
-                />
-            </div>
-            );
     return (
-        <div className={styles.productorContainer}>
-        
+        <div className={styles.tipoproductorContainer}>
+            {loading && <Spinner text="Procesando..." />}
+            {notifications.map((notification) => (
+                <Notification
+                    key={notification.id}
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => removeNotification(notification.id)}
+                />
+            ))}
 
-            {/* Modal /////////////////////////////////////// */}
+            {detalleModal.abierto && (
+                <div className='modalOverlay'>
+                    <div className='modalDetalle'>
+                        <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
+                        <h2>Detalles del Productor</h2>
+                        <table className='detalleTable'>
+                            <tbody>
+                                <tr>
+                                    <th>Código</th>
+                                    <td>{detalleModal.productor.codigo}</td>
+                                </tr>
+                                <tr>
+                                    <th>Cédula</th>
+                                    <td>{detalleModal.productor.cedula}</td>
+                                </tr>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <td>{detalleModal.productor.nombre}</td>
+                                </tr>
+                                <tr>
+                                    <th>Apellido</th>
+                                    <td>{detalleModal.productor.apellido}</td>
+                                </tr>
+                                <tr>
+                                    <th>Contacto</th>
+                                    <td>{detalleModal.productor.contacto}</td>
+                                </tr>
+                                <tr>
+                                    <th>Correo</th>
+                                    <td>{detalleModal.productor.email}</td>
+                                </tr>
+                                <tr>
+                                    <th>Tipo de Productor</th>
+                                    <td>{detalleModal.productor.tipo_productor_nombre}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal registro y editar */}
             {currentModal === 'productor' && (
                 <div className='modalOverlay'>
                     <div className='modal'>
-                        
-                        <button className='closeButton'  onClick={closeModal}>
-                            &times; {/* Ícono de cerrar */}
-                        </button>
-                        
-                        <h2>Registrar Productor</h2>
-                        
+                        <button className='closeButton' onClick={closeModal}>&times;</button>
+                        <h2>{formData.id ? 'Editar Productor' : 'Registrar Productor'}</h2>
                         <form className='modalForm'>
-                            
-                            <div className='formGroup'>
-                                <label htmlFor="Cedula">Codigo Runsai:</label>
-                                <input
-                                    type="text"
-                                    id="codigo"
-                                    placeholder="*****"
-                                    className='input'
-                                />
+                            <div className={styles.formColumns}>
+                                <div className='formGroup'>
+                                    <label htmlFor="codigo">Código:</label>
+                                    <input type="text" id="codigo" value={formData.codigo} onChange={handleChange} className='input' placeholder='Código único'/>
+                                    {errors.codigo && <span className='errorText'>{errors.codigo}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="cedula">Cédula:</label>
+                                    <input type="text" id="cedula" value={formData.cedula} onChange={handleChange} className='input' placeholder='Cédula'/>
+                                    {errors.cedula && <span className='errorText'>{errors.cedula}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="nombre">Nombre:</label>
+                                    <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Nombre'/>
+                                    {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="apellido">Apellido:</label>
+                                    <input type="text" id="apellido" value={formData.apellido} onChange={handleChange} className='input' placeholder='Apellido'/>
+                                    {errors.apellido && <span className='errorText'>{errors.apellido}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="contacto">Contacto:</label>
+                                    <input type="text" id="contacto" value={formData.contacto} onChange={handleChange} className='input' placeholder='Teléfono'/>
+                                    {errors.contacto && <span className='errorText'>{errors.contacto}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="tipo_productor_id">Tipo de Productor:</label>
+                                    <select id="tipo_productor_id" value={formData.tipo_productor_id} onChange={handleChange} className='select'>
+                                        <option value="">Seleccione un tipo</option>
+                                        {tipos.map((tipo) => (
+                                            <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>
+                                        ))}
+                                    </select>
+                                    {errors.tipo_productor_id && <span className='errorText'>{errors.tipo_productor_id}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="email">Correo:</label>
+                                    <input type="email" id="email" value={formData.email} onChange={handleChange} className='input' placeholder='Correo electrónico'/>
+                                    {errors.email && <span className='errorText'>{errors.email}</span>}
+                                </div>
                             </div>
-                            <div className='formGroup'>
-                                <label htmlFor="Cedula">Cedula de Identidad:</label>
-                                <input
-                                    type="text"
-                                    id="Cedula"
-                                    placeholder="V-********"
-                                    className='input'
-                                />
-                            </div>
-                            <div className='formGroup'>
-                                <label htmlFor="name">Nombre:</label>
-                                <input
-                                    type="text"
-                                    id="name"
-                                    placeholder="Rellene el Campo"
-                                    className='input'
-                                />
-                                <label htmlFor="apellido">Apellido:</label>
-                                <input
-                                    type="text"
-                                    id="apellido"
-                                    placeholder="Rellene el Campo"
-                                    className='input'
-                                />
-                            </div>
-                            <div className='formGroup'>
-                                <label htmlFor="TLF">Contacto:</label>
-                                <input
-                                    type="text"
-                                    id="TLF"
-                                    placeholder="04**-*******"
-                                    className='input'
-                                />
-                            </div>
-
-                            <button type="button" className='saveButton' onClick={handleSave}>
-                                Guardar
+                            <button 
+                                type="button" 
+                                className='saveButton' 
+                                onClick={formData.id ? handleEdit : handleSave}
+                                title={formData.id ? 'Actualizar Productor' : 'Registrar Productor'}>
+                                    Guardar
                             </button>
                         </form>
                     </div>
                 </div>
             )}
 
-            {currentModal === 'propiedad' && (
+            {/* Modal de confirmación para eliminar */}
+            {confirmDeleteModal && (
                 <div className='modalOverlay'>
                     <div className='modal'>
-                        <button className='closeButton' onClick={closeModal}>
-                            &times;
-                        </button>
-                        <h2>Registrar Propiedad</h2>
-                        <form className='modalForm'>
-                            {/* Aquí va el formulario de la propiedad */}
-                            <div className='formGroup'>
-                                <label htmlFor="rif">Rif de la Propiedad:</label>
-                                <input
-                                    type="text"
-                                    id="rif"
-                                    placeholder="Ingrese su correo @gmail.com"
-                                    className='input'
-                                />
-                            </div>
-                            <div className='formGroup'>
-                                <label htmlFor="nombre">Nombre de la Propiedad:</label>
-                                <input
-                                    type="text"
-                                    id="nombre"
-                                    placeholder="Rellene el Campo"
-                                    className='input'
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="hectareas">Hectarias:</label>
-                                <input
-                                    type="text"
-                                    id="hectarias"
-                                    placeholder="Rellene el Campo"
-                                    className='input'
-                                />
-                            </div>
-                            <div className='formGroup'>
-                                <label htmlFor="ubicacion">Ubicación</label>
-                                <select 
-                                        id="ubicacion"
-                                        className='select'
-                                    >
-                                        <option value="ubione">barquisimeto edo-Lara </option>
-                                        <option value="ubitwo">San Felipe edo-Yaracuy </option>
-                                </select>
-                            </div>
-                            <div className='formGroup'>
-                                <label htmlFor="cultivo">Cultivos</label>
-                                <select 
-                                        id="cultivo"
-                                        className='select'
-                                    >
-                                        <option value="cultione">Platano</option>
-                                        <option value="cultiwo">Aguacate</option>
-                                </select>
-                            </div>
-                            <div className='formGroup'>
-                                <label htmlFor="cantidad">Cantidad (KG)</label>
-                                <input
-                                    type="text"
-                                    id="cantidad"
-                                    placeholder="Rellene el Campo"
-                                    className='input'
-                                />
-                            </div>
-                            
-
-                            <button type="button" className='saveButton' onClick={handleSave}>
-                                Guardar
-                            </button>
-                        </form>
+                        <h2>Confirmar Eliminación</h2>
+                        <p>¿Estás seguro de que deseas eliminar este productor?</p>
+                        <div className='modalActions'>
+                            <button className='cancelButton' onClick={closeConfirmDeleteModal}>Cancelar</button>
+                            <button className='confirmButton' onClick={() => { handleDelete(selectedProductorId); closeConfirmDeleteModal(); }}>Confirmar</button>
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* Tabla */}
             <div className='tableSection'>
-                 {/* Contenedor para filtros y acciones */}
                 <div className='filtersContainer'>
                     <button 
                         type='button'
-                        onClick={() => openModal('productor')}
+                        onClick={openModal} 
                         className='create'
-                        title='Registrar Productor'
-                    >
+                        title='Registrar Productor'>
                         <img src={icon.crear} alt="Crear" className='icon' />
-                        Productor
+                        Agregar
                     </button>
-                    <button 
-                        type='button'
-                        onClick={() => openModal('propiedad')}
-                        className='createuser'
-                        title='Registrar Propiedad'
-                    >
-                        <img src={icon.user2} alt="Crear Usuario" className='icon' />
-                        Propiedad
-                    </button>
-                
                     <h2>Productores</h2>
-                    
                     <div className='searchContainer'>
-                        <SearchBar data={datosIniciales} onSearch={setDatosFiltrados} />
+                        <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-            
-                <table className='table'>
-                    <EncabezadoTabla />
-                    <CuerpoTabla datos={currentData} />
+                <table className={styles.table}>
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Cédula</th>
+                            <th>Nombre</th>
+                            <th>Apellido</th>
+                            <th>Contacto</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {currentData.map((prod) => (
+                            <tr key={prod.id} >
+                                <td>{prod.codigo}</td>
+                                <td>{prod.cedula}</td>
+                                <td>{prod.nombre}</td>
+                                <td>{prod.apellido}</td>
+                                <td>{prod.contacto}</td>
+                                <td>
+                                    <div className={styles.iconContainer}>
+                                        <img
+                                            onClick={() => openDetalleModal(prod)}
+                                            src={icon.ver}
+                                            className='iconver'
+                                            title='Ver más'
+                                        />
+                                        <img
+                                            onClick={() => openEditModal(prod)}
+                                            src={icon.editar}
+                                            className='iconeditar'
+                                            title='Editar'
+                                        />
+                                        <img 
+                                            onClick={() => openConfirmDeleteModal(prod.id)} 
+                                            src={icon.eliminar} 
+                                            className='iconeliminar' 
+                                            title='Eliminar'
+                                        />
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
                 </table>
-                 {/* Contenedor para Footer en tabla */}
-                <PieTabla />
+                <div className='tableFooter'>
+                    <img onClick={handlePreviousPage} src={icon.flecha3} className='iconBack' title='Anterior'/>
+                    <span>{currentPage}</span>
+                    <img onClick={handleNextPage} src={icon.flecha2} className='iconNext' title='Siguiente'/>
+                </div>
             </div>
         </div>
     );

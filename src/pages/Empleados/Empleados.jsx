@@ -10,11 +10,10 @@ import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner'; 
 
-
 function Empleado() {
     const [loading, setLoading] = useState(false);
-    const [datosOriginales, setDatosOriginales] = useState([]); // Estado para los datos originales
-    const [datosFiltrados, setDatosFiltrados] = useState([]); // Estado para los datos filtrados
+    const [datosOriginales, setDatosOriginales] = useState([]); 
+    const [datosFiltrados, setDatosFiltrados] = useState([]); 
     const [cargos, setCargos] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
@@ -25,13 +24,14 @@ function Empleado() {
         contacto: '',
         cargo_id: ''
     });
-    const [confirmDeleteModal, setConfirmDeleteModal] = useState(false); // Controla la visibilidad del modal
-    const [selectedEmpleadoId, setSelectedEmpleadoId] = useState(null); // Almacena el ID del empleado a eliminar
+    const [confirmDeleteModal, setConfirmDeleteModal] = useState(false); 
+    const [selectedEmpleadoId, setSelectedEmpleadoId] = useState(null); 
+    const [detalleModal, setDetalleModal] = useState({ abierto: false, empleado: null });
+    const { notifications, addNotification, removeNotification } = useNotification();
+    const itemsPerPage = 8;
+    const [errors, setErrors] = useState({});
 
-    const { notifications, addNotification, removeNotification } = useNotification(); // Hook para manejar notificaciones
-    const itemsPerPage = 8; // Número de elementos por página
     
-    // reiniciar el modal luego de cerrar
     const resetFormData = () => {
         setFormData({
             cedula: '',
@@ -40,21 +40,19 @@ function Empleado() {
             contacto: '',
             cargo_id: ''
         });
+        setErrors({});
     };
 
-    const [errors, setErrors] = useState({}); // estado para los formularios en tiempo real
-
-    // Manejar cambios en el formulario
+    
     const handleChange = (e) => {
         const { id, value } = e.target;
         setFormData({ ...formData, [id]: value });
 
-        // Validar el campo en tiempo real
-    const { regex, errorMessage } = validationRules[id];
-    const { valid, message } = validateField(value, regex, errorMessage);
-
-    setErrors({ ...errors, [id]: valid ? '' : message });
-
+        if (validationRules[id]) {
+            const { regex, errorMessage } = validationRules[id];
+            const { valid, message } = validateField(value, regex, errorMessage);
+            setErrors({ ...errors, [id]: valid ? '' : message });
+        }
     };
 
     // Filtrar datos en la barra de búsqueda
@@ -63,99 +61,95 @@ function Empleado() {
         setDatosFiltrados(filtered);
     };
 
-
-    // Obtener empleados desde el servidor
+    
     useEffect(() => {
         const fetchEmpleados = async () => {
             setLoading(true);
             try {
                 const response = await axios.get('http://localhost:4000/empleados', {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-                setDatosOriginales(response.data); // Guardar los datos originales
-                setDatosFiltrados(response.data); // Inicializar los datos filtrados
+                    headers: {
+                        Authorization : `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                setDatosOriginales(response.data);
+                setDatosFiltrados(response.data);
             } catch (error) {
                 const errorResponse = error.response ? error.response.data : error.message;
                 console.error('Error obteniendo empleados:', errorResponse);
                 addNotification('Error al obtener empleados', 'error');
-            }finally{
+            } finally {
                 setLoading(false);
             }
         };
         fetchEmpleados();
     }, []);
 
-    // listar todos los cargos
+    
     useEffect(() => {
         const fetchCargos = async () => {
             setLoading(true);
             try {
                 const response = await axios.get('http://localhost:4000/empleados/cargos', {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
-            });
+                    headers: {
+                        Authorization : `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
                 setCargos(response.data);
             } catch (error) {
                 const errorResponse = error.response ? error.response.data : error.message;
                 console.error('Error obteniendo cargos:', errorResponse);
                 addNotification('Error al obtener cargos', 'error');
-            }finally{
+            } finally {
                 setLoading(false);
             }
         };
         fetchCargos();
     }, []);
 
-    // Crear un nuevo empleado
+    
     const handleSave = async () => {
         setLoading(true);
         for (const field in formData) {
-        console.log(`Validando campo: ${formData}`);
-        if (!validationRules[field]) {
-            continue; // Omitir campos sin reglas de validación
+            if (!validationRules[field]) continue;
+            const { regex, errorMessage } = validationRules[field];
+            const { valid, message } = validateField(formData[field], regex, errorMessage);
+            if (!valid) {
+                addNotification(message, 'warning');
+                setErrors(prev => ({ ...prev, [field]: message }));
+                setLoading(false);
+                return;
+            }
         }
-        const { regex, errorMessage } = validationRules[field];
-        const { valid, message } = validateField(formData[field], regex, errorMessage);
-
-        if (!valid) {
-            addNotification(message, 'warning'); // Mostrar notificación de error
-            return; // Detener el envío del formulario
-        }
-    }
-
         try {
             const response = await axios.post('http://localhost:4000/empleados', formData, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            setDatosOriginales([response.data, ...datosOriginales]); /// Actualizar datos originales
-            setDatosFiltrados([response.data, ...datosFiltrados]);  /// Actualizar datos filtrados
+            setDatosOriginales([response.data, ...datosOriginales]);
+            setDatosFiltrados([response.data, ...datosFiltrados]);
             closeModal();
             addNotification('Empleado registrado con éxito', 'success');
         } catch (error) {
             const errorResponse = error.response ? error.response.data : error.message;
             console.error('Error creando empleado:', errorResponse);
             addNotification('Error al registrar empleado', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
 
-    //edita un empleado
     const handleEdit = async () => {
         setLoading(true);
         const camposObligatorios = ['cedula', 'nombre', 'apellido'];
         for (const field of camposObligatorios) {
             const { regex, errorMessage } = validationRules[field];
             const { valid, message } = validateField(formData[field], regex, errorMessage);
-
             if (!valid) {
-                addNotification(message, 'info'); // Mostrar notificación de error
-                return; // Detener el envío del formulario
+                addNotification(message, 'info');
+                setErrors(prev => ({ ...prev, [field]: message }));
+                setLoading(false);
+                return;
             }
         }
         try {
@@ -164,7 +158,6 @@ function Empleado() {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            // Actualizar los datos originales y filtrados con el registro editado
             const updatedData = datosOriginales.map((empleado) =>
                 empleado.id === response.data.id ? response.data : empleado
             );
@@ -175,12 +168,11 @@ function Empleado() {
         } catch (error) {
             console.error('Error editando empleado:', error);
             addNotification('Error al actualizar empleado', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
 
-    // Eliminar un empleado
     const handleDelete = async (id) => {
         setLoading(true);
         try {
@@ -189,13 +181,13 @@ function Empleado() {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            setDatosOriginales(datosOriginales.filter((empleado) => empleado.id !== id)); // Actualizar datos originales
-            setDatosFiltrados(datosFiltrados.filter((empleado) => empleado.id !== id)); // Actualizar datos filtrados
+            setDatosOriginales(datosOriginales.filter((empleado) => empleado.id !== id));
+            setDatosFiltrados(datosFiltrados.filter((empleado) => empleado.id !== id));
             addNotification('Empleado eliminado con éxito', 'error');
         } catch (error) {
             console.error('Error eliminando empleado:', error);
             addNotification('Error al eliminar empleado', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -214,34 +206,39 @@ function Empleado() {
     };
 
     const handlePreviousThreePages = () => {
-    setCurrentPage((prev) => Math.max(prev - 3, 1));
+        setCurrentPage((prev) => Math.max(prev - 3, 1));
     };
 
     const handleNextThreePages = () => {
         const maxPage = Math.ceil(datosFiltrados.length / itemsPerPage);
         setCurrentPage((prev) => Math.min(prev + 3, maxPage));
     };
-    // abrir y cerrar modal 
+
+    // Abrir y cerrar modales
     const openModal = () => {
-        resetFormData(); // Reinicia los campos del formulario
-        setCurrentModal('empleado'); // Abre el modal
+        resetFormData();
+        setCurrentModal('empleado');
     };
     const closeModal = () => setCurrentModal(null);
-    //abri para editar con el modal
+
     const openEditModal = (empleado) => {
-        setFormData(empleado); // Rellenar el formulario con los datos del empleado seleccionado
-        setCurrentModal('empleado'); // Abrir el modal
+        setFormData(empleado);
+        setErrors({});
+        setCurrentModal('empleado');
     };
-    // abrir modal de confirmacion para eliminar
+
     const openConfirmDeleteModal = (id) => {
-        setSelectedEmpleadoId(id); // Almacena el ID del empleado
-        setConfirmDeleteModal(true); // Muestra el modal de confirmación
+        setSelectedEmpleadoId(id);
+        setConfirmDeleteModal(true);
     };
-    // cerrar modal de confirmacion
+
     const closeConfirmDeleteModal = () => {
-        setSelectedEmpleadoId(null); // Limpia el ID seleccionado
-        setConfirmDeleteModal(false); // Oculta el modal
+        setSelectedEmpleadoId(null);
+        setConfirmDeleteModal(false);
     };
+ 
+    const openDetalleModal = (empleado) => setDetalleModal({ abierto: true, empleado: empleado });
+    const closeDetalleModal = () => setDetalleModal({ abierto: false, empleado: null });
 
     return (
         <div className={styles.personaContainer}>
@@ -255,41 +252,68 @@ function Empleado() {
                 />
             ))}
 
-            {/* modal registro y editar */}
+            {/* Modal de detalle */}
+            {detalleModal.abierto && (
+                <div className='modalOverlay'>
+                    <div className='modalDetalle'>
+                        <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
+                        <h2>Detalles del Empleado</h2>
+                        <table className='detalleTable'>
+                            <tbody>
+                                <tr>
+                                    <th>Cédula</th>
+                                    <td>{detalleModal.empleado.cedula}</td>
+                                </tr>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <td>{detalleModal.empleado.nombre}</td>
+                                </tr>
+                                <tr>
+                                    <th>Apellido</th>
+                                    <td>{detalleModal.empleado.apellido}</td>
+                                </tr>
+                                <tr>
+                                    <th>Contacto</th>
+                                    <td>{detalleModal.empleado.contacto}</td>
+                                </tr>
+                                <tr>
+                                    <th>Cargo</th>
+                                    <td>{detalleModal.empleado.cargo_nombre}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal registro y editar */}
             {currentModal === 'empleado' && (
                 <div className='modalOverlay'>
                     <div className='modal'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
-                        
                         <h2>{formData.id ? 'Editar Empleado' : 'Registrar Empleado'}</h2>
-                        
                         <form className='modalForm'>
                             <div className='formColumns'> 
-
                                 <div className='formGroup'>
                                     <label htmlFor="cedula">Cédula:</label>
                                     <input type="text" id="cedula" value={formData.cedula} onChange={handleChange} className='input' placeholder='V-********'/>
                                     {errors.cedula && <span className='errorText'>{errors.cedula}</span>}
                                 </div>
-
                                 <div className='formGroup'>
                                     <label htmlFor="nombre">Nombre:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>
-
                                 <div className='formGroup'>
                                     <label htmlFor="apellido">Apellido:</label>
                                     <input type="text" id="apellido" value={formData.apellido} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.apellido && <span className='errorText'>{errors.apellido}</span>}
                                 </div>
-
                                 <div className='formGroup'>
                                     <label htmlFor="contacto">Contacto:</label>
                                     <input type="text" id="contacto" value={formData.contacto} onChange={handleChange} className='input' placeholder='04**-*******'/>
                                     {errors.contacto && <span className='errorText'>{errors.contacto}</span>}
                                 </div>
-
                                 <div className='formGroup'>
                                     <label htmlFor="cargo_id">Cargo:</label>
                                     <select
@@ -307,23 +331,20 @@ function Empleado() {
                                     </select>
                                     {errors.cargo_id && <span className='errorText'>{errors.cargo_id}</span>}
                                 </div>
-                                    
                             </div>
-
                             <button 
                                 type="button" 
                                 className='saveButton' 
-                                onClick={formData.id ? handleEdit : handleSave} // Usar handleEdit si es edición, handleSave si es nuevo
+                                onClick={formData.id ? handleEdit : handleSave}
                                 title={formData.id ? 'Actualizar Empleado' : 'Registrar Empleado'}>
                                     Guardar
                             </button>
-
                         </form>
                     </div>
                 </div>
             )}
 
-            {/* modal de confirmacion para eliminar */}
+            {/* Modal de confirmación para eliminar */}
             {confirmDeleteModal && (
                 <div className='modalOverlay'>
                     <div className='modal'>
@@ -339,8 +360,8 @@ function Empleado() {
                             <button
                                 className='confirmButton'
                                 onClick={() => {
-                                    handleDelete(selectedEmpleadoId); // Llama a la función de eliminar
-                                    closeConfirmDeleteModal(); // Cierra el modal
+                                    handleDelete(selectedEmpleadoId);
+                                    closeConfirmDeleteModal();
                                 }}
                             >
                                 Confirmar
@@ -360,9 +381,7 @@ function Empleado() {
                         <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
-
                     <h2>Empleados</h2>
-
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
@@ -389,6 +408,12 @@ function Empleado() {
                                 <td>{empleado.cargo_nombre}</td>
                                 <td>
                                     <div className='iconContainer'>
+                                        <img
+                                            onClick={() => openDetalleModal(empleado)}
+                                            src={icon.ver}
+                                            className='iconver'
+                                            title='Ver más'
+                                        />
                                         <img
                                             onClick={() => openEditModal(empleado)}
                                             src={icon.editar}
