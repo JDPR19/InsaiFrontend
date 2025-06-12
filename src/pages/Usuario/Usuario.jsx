@@ -12,7 +12,6 @@ import { getCurrentUser } from '../../utils/usernameauth';
 import { usePermiso } from '../../hooks/usePermiso';
 import Spinner from '../../components/spinner/Spinner';
 
-
 function Usuario() {
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
@@ -35,11 +34,12 @@ function Usuario() {
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedEmpleadoId, setSelectedEmpleadoId] = useState(null);
+    const [detalleModal, setDetalleModal] = useState({ abierto: false, usuario: null });
 
     const { notifications, addNotification, removeNotification } = useNotification();
     const itemsPerPage = 8;
+    const [errors, setErrors] = useState({});
 
-    // Reiniciar el modal luego de cerrar
     const resetFormData = () => {
         setFormData({
             id: '',
@@ -51,16 +51,13 @@ function Usuario() {
             password: '',
             confirmarpassword: ''
         });
+        setErrors({});
     };
 
-    const [errors, setErrors] = useState({});
-
-    // Manejar cambios en el formulario
     const handleChange = (e) => {
         const { id, value } = e.target;
         setFormData({ ...formData, [id]: value });
 
-        // Validar el campo en tiempo real
         if (id === 'confirmarpassword') {
             const confirmPasswordValidation = validationRules.confirmarpassword.validate(value, formData.password);
             setErrors({ ...errors, confirmarpassword: confirmPasswordValidation.valid ? '' : confirmPasswordValidation.message });
@@ -71,7 +68,6 @@ function Usuario() {
         }
     };
 
-    // Filtrar datos en la barra de búsqueda
     const handleSearch = (searchTerm) => {
         const filtered = filterData(datosOriginales, searchTerm, ['username', 'email', 'roles_nombre']);
         setDatosFiltrados(filtered);
@@ -88,7 +84,7 @@ function Usuario() {
             setDatosOriginales(response.data);
             setDatosFiltrados(response.data);
         } catch (error) {
-            console.error('Error obteniendo usuarios:', error);
+            console.error('error al obtener los usuario',error);
             addNotification('Error al obtener usuarios', 'error');
         } finally {
             setLoading(false);
@@ -109,7 +105,7 @@ function Usuario() {
             });
             setTiposUsuario(response.data);
         } catch (error) {
-            console.error('Error obteniendo tipos de usuario:', error);
+            console.error('error al obtener los tipos de usuario',error);
             addNotification('Error al obtener tipos de usuario', 'error');
         } finally {
             setLoading(false);
@@ -126,14 +122,13 @@ function Usuario() {
             });
             setCedulas(response.data);
         } catch (error) {
-            console.error('Error obteniendo cédulas:', error);
+            console.error('error al obtener todas las cedulas',error);
             addNotification('Error al obtener cédulas', 'error');
         } finally {
             setLoading(false);
         }
     };
 
-    // Manejar el cambio en el select de cédula
     const handleCedulaChange = (e) => {
         const empleado_id = e.target.value;
         const empleado = cedulas.find((c) => c.id === parseInt(empleado_id));
@@ -144,10 +139,8 @@ function Usuario() {
         }));
     };
 
-    // Crear usuario
     const handleSave = async () => {
         setLoading(true);
-        // Validar los campos del formulario
         for (const field in formData) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -184,14 +177,13 @@ function Usuario() {
             fetchUsuarios();
             closeModal();
         } catch (error) {
-            console.error('Error creando usuario:', error);
+            console.error('error al registrar el usuario',error);
             addNotification('Error al registrar usuario', 'error');
         } finally {
             setLoading(false);
         }
     };
 
-    // Editar usuario
     const handleEdit = async () => {
         setLoading(true);
         const camposObligatorios = ['username', 'email', 'password'];
@@ -220,47 +212,42 @@ function Usuario() {
             closeModal();
             addNotification('Usuario actualizado con éxito', 'success');
         } catch (error) {
-            console.error('Error editando usuario:', error);
+            console.error('error al actualizar el usuario',error);
             addNotification('Error al actualizar usuario', 'error');
         } finally {
             setLoading(false);
         }
     };
 
-    // deshabilitar 
     const disableUser = async (id, estado) => {
         setLoading(true);
-    try {
-        await axios.patch(`http://localhost:4000/usuarios/${id}/estado`, { estado }, {
-            headers: {
-                Authorization : `Bearer ${localStorage.getItem('token')}`
-            }
-        });
+        try {
+            await axios.patch(`http://localhost:4000/usuarios/${id}/estado`, { estado }, {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
 
-        // Usa el valor real de estado
-        const updatedData = datosOriginales.map((usuario) =>
-            usuario.id === id ? { ...usuario, estado } : usuario
-        );
+            const updatedData = datosOriginales.map((usuario) =>
+                usuario.id === id ? { ...usuario, estado } : usuario
+            );
 
-        
-        setDatosOriginales(updatedData);
-        setDatosFiltrados(updatedData);
-        
-        addNotification(
-            estado ? 'Usuario habilitado con éxito' : 'Usuario deshabilitado con éxito',
-            estado ? 'success' : 'error'
-        );
+            setDatosOriginales(updatedData);
+            setDatosFiltrados(updatedData);
+            
+            addNotification(
+                estado ? 'Usuario habilitado con éxito' : 'Usuario deshabilitado con éxito',
+                estado ? 'success' : 'error'
+            );
         } catch (error) {
-            console.error('Error al cambiar el estado del usuario',error);
+            console.error('error al deshabilitar el usuario',error);
             addNotification('Error al cambiar estado del usuario', 'error');
         } finally {
             setLoading(false);
         }
     };
 
-    // Eliminar usuario
     const handleDelete = async (id) => {
-        
         try {
             await axios.delete(`http://localhost:4000/usuarios/${id}`, {
                 headers: {
@@ -271,14 +258,13 @@ function Usuario() {
             setDatosFiltrados(datosFiltrados.filter((usuario) => usuario.id !== id));
             addNotification('Usuario eliminado con éxito', 'error');
         } catch (error) {
-            console.error('Error eliminando Usuario:', error);
+            console.error('error al eliminar el usuario',error);
             addNotification('Error al eliminar usuario', 'error');
         } finally {
             setLoading(false);
         }
     };
 
-    // Paginación
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentData = datosFiltrados.slice(indexOfFirstItem, indexOfLastItem);
@@ -292,7 +278,7 @@ function Usuario() {
     };
 
     const handlePreviousThreePages = () => {
-    setCurrentPage((prev) => Math.max(prev - 3, 1));
+        setCurrentPage((prev) => Math.max(prev - 3, 1));
     };
 
     const handleNextThreePages = () => {
@@ -300,7 +286,6 @@ function Usuario() {
         setCurrentPage((prev) => Math.min(prev + 3, maxPage));
     };
 
-    // Abrir y cerrar modal
     const openModal = () => {
         resetFormData();
         fetchCedulas();
@@ -310,7 +295,6 @@ function Usuario() {
 
     const closeModal = () => setCurrentModal(null);
 
-    // Abrir para editar con el modal
     const openEditModal = async (usuario) => {
         await fetchCedulas();
         await fetchTiposUsuario();
@@ -327,7 +311,6 @@ function Usuario() {
         setCurrentModal('usuario');
     };
 
-    // Abrir modal de confirmación para eliminar
     const openConfirmDeleteModal = (id) => {
         setSelectedEmpleadoId(id);
         setConfirmDeleteModal(true);
@@ -337,8 +320,27 @@ function Usuario() {
         setConfirmDeleteModal(false);
     };
 
+    // MODAL DETALLE USUARIO
+    const openDetalleModal = async (usuario) => {
+        setDetalleModal({ abierto: true, usuario: null });
+        setLoading(true);
+        try {
+            const response = await axios.get(`http://localhost:4000/usuarios/${usuario.id}`, {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            setDetalleModal({ abierto: true, usuario: response.data });
+        } catch (error) {
+            console.error('error al mostrar el modal de detalle',error);
+            setDetalleModal({ abierto: true, usuario: null });
+            addNotification('No se pudo cargar el detalle del usuario o esta deshabilitado', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+    const closeDetalleModal = () => setDetalleModal({ abierto: false, usuario: null });
 
-    // Mostrar nombre y apellido del empleado seleccionado
     const empleadoSeleccionado = cedulas.find((c) => c.id === parseInt(formData.empleado_id));
 
     return (
@@ -354,7 +356,57 @@ function Usuario() {
                 />
             ))}
 
-            {/* modal registro y editar */}
+            {/* Modal de detalle */}
+            {detalleModal.abierto && (
+                <div className='modalOverlay'>
+                    <div className='modalDetalle'>
+                        <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
+                        <h2>Detalle del Usuario</h2>
+                        {detalleModal.usuario ? (
+                            <table className='detalleTable'>
+                                <tbody>
+                                    <tr>
+                                        <th>Usuario</th>
+                                        <td>{detalleModal.usuario.username}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Email</th>
+                                        <td>{detalleModal.usuario.email}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Rol</th>
+                                        <td>{detalleModal.usuario.roles_nombre}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Cédula</th>
+                                        <td>{detalleModal.usuario.cedula}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <td>{detalleModal.usuario.empleado_nombre}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Apellido</th>
+                                        <td>{detalleModal.usuario.apellido}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Contacto</th>
+                                        <td>{detalleModal.usuario.contacto}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Cargo</th>
+                                        <td>{detalleModal.usuario.cargo_nombre}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        ) : (
+                            <div>No se encontró información del usuario.</div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Modal registro y editar */}
             {currentModal === 'usuario' && (
                 <div className='modalOverlay'>
                     <div className='modal'>
@@ -378,10 +430,9 @@ function Usuario() {
                                             </option>
                                         ))}
                                     </select>
-                                        <div className='text_empleado'>
-                                            {empleadoSeleccionado ? `${empleadoSeleccionado.nombre} ${empleadoSeleccionado.apellido}` : '\u00A0' /* espacio en blanco */}
-                                        </div>
-
+                                    <div className='text_empleado'>
+                                        {empleadoSeleccionado ? `${empleadoSeleccionado.nombre} ${empleadoSeleccionado.apellido}` : '\u00A0'}
+                                    </div>
                                     {errors.cedula && <span className='errorText'>{errors.cedula}</span>}
                                 </div>
 
@@ -441,7 +492,7 @@ function Usuario() {
                 </div>
             )}
 
-            {/* modal de confirmacion para eliminar */}
+            {/* Modal de confirmación para eliminar */}
             {confirmDeleteModal && (
                 <div className='modalOverlay'>
                     <div className='modal'>
@@ -455,7 +506,6 @@ function Usuario() {
                 </div>
             )}
 
-
             <div className='tableSection'>
                 <div className='filtersContainer'>
                     <button 
@@ -466,9 +516,7 @@ function Usuario() {
                         <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
-
                     <h2>Usuarios</h2>
-
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
@@ -494,7 +542,12 @@ function Usuario() {
                                 <td>{usuario.roles_nombre}</td>
                                 <td>
                                     <div className='iconContainer'>
-                                        {/* Editar y eliminar: solo el propio usuario */}
+                                        <img
+                                            onClick={() => openDetalleModal(usuario)}
+                                            src={icon.ver}
+                                            className='iconver'
+                                            title='Ver más'
+                                        />
                                         {tienePermiso('usuarios','editar') && user.id === usuario.id && (
                                             <img
                                                 onClick={() => openEditModal(usuario)}
@@ -503,7 +556,6 @@ function Usuario() {
                                                 title='Editar'
                                             />
                                         )}
-
                                         {tienePermiso('usuarios','eliminar') && user.id === usuario.id &&( 
                                             <img 
                                             onClick={() => openConfirmDeleteModal(usuario.id)} 
@@ -512,9 +564,6 @@ function Usuario() {
                                             title='eliminar'
                                             />
                                         )}
-
-                                    
-                                        {/* Deshabilitar: solo administradores, a cualquier usuario */}
                                         {tienePermiso('usuarios', 'deshabilitar') && user.id !== usuario.id && usuario.estado && (
                                             <img 
                                                 onClick={() => disableUser(usuario.id, false)} 
@@ -523,8 +572,6 @@ function Usuario() {
                                                 title='deshabilitar'
                                             />
                                         )}
-                                        
-                                        {/* Habilitar: solo administradores, a cualquier usuario deshabilitado */}
                                         {tienePermiso('usuarios', 'deshabilitar') && user.id !== usuario.id && !usuario.estado && (
                                             <img 
                                                 onClick={() => disableUser(usuario.id, true)} 
