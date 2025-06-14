@@ -14,7 +14,7 @@ export const validationRules = {
         errorMessage: 'La cédula debe tener el formato V-12345678 o E-12345678'
     },
     nombre: {
-        regex: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, // Solo letras y espacios
+        regex: /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s-]+$/, // Solo letras y espacios
         errorMessage: 'El nombre solo puede contener letras y espacios'
     },
     apellido: {
@@ -38,13 +38,13 @@ export const validationRules = {
         errorMessage: 'El correo debe tener un formato válido, por ejemplo: usuario@dominio.com'
     },
     username: {
-        regex: /^[a-zA-Z0-9._%+-]+$/, // Formato de correo válido
-        errorMessage: 'Debe colocar un nombre de usuario válido, sin espacios ni caracteres especiales'
+        regex: /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_.()%+@#,!;:]+$/,
+        errorMessage: 'Debe colocar un nombre de usuario válido'
     },
-    role: {
-        regex: /^(administrador|moderador|inspector)$/, // Solo acepta estos tres valores
-        errorMessage: 'Debe seleccionar un rol válido'
-    },
+    // role: {
+    //     regex: /^(administrador|moderador|inspector)$/, // Solo acepta estos tres valores
+    //     errorMessage: 'Debe seleccionar un rol válido'
+    // },
     password: {
         // regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
         regex: /^.{6,}$/,

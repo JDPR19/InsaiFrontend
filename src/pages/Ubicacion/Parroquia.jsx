@@ -6,6 +6,7 @@ import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
+import SingleSelect from '../../components/selectmulti/SingleSelect';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
@@ -31,6 +32,7 @@ function Parroquia() {
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
 
+    // Fetch parroquias
     const fetchParroquias = async () => {
         setLoading(true);
         try {
@@ -42,13 +44,14 @@ function Parroquia() {
             setDatosOriginales(response.data);
             setDatosFiltrados(response.data);
         } catch (error) {
-            console.error('Error obteniendo parroquias:', error);
+                console.error('error al obtener las parroquias',error);
             addNotification('Error al obtener parroquias', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
 
+    // Fetch estados
     const fetchEstados = async () => {
         setLoading(true);
         try {
@@ -59,13 +62,14 @@ function Parroquia() {
             });
             setEstados(response.data);
         } catch (error) {
-            console.error('Error obteniendo estados:', error);
+            console.error('error al obtener los estados',error);
             addNotification('Error al obtener estados', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
 
+    // Fetch municipios filtrados por estado
     const fetchMunicipios = async (estadoId) => {
         setLoading(true);
         try {
@@ -78,11 +82,12 @@ function Parroquia() {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            setMunicipios(response.data.filter(m => Number(m.estado_id) === Number(estadoId)));
+            setMunicipios(response.data.filter(m => String(m.estado_id) === String(estadoId)));
         } catch (error) {
-            console.error('Error obteniendo municipios:', error);
+            console.error('error al obtener los municipios',error);
+            setMunicipios([]);
             addNotification('Error al obtener municipios', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -92,7 +97,6 @@ function Parroquia() {
         fetchEstados();
     }, []);
 
-    
     const resetFormData = () => {
         setFormData({
             id: '',
@@ -103,14 +107,10 @@ function Parroquia() {
         setMunicipios([]);
     };
 
-    const handleChange = (e) => {
+    // Handler para inputs de texto
+    const handleInputChange = (e) => {
         const { id, value } = e.target;
         setFormData(prev => ({ ...prev, [id]: value }));
-
-        if (id === 'estado_id') {
-            setFormData(prev => ({ ...prev, estado_id: value, municipio_id: '' }));
-            fetchMunicipios(value);
-        }
 
         if (validationRules[id]) {
             const { regex, errorMessage } = validationRules[id];
@@ -119,8 +119,29 @@ function Parroquia() {
         }
     };
 
+    // Handler para cambio de estado
+    const handleEstadoChange = (val) => {
+        setFormData(prev => ({
+            ...prev,
+            estado_id: val,
+            municipio_id: ''
+        }));
+        if (val) {
+            fetchMunicipios(val);
+        } else {
+            setMunicipios([]);
+        }
+    };
+
+    // Handler para cambio de municipio
+    const handleMunicipioChange = (val) => {
+        setFormData(prev => ({
+            ...prev,
+            municipio_id: val
+        }));
+    };
+
     const handleSearch = (searchTerm) => {
-        // Busca por nombre, municipio_nombre y estado_nombre (campos que devuelve el backend)
         const filtered = filterData(datosOriginales, searchTerm, ['id','nombre','municipio_nombre','estado_nombre']);
         setDatosFiltrados(filtered);
     };
@@ -134,6 +155,7 @@ function Parroquia() {
                 const { valid, message } = validateField(formData[field], regex, errorMessage);
                 if (!valid) {
                     addNotification(message, 'warning');
+                    setLoading(false);
                     return;
                 }
             }
@@ -152,9 +174,9 @@ function Parroquia() {
             fetchParroquias();
             closeModal();
         } catch (error) {
-            console.error('Error creando Parroquia:', error);
+            console.error('error registrando la parroquia',error);
             addNotification('Error al registrar parroquia', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -168,6 +190,7 @@ function Parroquia() {
             const { valid, message } = validateField(formData[field], regex, errorMessage);
             if (!valid) {
                 addNotification(message, 'warning');
+                setLoading(false);
                 return;
             }
         }
@@ -185,9 +208,9 @@ function Parroquia() {
             fetchParroquias();
             closeModal();
         } catch (error) {
-            console.error('Error editando Parroquia:', error);
+            console.error('error actualizando la parroquia',error);
             addNotification('Error al actualizar parroquia', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -204,9 +227,9 @@ function Parroquia() {
             fetchParroquias();
             addNotification('Parroquia eliminada con éxito', 'error');
         } catch (error) {
-            console.error('Error eliminando Parroquia:', error);
+            console.error('error eliminando la parroquia',error);
             addNotification('Error al eliminar parroquia', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -280,33 +303,41 @@ function Parroquia() {
                             <div>
                                 <div className='formGroup'>
                                     <label htmlFor="nombre">Parroquia:</label>
-                                    <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
+                                    <input
+                                        type="text"
+                                        id="nombre"
+                                        value={formData.nombre}
+                                        onChange={handleInputChange}
+                                        className='input'
+                                        placeholder='Rellene el Campo'
+                                    />
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="estado_id">Estado:</label>
-                                    <select id="estado_id" value={formData.estado_id} onChange={handleChange} className='select'>
-                                        <option value="">Seleccione un estado</option>
-                                        {estados.map((estado) => (
-                                            <option key={estado.id} value={estado.id}>{estado.nombre}</option>
-                                        ))}
-                                    </select>
+                                    <SingleSelect
+                                        options={estados.map(estado => ({ value: String(estado.id), label: estado.nombre }))}
+                                        value={formData.estado_id}
+                                        onChange={handleEstadoChange}
+                                        placeholder="Seleccione un estado"
+                                    />
                                     {errors.estado_id && <span className='errorText'>{errors.estado_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="municipio_id">Municipio:</label>
-                                    <select id="municipio_id" value={formData.municipio_id} onChange={handleChange} className='select'>
-                                        <option value="">Seleccione un municipio</option>
-                                        {municipios.map((municipio) => (
-                                            <option key={municipio.id} value={municipio.id}>{municipio.nombre}</option>
-                                        ))}
-                                    </select>
+                                    <SingleSelect
+                                        options={municipios.map(m => ({ value: String(m.id), label: m.nombre }))}
+                                        value={formData.municipio_id}
+                                        onChange={handleMunicipioChange}
+                                        placeholder="Seleccione un municipio"
+                                        isDisabled={!formData.estado_id || municipios.length === 0}
+                                    />
                                     {errors.municipio_id && <span className='errorText'>{errors.municipio_id}</span>}
                                 </div>
                             </div>
-                            <button 
-                                type="button" 
-                                className='saveButton' 
+                            <button
+                                type="button"
+                                className='saveButton'
                                 onClick={formData.id ? handleEdit : handleSave}
                                 title={formData.id ? 'Actualizar Parroquia' : 'Registrar Parroquia'}>
                                     Guardar
@@ -331,9 +362,9 @@ function Parroquia() {
 
             <div className='tableSection'>
                 <div className='filtersContainer'>
-                    <button 
+                    <button
                         type='button'
-                        onClick={openModal} 
+                        onClick={openModal}
                         className='create'
                         title='Registrar Parroquia'>
                         <img src={icon.plus} alt="Crear" className='icon' />
@@ -372,10 +403,10 @@ function Parroquia() {
                                             className='iconeditar'
                                             title='Editar'
                                         />
-                                        <img 
-                                            onClick={() => openConfirmDeleteModal(parroquia.id)} 
-                                            src={icon.eliminar} 
-                                            className='iconeliminar' 
+                                        <img
+                                            onClick={() => openConfirmDeleteModal(parroquia.id)}
+                                            src={icon.eliminar}
+                                            className='iconeliminar'
                                             title='eliminar'
                                         />
                                     </div>

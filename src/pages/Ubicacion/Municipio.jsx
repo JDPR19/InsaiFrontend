@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styles from './ubicacion.module.css';
 import '../../main.css';
+import SingleSelect from '../../components/selectmulti/SingleSelect';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
@@ -252,12 +253,12 @@ function Municipio() {
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="estado_id">Estado:</label>
-                                    <select id="estado_id" value={formData.estado_id} onChange={handleChange} className='select'>
-                                        <option value="">Seleccione un estado</option>
-                                        {estados.map((estado) => (
-                                            <option key={estado.id} value={estado.id}>{estado.nombre}</option>
-                                        ))}
-                                    </select>
+                                    <SingleSelect
+                                        options={estados.map(estado => ({ value: String(estado.id), label: estado.nombre }))}
+                                        value={formData.estado_id}
+                                        onChange={val => setFormData(prev => ({ ...prev, estado_id: val }))}
+                                        placeholder="Seleccione un tipo"
+                                        />
                                     {errors.estado_id && <span className='errorText'>{errors.estado_id}</span>}
                                 </div>
                             </div>

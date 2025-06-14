@@ -9,6 +9,7 @@ import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
+import SingleSelect from '../../components/selectmulti/SingleSelect';
 
 function Plagas() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -32,6 +33,12 @@ function Plagas() {
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
 
+    // Opciones para select
+    const tiposOptions = tipos.map(tipo => ({
+        value: String(tipo.id),
+        label: tipo.nombre
+    }));
+
     // Fetchers
     const fetchPlagas = async () => {
         setLoading(true);
@@ -44,9 +51,9 @@ function Plagas() {
             setDatosOriginales(response.data);
             setDatosFiltrados(response.data);
         } catch (error) {
-            console.error('error obteniendo todas las plaga',error);
+            console.error('error obteniendo todas las plagas', error);
             addNotification('Error al obtener plagas', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -61,9 +68,9 @@ function Plagas() {
             });
             setTipos(response.data);
         } catch (error) {
-            console.error('error obteniendo todos los tipos de plagas',error);
+            console.error('error obteniendo todos los tipos de plagas', error);
             addNotification('Error al obtener tipos de plaga', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -95,6 +102,10 @@ function Plagas() {
         }
     };
 
+    const handleTipoChange = (val) => {
+        setFormData(prev => ({ ...prev, tipo_plaga_fito_id: val }));
+    };
+
     const handleSearch = (searchTerm) => {
         const filtered = filterData(datosOriginales, searchTerm, [
             'id','nombre','nombre_cientifico','observaciones','tipo_plaga_fito_nombre'
@@ -111,6 +122,7 @@ function Plagas() {
                 const { valid, message } = validateField(formData[field], regex, errorMessage);
                 if (!valid) {
                     addNotification(message, 'warning');
+                    setLoading(false);
                     return;
                 }
             }
@@ -131,9 +143,9 @@ function Plagas() {
             fetchPlagas();
             closeModal();
         } catch (error) {
-            console.error('error registrando la plaga',error);
+            console.error('error registrando la plaga', error);
             addNotification('Error al registrar plaga', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -146,6 +158,7 @@ function Plagas() {
             const { valid, message } = validateField(formData[field], regex, errorMessage);
             if (!valid) {
                 addNotification(message, 'warning');
+                setLoading(false);
                 return;
             }
         }
@@ -165,9 +178,9 @@ function Plagas() {
             fetchPlagas();
             closeModal();
         } catch (error) {
-            console.error('error actualizando la plaga',error);
+            console.error('error actualizando la plaga', error);
             addNotification('Error al actualizar plaga', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -184,9 +197,9 @@ function Plagas() {
             fetchPlagas();
             addNotification('Plaga eliminada con éxito', 'error');
         } catch (error) {
-            console.error('error eliminando la plaga',error);
+            console.error('error eliminando la plaga', error);
             addNotification('Error al eliminar plaga', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -306,12 +319,12 @@ function Plagas() {
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="tipo_plaga_fito_id">Tipo:</label>
-                                    <select id="tipo_plaga_fito_id" value={formData.tipo_plaga_fito_id} onChange={handleChange} className='select'>
-                                        <option value="">Seleccione un tipo</option>
-                                        {tipos.map((tipo) => (
-                                            <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>
-                                        ))}
-                                    </select>
+                                    <SingleSelect
+                                        options={tiposOptions}
+                                        value={formData.tipo_plaga_fito_id}
+                                        onChange={handleTipoChange}
+                                        placeholder="Seleccione un tipo"
+                                    />
                                     {errors.tipo_plaga_fito_id && <span className='errorText'>{errors.tipo_plaga_fito_id}</span>}
                                 </div>
                                 <div className='formGroup' style={{ gridColumn: '1 / -1' }}>

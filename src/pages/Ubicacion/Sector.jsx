@@ -7,6 +7,7 @@ import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
+import SingleSelect from '../../components/selectmulti/SingleSelect';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 
@@ -33,7 +34,6 @@ function Sector() {
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
 
-    // --- Fetchers ---
     const fetchSectores = async () => {
         setLoading(true);
         try {
@@ -45,7 +45,7 @@ function Sector() {
             setDatosOriginales(response.data);
             setDatosFiltrados(response.data);
         } catch (error) {
-            console.error('Error obteniendo sectores:', error);
+            console.error('error obteniendo sectores ',error);
             addNotification('Error al obtener sectores', 'error');
         } finally {
             setLoading(false);
@@ -62,7 +62,7 @@ function Sector() {
             });
             setEstados(response.data);
         } catch (error) {
-            console.error('Error obteniendo estados:', error);
+            console.error('error obteniendo estados',error);
             addNotification('Error al obtener estados', 'error');
         } finally {
             setLoading(false);
@@ -81,11 +81,12 @@ function Sector() {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            setMunicipios(response.data.filter(m => Number(m.estado_id) === Number(estadoId)));
+            setMunicipios(response.data.filter(m => String(m.estado_id) === String(estadoId)));
         } catch (error) {
-            console.error('Error obteniendo municipios:', error);
+            console.error('error obteniendo municipios ',error);
+            setMunicipios([]);
             addNotification('Error al obtener municipios', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -102,11 +103,14 @@ function Sector() {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            setParroquias(response.data.filter(p => Number(p.municipio_id) === Number(municipioId)));
+            setParroquias(response.data.filter(p => String(p.municipio_id) === String(municipioId)));
         } catch (error) {
-            console.error('Error obteniendo parroquias:', error);
+            console.error('error obteniendo parroquias ',error);
+            setParroquias([]);
             addNotification('Error al obtener parroquias', 'error');
-        }setLoading(false);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -114,7 +118,6 @@ function Sector() {
         fetchEstados();
     }, []);
 
-    
     const resetFormData = () => {
         setFormData({
             id: '',
@@ -127,19 +130,47 @@ function Sector() {
         setParroquias([]);
     };
 
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-        setFormData(prev => ({ ...prev, [id]: value }));
-
-        if (id === 'estado_id') {
-            setFormData(prev => ({ ...prev, estado_id: value, municipio_id: '', parroquia_id: '' }));
-            fetchMunicipios(value);
+    // Handlers para selects dependientes
+    const handleEstadoChange = (val) => {
+        setFormData(prev => ({
+            ...prev,
+            estado_id: val,
+            municipio_id: '',
+            parroquia_id: ''
+        }));
+        if (val) {
+            fetchMunicipios(val);
+            setParroquias([]);
+        } else {
+            setMunicipios([]);
             setParroquias([]);
         }
-        if (id === 'municipio_id') {
-            setFormData(prev => ({ ...prev, municipio_id: value, parroquia_id: '' }));
-            fetchParroquias(value);
+    };
+
+    const handleMunicipioChange = (val) => {
+        setFormData(prev => ({
+            ...prev,
+            municipio_id: val,
+            parroquia_id: ''
+        }));
+        if (val) {
+            fetchParroquias(val);
+        } else {
+            setParroquias([]);
         }
+    };
+
+    const handleParroquiaChange = (val) => {
+        setFormData(prev => ({
+            ...prev,
+            parroquia_id: val
+        }));
+    };
+
+    // Handler para input de texto
+    const handleInputChange = (e) => {
+        const { id, value } = e.target;
+        setFormData(prev => ({ ...prev, [id]: value }));
 
         if (validationRules[id]) {
             const { regex, errorMessage } = validationRules[id];
@@ -164,6 +195,7 @@ function Sector() {
                 const { valid, message } = validateField(formData[field], regex, errorMessage);
                 if (!valid) {
                     addNotification(message, 'warning');
+                    setLoading(false);
                     return;
                 }
             }
@@ -182,9 +214,9 @@ function Sector() {
             fetchSectores();
             closeModal();
         } catch (error) {
-            console.error('Error creando Sector:', error);
+            console.error('error registrando sector',error);
             addNotification('Error al registrar sector', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -197,6 +229,7 @@ function Sector() {
             const { valid, message } = validateField(formData[field], regex, errorMessage);
             if (!valid) {
                 addNotification(message, 'warning');
+                setLoading(false);
                 return;
             }
         }
@@ -214,9 +247,9 @@ function Sector() {
             fetchSectores();
             closeModal();
         } catch (error) {
-            console.error('Error editando Sector:', error);
+            console.error('error actualizando sector',error);
             addNotification('Error al actualizar sector', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -233,9 +266,11 @@ function Sector() {
             fetchSectores();
             addNotification('Sector eliminado con éxito', 'error');
         } catch (error) {
-            console.error('Error eliminando Sector:', error);
+            console.error('error eliminando sector',error);
             addNotification('Error al eliminar sector', 'error');
-        }setLoading(false);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -288,6 +323,20 @@ function Sector() {
         setConfirmDeleteModal(false);
     };
 
+    // Opciones para selects
+    const estadosOptions = estados.map(e => ({
+        value: String(e.id),
+        label: e.nombre
+    }));
+    const municipiosOptions = municipios.map(m => ({
+        value: String(m.id),
+        label: m.nombre
+    }));
+    const parroquiasOptions = parroquias.map(p => ({
+        value: String(p.id),
+        label: p.nombre
+    }));
+
     return (
         <div className={styles.ubicacionContainer}>
             {loading && <Spinner text="Procesando..." />}
@@ -309,37 +358,39 @@ function Sector() {
                             <div>
                                 <div className='formGroup'>
                                     <label htmlFor="nombre">Sector:</label>
-                                    <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
+                                    <input type="text" id="nombre" value={formData.nombre} onChange={handleInputChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="estado_id">Estado:</label>
-                                    <select id="estado_id" value={formData.estado_id} onChange={handleChange} className='select'>
-                                        <option value="">Seleccione un estado</option>
-                                        {estados.map((estado) => (
-                                            <option key={estado.id} value={estado.id}>{estado.nombre}</option>
-                                        ))}
-                                    </select>
+                                    <SingleSelect
+                                        options={estadosOptions}
+                                        value={formData.estado_id}
+                                        onChange={handleEstadoChange}
+                                        placeholder="Seleccione un estado"
+                                    />
                                     {errors.estado_id && <span className='errorText'>{errors.estado_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="municipio_id">Municipio:</label>
-                                    <select id="municipio_id" value={formData.municipio_id} onChange={handleChange} className='select'>
-                                        <option value="">Seleccione un municipio</option>
-                                        {municipios.map((municipio) => (
-                                            <option key={municipio.id} value={municipio.id}>{municipio.nombre}</option>
-                                        ))}
-                                    </select>
+                                    <SingleSelect
+                                        options={municipiosOptions}
+                                        value={formData.municipio_id}
+                                        onChange={handleMunicipioChange}
+                                        placeholder="Seleccione un municipio"
+                                        isDisabled={!formData.estado_id || municipiosOptions.length === 0}
+                                    />
                                     {errors.municipio_id && <span className='errorText'>{errors.municipio_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="parroquia_id">Parroquia:</label>
-                                    <select id="parroquia_id" value={formData.parroquia_id} onChange={handleChange} className='select'>
-                                        <option value="">Seleccione una parroquia</option>
-                                        {parroquias.map((parroquia) => (
-                                            <option key={parroquia.id} value={parroquia.id}>{parroquia.nombre}</option>
-                                        ))}
-                                    </select>
+                                    <SingleSelect
+                                        options={parroquiasOptions}
+                                        value={formData.parroquia_id}
+                                        onChange={handleParroquiaChange}
+                                        placeholder="Seleccione una parroquia"
+                                        isDisabled={!formData.municipio_id || parroquiasOptions.length === 0}
+                                    />
                                     {errors.parroquia_id && <span className='errorText'>{errors.parroquia_id}</span>}
                                 </div>
                             </div>

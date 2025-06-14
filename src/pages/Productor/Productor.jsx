@@ -9,6 +9,7 @@ import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
+import SingleSelect from '../../components/selectmulti/SingleSelect';
 
 function Productor() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -35,7 +36,12 @@ function Productor() {
     const { notifications, addNotification, removeNotification } = useNotification();
     const itemsPerPage = 8;
 
-    
+    // Opciones para select
+    const tiposOptions = tipos.map(tipo => ({
+        value: String(tipo.id),
+        label: tipo.nombre
+    }));
+
     const fetchProductores = async () => {
         setLoading(true);
         try {
@@ -45,14 +51,13 @@ function Productor() {
             setDatosOriginales(response.data);
             setDatosFiltrados(response.data);
         } catch (error) {
-            console.error('Error obteniendo todos los productores',error);
+            console.error('Error obteniendo todos los productores', error);
             addNotification('Error al obtener productores', 'error');
         } finally {
             setLoading(false);
         }
     };
 
-    
     const fetchTipos = async () => {
         setLoading(true);
         try {
@@ -61,7 +66,7 @@ function Productor() {
             });
             setTipos(response.data);
         } catch (error) {
-            console.error('Error obteniendo todos los tipos de productores',error);
+            console.error('Error obteniendo todos los tipos de productores', error);
             addNotification('Error al obtener tipos de productores', 'error');
         } finally {
             setLoading(false);
@@ -72,7 +77,6 @@ function Productor() {
         fetchProductores();
         fetchTipos();
     }, []);
-
 
     const resetFormData = () => {
         setFormData({
@@ -88,7 +92,6 @@ function Productor() {
         setErrors({});
     };
 
-    
     const handleChange = (e) => {
         const { id, value } = e.target;
         setFormData(prev => ({ ...prev, [id]: value }));
@@ -100,7 +103,10 @@ function Productor() {
         }
     };
 
-    
+    const handleTipoChange = (val) => {
+        setFormData(prev => ({ ...prev, tipo_productor_id: val }));
+    };
+
     const handleSearch = (searchTerm) => {
         const filtered = filterData(
             datosOriginales,
@@ -131,7 +137,7 @@ function Productor() {
             fetchProductores();
             closeModal();
         } catch (error) {
-            console.error('Error registrando el productor',error);
+            console.error('Error registrando el productor', error);
             addNotification('Error al registrar productor', 'error');
         } finally {
             setLoading(false);
@@ -159,7 +165,7 @@ function Productor() {
             fetchProductores();
             closeModal();
         } catch (error) {
-            console.error('Error actualizando el productor',error);
+            console.error('Error actualizando el productor', error);
             addNotification('Error al actualizar productor', 'error');
         } finally {
             setLoading(false);
@@ -175,7 +181,7 @@ function Productor() {
             fetchProductores();
             addNotification('Productor eliminado con éxito', 'error');
         } catch (error) {
-            console.error('Error eliminando productor',error);
+            console.error('Error eliminando productor', error);
             addNotification('Error al eliminar productor', 'error');
         } finally {
             setLoading(false);
@@ -314,12 +320,12 @@ function Productor() {
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="tipo_productor_id">Tipo de Productor:</label>
-                                    <select id="tipo_productor_id" value={formData.tipo_productor_id} onChange={handleChange} className='select'>
-                                        <option value="">Seleccione un tipo</option>
-                                        {tipos.map((tipo) => (
-                                            <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>
-                                        ))}
-                                    </select>
+                                    <SingleSelect
+                                        options={tiposOptions}
+                                        value={formData.tipo_productor_id}
+                                        onChange={handleTipoChange}
+                                        placeholder="Seleccione un tipo"
+                                    />
                                     {errors.tipo_productor_id && <span className='errorText'>{errors.tipo_productor_id}</span>}
                                 </div>
                                 <div className='formGroup'>

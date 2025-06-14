@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styles from './empleados.module.css';
+import SingleSelect from '../../components/selectmulti/SingleSelect';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
@@ -316,19 +317,12 @@ function Empleado() {
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="cargo_id">Cargo:</label>
-                                    <select
-                                        id="cargo_id"
-                                        value={formData.cargo_id || ''}
-                                        onChange={handleChange}
-                                        className='select'
-                                    >
-                                        <option value="">Seleccione un cargo</option>
-                                        {cargos.map((cargo) => (
-                                            <option key={cargo.id} value={cargo.id}>
-                                                {cargo.nombre}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <SingleSelect
+                                        options={cargos.map(cargo => ({ value: String(cargo.id), label: cargo.nombre }))}
+                                        value={formData.cargo_id}
+                                        onChange={val => setFormData(prev => ({ ...prev, cargo_id: val }))}
+                                        placeholder="Seleccione un tipo"
+                                        />
                                     {errors.cargo_id && <span className='errorText'>{errors.cargo_id}</span>}
                                 </div>
                             </div>
@@ -393,8 +387,6 @@ function Empleado() {
                             <th>Cédula</th>
                             <th>Nombre</th>
                             <th>Apellido</th>
-                            <th>Contacto</th>
-                            <th>Cargo</th>
                             <th>Acción</th>
                         </tr>
                     </thead>
@@ -404,8 +396,6 @@ function Empleado() {
                                 <td>{empleado.cedula}</td>
                                 <td>{empleado.nombre}</td>
                                 <td>{empleado.apellido}</td>
-                                <td>{empleado.contacto}</td>
-                                <td>{empleado.cargo_nombre}</td>
                                 <td>
                                     <div className='iconContainer'>
                                         <img

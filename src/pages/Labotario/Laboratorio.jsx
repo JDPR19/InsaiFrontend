@@ -9,7 +9,7 @@ import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
-
+import SingleSelect from '../../components/selectmulti/SingleSelect';
 
 function Laboratorio() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -41,7 +41,13 @@ function Laboratorio() {
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
 
-    
+    // Opciones para selects
+    const tiposOptions = tipos.map(t => ({ value: String(t.id), label: t.nombre }));
+    const estadosOptions = estados.map(e => ({ value: String(e.id), label: e.nombre }));
+    const municipiosOptions = municipios.map(m => ({ value: String(m.id), label: m.nombre }));
+    const parroquiasOptions = parroquias.map(p => ({ value: String(p.id), label: p.nombre }));
+    const sectoresOptions = sectores.map(s => ({ value: String(s.id), label: s.nombre }));
+
     const fetchLaboratorios = async () => {
         setLoading(true);
         try {
@@ -53,9 +59,9 @@ function Laboratorio() {
             setDatosOriginales(response.data);
             setDatosFiltrados(response.data);
         } catch (error) {
-            console.error('Error obteniendo todos los datos de los laboratorios',error);
+            console.error('Error obteniendo todos los datos de los laboratorios', error);
             addNotification('Error al obtener laboratorios', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -70,9 +76,9 @@ function Laboratorio() {
             });
             setTipos(response.data);
         } catch (error) {
-            console.error('Error obteniendo todo los tipos de laboratorios',error);
+            console.error('Error obteniendo todos los tipos de laboratorios', error);
             addNotification('Error al obtener tipos de laboratorio', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -87,9 +93,9 @@ function Laboratorio() {
             });
             setEstados(response.data);
         } catch (error) {
-            console.error('Error obteniendo todos los estados',error);
+            console.error('Error obteniendo todos los estados', error);
             addNotification('Error al obtener estados', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -108,9 +114,11 @@ function Laboratorio() {
             });
             setMunicipios(response.data.filter(m => Number(m.estado_id) === Number(estadoId)));
         } catch (error) {
-            console.error('Error obteniendo todos los municipios',error);
+            console.error('Error obteniendo todos los municipios', error);
             addNotification('Error al obtener municipios', 'error');
-        }setLoading(false);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const fetchParroquias = async (municipioId) => {
@@ -127,9 +135,9 @@ function Laboratorio() {
             });
             setParroquias(response.data.filter(p => Number(p.municipio_id) === Number(municipioId)));
         } catch (error) {
-            console.error('Error obteniendo todos las parroquias',error);
+            console.error('Error obteniendo todas las parroquias', error);
             addNotification('Error al obtener parroquias', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -148,9 +156,9 @@ function Laboratorio() {
             });
             setSectores(response.data.filter(s => Number(s.parroquia_id) === Number(parroquiaId)));
         } catch (error) {
-            console.error('Error obteniendo todos los sectores',error);
+            console.error('Error obteniendo todos los sectores', error);
             addNotification('Error al obtener sectores', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -161,7 +169,6 @@ function Laboratorio() {
         fetchEstados();
     }, []);
 
-    
     const resetFormData = () => {
         setFormData({
             id: '',
@@ -179,40 +186,66 @@ function Laboratorio() {
         setSectores([]);
     };
 
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-        setFormData(prev => ({ ...prev, [id]: value }));
-
-        if (id === 'estado_id') {
-            setFormData(prev => ({
-                ...prev,
-                estado_id: value,
-                municipio_id: '',
-                parroquia_id: '',
-                sector_id: ''
-            }));
-            fetchMunicipios(value);
+    // Handlers para selects dependientes
+    const handleEstadoChange = (val) => {
+        setFormData(prev => ({
+            ...prev,
+            estado_id: val,
+            municipio_id: '',
+            parroquia_id: '',
+            sector_id: ''
+        }));
+        if (val) {
+            fetchMunicipios(val);
+            setParroquias([]);
+            setSectores([]);
+        } else {
+            setMunicipios([]);
             setParroquias([]);
             setSectores([]);
         }
-        if (id === 'municipio_id') {
-            setFormData(prev => ({
-                ...prev,
-                municipio_id: value,
-                parroquia_id: '',
-                sector_id: ''
-            }));
-            fetchParroquias(value);
+    };
+
+    const handleMunicipioChange = (val) => {
+        setFormData(prev => ({
+            ...prev,
+            municipio_id: val,
+            parroquia_id: '',
+            sector_id: ''
+        }));
+        if (val) {
+            fetchParroquias(val);
+            setSectores([]);
+        } else {
+            setParroquias([]);
             setSectores([]);
         }
-        if (id === 'parroquia_id') {
-            setFormData(prev => ({
-                ...prev,
-                parroquia_id: value,
-                sector_id: ''
-            }));
-            fetchSectores(value);
+    };
+
+    const handleParroquiaChange = (val) => {
+        setFormData(prev => ({
+            ...prev,
+            parroquia_id: val,
+            sector_id: ''
+        }));
+        if (val) {
+            fetchSectores(val);
+        } else {
+            setSectores([]);
         }
+    };
+
+    const handleSectorChange = (val) => {
+        setFormData(prev => ({
+            ...prev,
+            sector_id: val
+        }));
+    };
+
+    // Handler para inputs de texto
+    const handleInputChange = (e) => {
+        const { id, value } = e.target;
+        setFormData(prev => ({ ...prev, [id]: value }));
 
         if (validationRules[id]) {
             const { regex, errorMessage } = validationRules[id];
@@ -237,6 +270,7 @@ function Laboratorio() {
                 const { valid, message } = validateField(formData[field], regex, errorMessage);
                 if (!valid) {
                     addNotification(message, 'warning');
+                    setLoading(false);
                     return;
                 }
             }
@@ -258,9 +292,9 @@ function Laboratorio() {
             fetchLaboratorios();
             closeModal();
         } catch (error) {
-            console.error('Error al registrar el laboratorio',error);
+            console.error('Error al registrar el laboratorio', error);
             addNotification('Error al registrar laboratorio', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -273,6 +307,7 @@ function Laboratorio() {
             const { valid, message } = validateField(formData[field], regex, errorMessage);
             if (!valid) {
                 addNotification(message, 'warning');
+                setLoading(false);
                 return;
             }
         }
@@ -293,9 +328,9 @@ function Laboratorio() {
             fetchLaboratorios();
             closeModal();
         } catch (error) {
-            console.error('Error al actualizar laboratorio',error);
+            console.error('Error al actualizar laboratorio', error);
             addNotification('Error al actualizar laboratorio', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -312,9 +347,9 @@ function Laboratorio() {
             fetchLaboratorios();
             addNotification('Laboratorio eliminado con éxito', 'error');
         } catch (error) {
-            console.error('Error al eliminar el laboratorio',error);
+            console.error('Error al eliminar el laboratorio', error);
             addNotification('Error al eliminar laboratorio', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -443,67 +478,70 @@ function Laboratorio() {
                             <div className={styles.formColumns}>
                                 <div className='formGroup'>
                                     <label htmlFor="nombre">Nombre:</label>
-                                    <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Nombre del laboratorio'/>
+                                    <input type="text" id="nombre" value={formData.nombre} onChange={handleInputChange} className='input' placeholder='Nombre del laboratorio'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="ubicación">Ubicación:</label>
-                                    <input type="text" id="ubicación" value={formData.ubicación} onChange={handleChange} className='input' placeholder='Ubicación'/>
+                                    <input type="text" id="ubicación" value={formData.ubicación} onChange={handleInputChange} className='input' placeholder='Ubicación'/>
                                     {errors.ubicación && <span className='errorText'>{errors.ubicación}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="tipo_laboratorio_id">Tipo de laboratorio:</label>
-                                    <select id="tipo_laboratorio_id" value={formData.tipo_laboratorio_id} onChange={handleChange} className='select'>
-                                        <option value="">Seleccione un tipo</option>
-                                        {tipos.map((tipo) => (
-                                            <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>
-                                        ))}
-                                    </select>
+                                    <SingleSelect
+                                        options={tiposOptions}
+                                        value={formData.tipo_laboratorio_id}
+                                        onChange={val => setFormData(prev => ({ ...prev, tipo_laboratorio_id: val }))}
+                                        placeholder="Seleccione un tipo"
+                                    />
                                     {errors.tipo_laboratorio_id && <span className='errorText'>{errors.tipo_laboratorio_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="estado_id">Estado:</label>
-                                    <select id="estado_id" value={formData.estado_id} onChange={handleChange} className='select'>
-                                        <option value="">Seleccione un estado</option>
-                                        {estados.map((estado) => (
-                                            <option key={estado.id} value={estado.id}>{estado.nombre}</option>
-                                        ))}
-                                    </select>
+                                    <SingleSelect
+                                        options={estadosOptions}
+                                        value={formData.estado_id}
+                                        onChange={handleEstadoChange}
+                                        placeholder="Seleccione un estado"
+                                    />
                                     {errors.estado_id && <span className='errorText'>{errors.estado_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="municipio_id">Municipio:</label>
-                                    <select id="municipio_id" value={formData.municipio_id} onChange={handleChange} className='select'>
-                                        <option value="">Seleccione un municipio</option>
-                                        {municipios.map((municipio) => (
-                                            <option key={municipio.id} value={municipio.id}>{municipio.nombre}</option>
-                                        ))}
-                                    </select>
+                                    <SingleSelect
+                                        options={municipiosOptions}
+                                        value={formData.municipio_id}
+                                        onChange={handleMunicipioChange}
+                                        placeholder="Seleccione un municipio"
+                                        isDisabled={!formData.estado_id || municipiosOptions.length === 0}
+                                    />
                                     {errors.municipio_id && <span className='errorText'>{errors.municipio_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="parroquia_id">Parroquia:</label>
-                                    <select id="parroquia_id" value={formData.parroquia_id} onChange={handleChange} className='select'>
-                                        <option value="">Seleccione una parroquia</option>
-                                        {parroquias.map((parroquia) => (
-                                            <option key={parroquia.id} value={parroquia.id}>{parroquia.nombre}</option>
-                                        ))}
-                                    </select>
+                                    <SingleSelect
+                                        options={parroquiasOptions}
+                                        value={formData.parroquia_id}
+                                        onChange={handleParroquiaChange}
+                                        placeholder="Seleccione una parroquia"
+                                        isDisabled={!formData.municipio_id || parroquiasOptions.length === 0}
+                                    />
                                     {errors.parroquia_id && <span className='errorText'>{errors.parroquia_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="sector_id">Sector:</label>
-                                    <select id="sector_id" value={formData.sector_id} onChange={handleChange} className='select'>
-                                        <option value="">Seleccione un sector</option>
-                                        {sectores.map((sector) => (
-                                            <option key={sector.id} value={sector.id}>{sector.nombre}</option>
-                                        ))}
-                                    </select>
+                                    <SingleSelect
+                                        options={sectoresOptions}
+                                        value={formData.sector_id}
+                                        onChange={handleSectorChange}
+                                        placeholder="Seleccione un sector"
+                                        isDisabled={!formData.parroquia_id || sectoresOptions.length === 0}
+                                    />
                                     {errors.sector_id && <span className='errorText'>{errors.sector_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="descripcion">Descripción:</label>
-                                    <textarea id="descripcion" value={formData.descripcion} onChange={handleChange} className='input' placeholder='Descripción'/>
+                                    <textarea id="descripcion" value={formData.descripcion} onChange={handleInputChange} className='input' placeholder='Descripción'/>
                                     {errors.descripcion && <span className='errorText'>{errors.descripcion}</span>}
                                 </div>
                             </div>
@@ -556,7 +594,6 @@ function Laboratorio() {
                             <th>N°</th>
                             <th>Nombre</th>
                             <th>Ubicación</th>
-                            {/* <th>Tipo de Laboratorio</th> */}
                             <th>Acción</th>
                         </tr>
                     </thead>
@@ -566,7 +603,6 @@ function Laboratorio() {
                                 <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{lab.nombre}</td>
                                 <td>{lab.ubicación} </td>
-                                {/* <td>{lab.tipo_laboratorio_nombre}</td> */}
                                 <td>
                                     <div className={styles.iconContainer}>
                                         <img

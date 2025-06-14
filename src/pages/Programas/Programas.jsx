@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import MultiSelect from '../../components/selectmulti/MultiSelect';
+import SingleSelect from '../../components/selectmulti/SingleSelect';
 import styles from './programas.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
@@ -15,6 +17,7 @@ function Programas() {
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [plagas, setPlagas] = useState([]);
     const [tipos, setTipos] = useState([]);
+    const [empleados, setEmpleados] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -22,10 +25,10 @@ function Programas() {
     const [formData, setFormData] = useState({
         id: '',
         nombre: '',
-        tiempo_duracion: '',
         descripcion: '',
-        plaga_fito_id: '',
-        tipo_programa_fito_id: ''
+        tipo_programa_fito_id: '',
+        empleados_ids: [],
+        plaga_fito_ids: []
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedProgramaId, setSelectedProgramaId] = useState(null);
@@ -34,7 +37,6 @@ function Programas() {
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
 
-    
     const fetchProgramas = async () => {
         setLoading(true);
         try {
@@ -46,9 +48,9 @@ function Programas() {
             setDatosOriginales(response.data);
             setDatosFiltrados(response.data);
         } catch (error) {
-            console.error('error obteniendo todos los programa',error);
+            console.error('error obteniendo todos los programas',error);
             addNotification('Error al obtener programas', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -65,7 +67,7 @@ function Programas() {
         } catch (error) {
             console.error('error obteniendo todas las plagas',error);
             addNotification('Error al obtener plagas', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -80,9 +82,26 @@ function Programas() {
             });
             setTipos(response.data);
         } catch (error) {
-            console.error('error obteniendo todos los tipos de programa',error);
+            console.error('error obteniendo  tipos de programas',error);
             addNotification('Error al obtener tipos de programa', 'error');
-        }finally{
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchEmpleados = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get('http://localhost:4000/programa/empleados/all', {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            setEmpleados(response.data);
+        } catch (error) {
+            console.error('error obteniendo empleados',error);
+            addNotification('Error al obtener empleados', 'error');
+        } finally {
             setLoading(false);
         }
     };
@@ -91,17 +110,17 @@ function Programas() {
         fetchProgramas();
         fetchPlagas();
         fetchTipos();
+        fetchEmpleados();
     }, []);
 
-    
     const resetFormData = () => {
         setFormData({
             id: '',
             nombre: '',
-            tiempo_duracion: '',
             descripcion: '',
-            plaga_fito_id: '',
-            tipo_programa_fito_id: ''
+            tipo_programa_fito_id: '',
+            empleados_ids: [],
+            plaga_fito_ids: []
         });
     };
 
@@ -116,22 +135,48 @@ function Programas() {
         }
     };
 
+    // React-Select handlers
+    const empleadosOptions = empleados.map(e => ({ value: String(e.id), label: e.nombre }));
+    const plagasOptions = plagas.map(p => ({ value: String(p.id), label: p.nombre }));
+
+    const handleEmpleadosChange = (selected) => {
+        setFormData(prev => ({
+            ...prev,
+            empleados_ids: selected ? selected.map(opt => opt.value) : []
+        }));
+    };
+
+    const handlePlagasChange = (selected) => {
+        setFormData(prev => ({
+            ...prev,
+            plaga_fito_ids: selected ? selected.map(opt => opt.value) : []
+        }));
+    };
+
+    const clearMultiSelect = (campo) => {
+        setFormData(prev => ({
+            ...prev,
+            [campo]: []
+        }));
+    };
+
     const handleSearch = (searchTerm) => {
         const filtered = filterData(datosOriginales, searchTerm, [
-            'id','nombre','tiempo_duracion','descripcion','plaga_fito_nombre','tipo_programa_fito_nombre'
+            'id','nombre','descripcion','tipo_programa_nombre'
         ]);
         setDatosFiltrados(filtered);
     };
 
     const handleSave = async () => {
         setLoading(true);
-        for (const field of ['nombre', 'plaga_fito_id', 'tipo_programa_fito_id']) {
+        for (const field of ['nombre', 'tipo_programa_fito_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
             if (regex) {
                 const { valid, message } = validateField(formData[field], regex, errorMessage);
                 if (!valid) {
                     addNotification(message, 'warning');
+                    setLoading(false);
                     return;
                 }
             }
@@ -140,10 +185,10 @@ function Programas() {
         try {
             await axios.post('http://localhost:4000/programa', {
                 nombre: formData.nombre,
-                tiempo_duracion: formData.tiempo_duracion,
                 descripcion: formData.descripcion,
-                plaga_fito_id: formData.plaga_fito_id,
-                tipo_programa_fito_id: formData.tipo_programa_fito_id
+                tipo_programa_fito_id: formData.tipo_programa_fito_id,
+                empleados_ids: formData.empleados_ids,
+                plaga_fito_ids: formData.plaga_fito_ids
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -153,9 +198,9 @@ function Programas() {
             fetchProgramas();
             closeModal();
         } catch (error) {
-            console.error('error registrando el programa',error);
+            console.error('error registrando programa',error);
             addNotification('Error al registrar programa', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -168,6 +213,7 @@ function Programas() {
             const { valid, message } = validateField(formData[field], regex, errorMessage);
             if (!valid) {
                 addNotification(message, 'warning');
+                setLoading(false);
                 return;
             }
         }
@@ -175,10 +221,10 @@ function Programas() {
         try {
             await axios.put(`http://localhost:4000/programa/${formData.id}`, {
                 nombre: formData.nombre,
-                tiempo_duracion: formData.tiempo_duracion,
                 descripcion: formData.descripcion,
-                plaga_fito_id: formData.plaga_fito_id,
-                tipo_programa_fito_id: formData.tipo_programa_fito_id
+                tipo_programa_fito_id: formData.tipo_programa_fito_id,
+                empleados_ids: formData.empleados_ids,
+                plaga_fito_ids: formData.plaga_fito_ids
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -188,9 +234,9 @@ function Programas() {
             fetchProgramas();
             closeModal();
         } catch (error) {
-            console.error('error actualizando el programa',error);
+            console.error('error actualizando programas',error);
             addNotification('Error al actualizar programa', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -207,9 +253,9 @@ function Programas() {
             fetchProgramas();
             addNotification('Programa eliminado con éxito', 'error');
         } catch (error) {
-            console.error('error eliminado el programa',error);
+            console.error('error eliminando programa',error);
             addNotification('Error al eliminar programa', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -246,10 +292,10 @@ function Programas() {
         setFormData({
             id: programa.id,
             nombre: programa.nombre || '',
-            tiempo_duracion: programa.tiempo_duracion || '',
             descripcion: programa.descripcion || '',
-            plaga_fito_id: programa.plaga_fito_id || '',
-            tipo_programa_fito_id: programa.tipo_programa_fito_id || ''
+            tipo_programa_fito_id: programa.tipo_programa_fito_id || '',
+            empleados_ids: (programa.empleados || []).map(e => String(e.id)),
+            plaga_fito_ids: (programa.plagas || []).map(p => String(p.id))
         });
         setCurrentModal('programa');
     };
@@ -292,24 +338,16 @@ function Programas() {
                                     <td>{detalleModal.programa.nombre}</td>
                                 </tr>
                                 <tr>
-                                    <th>Tiempo de Duración</th>
-                                    <td>{detalleModal.programa.tiempo_duracion}</td>
-                                </tr>
-                                <tr>
                                     <th>Tipo de Programa</th>
-                                    <td>{detalleModal.programa.tipo_programa_fito_nombre}</td>
+                                    <td>{detalleModal.programa.tipo_programa_nombre}</td>
                                 </tr>
                                 <tr>
-                                    <th>Plaga</th>
-                                    <td>{detalleModal.programa.plaga_fito_nombre}</td>
+                                    <th>Plagas</th>
+                                    <td dangerouslySetInnerHTML={{ __html: detalleModal.programa.plagas_detalle }} />
                                 </tr>
                                 <tr>
-                                    <th>Nombre Científico Plaga</th>
-                                    <td>{detalleModal.programa.plaga_fito_nombre_cientifico}</td>
-                                </tr>
-                                <tr>
-                                    <th>Tipo de Plaga</th>
-                                    <td>{detalleModal.programa.tipo_plaga_fito_nombre}</td>
+                                    <th>Empleados Responsables</th>
+                                    <td dangerouslySetInnerHTML={{ __html: detalleModal.programa.empleados_detalle }} />
                                 </tr>
                                 <tr>
                                     <th>Descripción</th>
@@ -335,29 +373,40 @@ function Programas() {
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="tiempo_duracion">Tiempo de Duración:</label>
-                                    <input type="text" id="tiempo_duracion" value={formData.tiempo_duracion} onChange={handleChange} className='input' placeholder='Ej: 6 meses'/>
-                                    {errors.tiempo_duracion && <span className='errorText'>{errors.tiempo_duracion}</span>}
-                                </div>
-                                <div className='formGroup'>
                                     <label htmlFor="tipo_programa_fito_id">Tipo de Programa:</label>
-                                    <select id="tipo_programa_fito_id" value={formData.tipo_programa_fito_id} onChange={handleChange} className='select'>
-                                        <option value="">Seleccione un tipo</option>
-                                        {tipos.map((tipo) => (
-                                            <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>
-                                        ))}
-                                    </select>
+                                    <SingleSelect
+                                        options={tipos.map(tipo => ({ value: String(tipo.id), label: tipo.nombre }))}
+                                        value={formData.tipo_programa_fito_id}
+                                        onChange={val => setFormData(prev => ({ ...prev, tipo_programa_fito_id: val }))}
+                                        placeholder="Seleccione un tipo"
+                                        />
                                     {errors.tipo_programa_fito_id && <span className='errorText'>{errors.tipo_programa_fito_id}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="plaga_fito_id">Plaga a Tratar:</label>
-                                    <select id="plaga_fito_id" value={formData.plaga_fito_id} onChange={handleChange} className='select'>
-                                        <option value="">Seleccione una plaga</option>
-                                        {plagas.map((plaga) => (
-                                            <option key={plaga.id} value={plaga.id}>{plaga.nombre}</option>
-                                        ))}
-                                    </select>
-                                    {errors.plaga_fito_id && <span className='errorText'>{errors.plaga_fito_id}</span>}
+                                    <label>Plagas a Tratar:</label>
+                                    <MultiSelect
+                                        options={plagasOptions}
+                                        value={plagasOptions.filter(opt => formData.plaga_fito_ids.includes(opt.value))}
+                                        onChange={handlePlagasChange}
+                                        placeholder="Selecciona plagas..."
+                                        />
+                                    {formData.plaga_fito_ids.length > 0 && (
+                                        <button type="button" onClick={() => clearMultiSelect('plaga_fito_ids')} className='btn-limpiar'>Limpiar</button>
+                                    )}
+                                    {errors.plaga_fito_ids && <span className='errorText'>{errors.plaga_fito_ids}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Empleados Responsables:</label>
+                                    <MultiSelect
+                                        options={empleadosOptions}
+                                        value={empleadosOptions.filter(opt => formData.empleados_ids.includes(opt.value))}
+                                        onChange={handleEmpleadosChange}
+                                        placeholder="Selecciona empleados..."
+                                        />
+                                    {formData.empleados_ids.length > 0 && (
+                                        <button type="button" onClick={() => clearMultiSelect('empleados_ids')} className='btn-limpiar'>Limpiar</button>
+                                    )}
+                                    {errors.empleados_ids && <span className='errorText'>{errors.empleados_ids}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="descripcion">Descripción:</label>
@@ -414,9 +463,8 @@ function Programas() {
                         <tr>
                             <th>N°</th>
                             <th>Nombre</th>
-                            <th>Tiempo de Duración</th>
                             <th>Tipo de Programa</th>
-                            <th>Plaga</th>
+                            <th>Plagas</th>
                             <th>Acción</th>
                         </tr>
                     </thead>
@@ -425,9 +473,9 @@ function Programas() {
                             <tr key={programa.id} >
                                 <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{programa.nombre}</td>
-                                <td>{programa.tiempo_duracion}</td>
-                                <td>{programa.tipo_programa_fito_nombre}</td>
-                                <td>{programa.plaga_fito_nombre}</td>
+                                <td>{programa.tipo_programa_nombre}</td>
+                                <td>{(programa.plagas || []).map(p => p.nombre).join(', ')}</td>
+                                {/* <td>{(programa.empleados || []).map(e => e.nombre).join(', ')}</td> */}
                                 <td>
                                     <div className={styles.iconContainer}>
                                         <img
@@ -435,7 +483,6 @@ function Programas() {
                                             src={icon.ver}
                                             className='iconver'
                                             title='Ver más'
-                                            style={{ cursor: 'pointer' }}
                                         />
                                         <img
                                             onClick={() => openEditModal(programa)}

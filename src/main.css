@@ -728,6 +728,44 @@
   border-radius: 4px;
 }
 
+/* Estilo para el scroll del menú de react-select */
+.react-select__menu-list {
+  /* scrollbar-width: thin;
+  scrollbar-color: #98c79a #e9ecef; */
+}
+
+/* Para navegadores basados en Webkit (Chrome, Edge, Safari) */
+.react-select__menu-list::-webkit-scrollbar {
+  width: 8px;
+  background: #e6f7df;
+  border-radius: 6px;
+}
+.react-select__menu-list::-webkit-scrollbar-thumb {
+  background: #98c79a;
+  border-radius: 4px;
+}
+.react-select__menu-list::-webkit-scrollbar-thumb:hover {
+  background: #6ba55a;
+}
+
+.btn-limpiar {
+  background: #c8d8c07a;
+  color: #242424;
+  border: 1px solid #98c79a ;
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  margin-top: 6px;
+  margin-left: 6px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-limpiar:hover {
+  background: #98c79a;
+  color: #fff;
+}
 
 .date::-webkit-calendar-picker-indicator {
   cursor: pointer; 

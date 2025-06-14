@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styles from './usuario.module.css';
+import SingleSelect from '../../components/selectmulti/SingleSelect';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
@@ -129,15 +130,15 @@ function Usuario() {
         }
     };
 
-    const handleCedulaChange = (e) => {
-        const empleado_id = e.target.value;
-        const empleado = cedulas.find((c) => c.id === parseInt(empleado_id));
-        setFormData((prev) => ({
-            ...prev,
-            empleado_id,
-            cedula: empleado ? empleado.cedula : ''
-        }));
-    };
+    // const handleCedulaChange = (e) => {
+    //     const empleado_id = e.target.value;
+    //     const empleado = cedulas.find((c) => c.id === parseInt(empleado_id));
+    //     setFormData((prev) => ({
+    //         ...prev,
+    //         empleado_id,
+    //         cedula: empleado ? empleado.cedula : ''
+    //     }));
+    // };
 
     const handleSave = async () => {
         setLoading(true);
@@ -416,20 +417,12 @@ function Usuario() {
                             <div className='formColumns'>
                                 <div className='formGroup'>
                                     <label htmlFor="empleado_id">Cédula:</label>
-                                    <select
-                                        id="empleado_id"
-                                        className='select'
-                                        value={formData.empleado_id || ''}
-                                        onChange={handleCedulaChange}
-                                        disabled={!!formData.id}
-                                    >
-                                        <option value="">Seleccione una cédula</option>
-                                        {cedulas.map((empleado) => (
-                                            <option key={empleado.id} value={empleado.id}>
-                                                {empleado.cedula}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        <SingleSelect
+                                            options={cedulas.map(cedula => ({ value: String(cedula.id), label: cedula.cedula }))}
+                                            value={formData.empleado_id}
+                                            onChange={val => setFormData(prev => ({ ...prev, empleado_id: val }))}
+                                            placeholder="Seleccione un tipo"
+                                            />
                                     <div className='text_empleado'>
                                         {empleadoSeleccionado ? `${empleadoSeleccionado.nombre} ${empleadoSeleccionado.apellido}` : '\u00A0'}
                                     </div>
@@ -450,20 +443,12 @@ function Usuario() {
 
                                 <div className='formGroup'>
                                     <label htmlFor="tipo_usuario_id">Tipo de Usuario:</label>
-                                    <select
-                                        id="roles_id"
-                                        className='select'
-                                        value={formData.roles_id || ''}
-                                        onChange={handleChange}
-                                        disabled={!!formData.id}
-                                    >
-                                        <option value="">Seleccione un tipo de usuario</option>
-                                        {tiposUsuario.map((tipo) => (
-                                            <option key={tipo.id} value={tipo.id}>
-                                                {tipo.nombre}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <SingleSelect
+                                        options={tiposUsuario.map(roles => ({ value: String(roles.id), label: roles.nombre }))}
+                                        value={formData.roles_id}
+                                        onChange={val => setFormData(prev => ({ ...prev, roles_id: val }))}
+                                        placeholder="Seleccione un tipo"
+                                        />
                                     {errors.roles_id && <span className='errorText'>{errors.roles_id}</span>}
                                 </div>
 

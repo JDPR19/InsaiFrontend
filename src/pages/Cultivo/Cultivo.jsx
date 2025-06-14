@@ -9,7 +9,7 @@ import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
-
+import SingleSelect from '../../components/selectmulti/SingleSelect';
 
 function Cultivo() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -33,6 +33,12 @@ function Cultivo() {
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
 
+    // Opciones para select
+    const tiposOptions = tipos.map(tipo => ({
+        value: String(tipo.id),
+        label: tipo.nombre
+    }));
+
     // Fetchers
     const fetchCultivos = async () => {
         setLoading(true);
@@ -45,9 +51,9 @@ function Cultivo() {
             setDatosOriginales(response.data);
             setDatosFiltrados(response.data);
         } catch (error) {
-            console.error('error obteniendo todos los cultivos',error);
+            console.error('error obteniendo todos los cultivos', error);
             addNotification('Error al obtener cultivos', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -62,9 +68,9 @@ function Cultivo() {
             });
             setTipos(response.data);
         } catch (error) {
-            console.error('error obteniendo todos los tipos de cultivos',error);
+            console.error('error obteniendo todos los tipos de cultivos', error);
             addNotification('Error al obtener tipos de cultivo', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -96,6 +102,10 @@ function Cultivo() {
         }
     };
 
+    const handleTipoChange = (val) => {
+        setFormData(prev => ({ ...prev, tipo_cultivo_id: val }));
+    };
+
     const handleSearch = (searchTerm) => {
         const filtered = filterData(datosOriginales, searchTerm, [
             'id','nombre','nombre_cientifico','descripcion','tipo_cultivo_nombre'
@@ -112,6 +122,7 @@ function Cultivo() {
                 const { valid, message } = validateField(formData[field], regex, errorMessage);
                 if (!valid) {
                     addNotification(message, 'warning');
+                    setLoading(false);
                     return;
                 }
             }
@@ -132,9 +143,11 @@ function Cultivo() {
             fetchCultivos();
             closeModal();
         } catch (error) {
-            console.error('error registrando cultivo',error);
+            console.error('error registrando cultivo', error);
             addNotification('Error al registrar cultivo', 'error');
-        }setLoading(false);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleEdit = async () => {
@@ -145,6 +158,7 @@ function Cultivo() {
             const { valid, message } = validateField(formData[field], regex, errorMessage);
             if (!valid) {
                 addNotification(message, 'warning');
+                setLoading(false);
                 return;
             }
         }
@@ -164,9 +178,9 @@ function Cultivo() {
             fetchCultivos();
             closeModal();
         } catch (error) {
-            console.error('error actualizando cultivos',error);
+            console.error('error actualizando cultivos', error);
             addNotification('Error al actualizar cultivo', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -183,9 +197,9 @@ function Cultivo() {
             fetchCultivos();
             addNotification('Cultivo eliminado con éxito', 'error');
         } catch (error) {
-            console.error('error eliminando cultivo',error);
+            console.error('error eliminando cultivo', error);
             addNotification('Error al eliminar cultivo', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -303,12 +317,12 @@ function Cultivo() {
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="tipo_cultivo_id">Tipo:</label>
-                                    <select id="tipo_cultivo_id" value={formData.tipo_cultivo_id} onChange={handleChange} className='select'>
-                                        <option value="">Seleccione un tipo</option>
-                                        {tipos.map((tipo) => (
-                                            <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>
-                                        ))}
-                                    </select>
+                                    <SingleSelect
+                                        options={tiposOptions}
+                                        value={formData.tipo_cultivo_id}
+                                        onChange={handleTipoChange}
+                                        placeholder="Seleccione un tipo"
+                                    />
                                     {errors.tipo_cultivo_id && <span className='errorText'>{errors.tipo_cultivo_id}</span>}
                                 </div>
                                 <div className='formGroup' style={{ gridColumn: '1 / -1' }}>
