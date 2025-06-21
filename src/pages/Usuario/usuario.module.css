@@ -148,6 +148,13 @@
     margin-right: 4px;
     cursor: pointer;
 }
+
+.permisoCheckbox input[type="checkbox"][disabled] {
+    opacity: 1 !important;     
+    filter: grayscale(0);      
+    pointer-events: none;       
+}
+
 .modal::-webkit-scrollbar {
     width: 8px;
     height: 10px;

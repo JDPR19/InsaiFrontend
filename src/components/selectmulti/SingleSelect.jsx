@@ -42,6 +42,13 @@ const customSelectStyles = {
         backgroundColor: '#dfdfdfd6',
         borderRadius: 8,
         zIndex: 20,
+        // minWidth: 120,
+        // maxWidth: 180,
+    }),
+    menuList: (provided) => ({
+        ...provided,
+        maxHeight: 160, 
+        overflowY: 'auto'
     }),
     input: (provided) => ({
         ...provided,

@@ -113,84 +113,7 @@ function Menu() {
                         />
                     )}
 
-                    {/* Inspecciones /////////////////// */}
-                    {(tienePermiso('solicitud', 'ver') || tienePermiso('inspeccion', 'ver') || tienePermiso('planificacion', 'ver') || tienePermiso('tipo_solicitud', 'ver') || tienePermiso('tipo_inspeccion', 'ver')) && (
-                        <NavItem
-                            id="inspecciones"
-                            openSubmenus={openSubmenus}
-                            setOpenSubmenus={setOpenSubmenus}
-                            selectedItem={selectedItem}
-                            setSelectedItem={setSelectedItem}
-                            iconSrc={icon.escudobien}
-                            label="Inspecciones"
-                        >
-                            <ul className={styles.submenu}>
-
-                                {tienePermiso('solicitud', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Solicitud"
-                                            className={`${styles.submenuItem} ${selectedItem === 'solicitud' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('solicitud')}
-                                        >
-                                            Solicitud de Inspecciones
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('planificacion', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Planificacion"
-                                            className={`${styles.submenuItem} ${selectedItem === 'planificacion' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('planificacion')}
-                                        >
-                                            Planificación de Inspecciones
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('inspeccion', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Inspecciones"
-                                            className={`${styles.submenuItem} ${selectedItem === 'inspeccion' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('inspeccion')}
-                                        >
-                                            Lista de Inspecciones
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('tipo_solicitud', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/TipoSolicitud"
-                                            className={`${styles.submenuItem} ${selectedItem === 'tiposolicitud' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('tiposolicitud')}
-                                        >
-                                            Tipos de Solicitud
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('tipo_inspeccion', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/TipoInspeccion"
-                                            className={`${styles.submenuItem} ${selectedItem === 'tipoinspeccion' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('tipoinspeccion')}
-                                        >
-                                            Tipos de Inspecciones
-                                        </Link>
-                                    </li>
-                                )}
-
-                            </ul>
-                        </NavItem>
-                    )}
-
-                    {/* Datos del Productor */}
+                      {/* Datos del Productor */}
                     {(tienePermiso('productor', 'ver') || tienePermiso('propiedad', 'ver') || tienePermiso('tipo_propiedad', 'ver') || tienePermiso('tipo_productor', 'ver')) && (
                         <NavItem
                             id="datosPropietario"
@@ -255,19 +178,93 @@ function Menu() {
                         </NavItem>
                     )}
 
-
-                    {/* Mi Usuario */}
-                    {tienePermiso('miusuario','ver') && (
+                    {/* Inspecciones /////////////////// */}
+                    {(tienePermiso('solicitud', 'ver') || tienePermiso('inspeccion_est', 'ver') || tienePermiso('inspeccion_silo', 'ver') || tienePermiso('planificacion', 'ver') || tienePermiso('tipo_solicitud', 'ver') || tienePermiso('tipo_inspeccion', 'ver')) && (
                         <NavItem
-                        id="Miusuario"
-                        openSubmenus={openSubmenus}
-                        setOpenSubmenus={setOpenSubmenus}
-                        selectedItem={selectedItem}
-                        setSelectedItem={setSelectedItem}
-                        iconSrc={icon.user}
-                        label="Mi Usuario"
-                        linkTo="/MiUsuario"
-                        />
+                            id="inspecciones"
+                            openSubmenus={openSubmenus}
+                            setOpenSubmenus={setOpenSubmenus}
+                            selectedItem={selectedItem}
+                            setSelectedItem={setSelectedItem}
+                            iconSrc={icon.escudobien}
+                            label="Inspecciones"
+                        >
+                            <ul className={styles.submenu}>
+
+                                {tienePermiso('solicitud', 'ver') && (
+                                    <li>
+                                        <Link
+                                            to="/Solicitud"
+                                            className={`${styles.submenuItem} ${selectedItem === 'solicitud' ? styles.selected : ''}`}
+                                            onClick={() => setSelectedItem('solicitud')}
+                                        >
+                                            Solicitud de Inspecciones
+                                        </Link>
+                                    </li>
+                                )}
+
+                                {tienePermiso('planificacion', 'ver') && (
+                                    <li>
+                                        <Link
+                                            to="/Planificacion"
+                                            className={`${styles.submenuItem} ${selectedItem === 'planificacion' ? styles.selected : ''}`}
+                                            onClick={() => setSelectedItem('planificacion')}
+                                        >
+                                            Planificación de Inspecciones
+                                        </Link>
+                                    </li>
+                                )}
+
+                                {tienePermiso('inspeccion_est', 'ver') && (
+                                    <li>
+                                        <Link
+                                            to="/Inspecciones"
+                                            className={`${styles.submenuItem} ${selectedItem === 'inspeccion' ? styles.selected : ''}`}
+                                            onClick={() => setSelectedItem('inspeccion')}
+                                        >
+                                            Inspecciones Rutinarias
+                                        </Link>
+                                    </li>
+                                )}
+
+                                {tienePermiso('inspeccion_silo', 'ver') && (
+                                    <li>
+                                        <Link
+                                        to="/InspeccionesSilo"
+                                        className={`${styles.submenuItem} ${selectedItem === 'inspeccion_silo' ? styles.selected : ''}`}
+                                        onClick={() => setSelectedItem('inspeccion_silo')}
+                                        >
+                                            Inspecciones Silos
+                                        </Link>
+                                    </li>
+                                )}
+
+                                {tienePermiso('tipo_solicitud', 'ver') && (
+                                    <li>
+                                        <Link
+                                            to="/TipoSolicitud"
+                                            className={`${styles.submenuItem} ${selectedItem === 'tiposolicitud' ? styles.selected : ''}`}
+                                            onClick={() => setSelectedItem('tiposolicitud')}
+                                        >
+                                            Tipos de Solicitud
+                                        </Link>
+                                    </li>
+                                )}
+
+                                {tienePermiso('tipo_inspeccion', 'ver') && (
+                                    <li>
+                                        <Link
+                                            to="/TipoInspeccion"
+                                            className={`${styles.submenuItem} ${selectedItem === 'tipoinspeccion' ? styles.selected : ''}`}
+                                            onClick={() => setSelectedItem('tipoinspeccion')}
+                                        >
+                                            Tipos de Inspecciones
+                                        </Link>
+                                    </li>
+                                )}
+
+                            </ul>
+                        </NavItem>
                     )}
 
                     
@@ -532,6 +529,20 @@ function Menu() {
 
                             </ul>
                         </NavItem>
+                    )}
+
+                    {/* Mi Usuario */}
+                    {tienePermiso('miusuario','ver') && (
+                        <NavItem
+                        id="Miusuario"
+                        openSubmenus={openSubmenus}
+                        setOpenSubmenus={setOpenSubmenus}
+                        selectedItem={selectedItem}
+                        setSelectedItem={setSelectedItem}
+                        iconSrc={icon.user}
+                        label="Mi Usuario"
+                        linkTo="/MiUsuario"
+                        />
                     )}
 
                     {/* Administrador ///////////////// */}

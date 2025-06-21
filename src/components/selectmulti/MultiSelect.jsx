@@ -66,6 +66,11 @@ import Select from 'react-select';
         borderRadius: 8,
         zIndex: 20,
     }),
+    menuList: (provided) => ({
+        ...provided,
+        maxHeight: 160, 
+        overflowY: 'auto'
+    }),
     input: (provided) => ({
         ...provided,
         color: '#242424',

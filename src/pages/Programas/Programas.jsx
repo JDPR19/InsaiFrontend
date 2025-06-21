@@ -18,6 +18,7 @@ function Programas() {
     const [plagas, setPlagas] = useState([]);
     const [tipos, setTipos] = useState([]);
     const [empleados, setEmpleados] = useState([]);
+    const [cultivos, setCultivos] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -28,7 +29,8 @@ function Programas() {
         descripcion: '',
         tipo_programa_fito_id: '',
         empleados_ids: [],
-        plaga_fito_ids: []
+        plaga_fito_ids: [],
+        cultivo_ids: []
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedProgramaId, setSelectedProgramaId] = useState(null);
@@ -106,11 +108,29 @@ function Programas() {
         }
     };
 
+    const fetchCultivos = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get('http://localhost:4000/programa/cultivos/all', {
+                headers: {
+                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            setCultivos(response.data);
+        } catch (error) {
+            console.error('error obteniendo cultivos', error);
+            addNotification('Error al obtener cultivos', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchProgramas();
         fetchPlagas();
         fetchTipos();
         fetchEmpleados();
+        fetchCultivos();
     }, []);
 
     const resetFormData = () => {
@@ -120,7 +140,8 @@ function Programas() {
             descripcion: '',
             tipo_programa_fito_id: '',
             empleados_ids: [],
-            plaga_fito_ids: []
+            plaga_fito_ids: [],
+            cultivo_ids: []
         });
     };
 
@@ -135,9 +156,11 @@ function Programas() {
         }
     };
 
-    // React-Select handlers
+    
     const empleadosOptions = empleados.map(e => ({ value: String(e.id), label: e.nombre }));
     const plagasOptions = plagas.map(p => ({ value: String(p.id), label: p.nombre }));
+    const cultivosOptions = cultivos.map(c => ({ value: String(c.id), label: c.nombre }));
+
 
     const handleEmpleadosChange = (selected) => {
         setFormData(prev => ({
@@ -150,6 +173,13 @@ function Programas() {
         setFormData(prev => ({
             ...prev,
             plaga_fito_ids: selected ? selected.map(opt => opt.value) : []
+        }));
+    };
+
+    const handleCultivosChange = (selected) => {
+        setFormData(prev => ({
+            ...prev,
+            cultivo_ids: selected ? selected.map(opt => opt.value) : []
         }));
     };
 
@@ -175,8 +205,8 @@ function Programas() {
             if (regex) {
                 const { valid, message } = validateField(formData[field], regex, errorMessage);
                 if (!valid) {
-                    addNotification(message, 'warning');
                     setLoading(false);
+                    addNotification(message, 'warning');
                     return;
                 }
             }
@@ -188,7 +218,8 @@ function Programas() {
                 descripcion: formData.descripcion,
                 tipo_programa_fito_id: formData.tipo_programa_fito_id,
                 empleados_ids: formData.empleados_ids,
-                plaga_fito_ids: formData.plaga_fito_ids
+                plaga_fito_ids: formData.plaga_fito_ids,
+                cultivo_ids: formData.cultivo_ids
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -212,8 +243,8 @@ function Programas() {
             const { regex, errorMessage } = validationRules[field];
             const { valid, message } = validateField(formData[field], regex, errorMessage);
             if (!valid) {
-                addNotification(message, 'warning');
                 setLoading(false);
+                addNotification(message, 'warning');
                 return;
             }
         }
@@ -224,7 +255,8 @@ function Programas() {
                 descripcion: formData.descripcion,
                 tipo_programa_fito_id: formData.tipo_programa_fito_id,
                 empleados_ids: formData.empleados_ids,
-                plaga_fito_ids: formData.plaga_fito_ids
+                plaga_fito_ids: formData.plaga_fito_ids,
+                cultivo_ids: formData.cultivo_ids
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -295,7 +327,8 @@ function Programas() {
             descripcion: programa.descripcion || '',
             tipo_programa_fito_id: programa.tipo_programa_fito_id || '',
             empleados_ids: (programa.empleados || []).map(e => String(e.id)),
-            plaga_fito_ids: (programa.plagas || []).map(p => String(p.id))
+            plaga_fito_ids: (programa.plagas || []).map(p => String(p.id)),
+            cultivo_ids: (programa.cultivos || []).map(c => String(c.id))
         });
         setCurrentModal('programa');
     };
@@ -350,6 +383,10 @@ function Programas() {
                                     <td dangerouslySetInnerHTML={{ __html: detalleModal.programa.empleados_detalle }} />
                                 </tr>
                                 <tr>
+                                    <th>Cultivos Asociados</th>
+                                    <td dangerouslySetInnerHTML={{ __html: detalleModal.programa.cultivos_detalle }} />
+                                </tr>
+                                <tr>
                                     <th>Descripción</th>
                                     <td>{detalleModal.programa.descripcion}</td>
                                 </tr>
@@ -382,6 +419,7 @@ function Programas() {
                                         />
                                     {errors.tipo_programa_fito_id && <span className='errorText'>{errors.tipo_programa_fito_id}</span>}
                                 </div>
+                                
                                 <div className='formGroup'>
                                     <label>Plagas a Tratar:</label>
                                     <MultiSelect
@@ -389,12 +427,27 @@ function Programas() {
                                         value={plagasOptions.filter(opt => formData.plaga_fito_ids.includes(opt.value))}
                                         onChange={handlePlagasChange}
                                         placeholder="Selecciona plagas..."
-                                        />
+                                    />
                                     {formData.plaga_fito_ids.length > 0 && (
                                         <button type="button" onClick={() => clearMultiSelect('plaga_fito_ids')} className='btn-limpiar'>Limpiar</button>
                                     )}
                                     {errors.plaga_fito_ids && <span className='errorText'>{errors.plaga_fito_ids}</span>}
                                 </div>
+
+                                <div className='formGroup'>
+                                    <label>Cultivos Asociados:</label>
+                                    <MultiSelect
+                                        options={cultivosOptions}
+                                        value={cultivosOptions.filter(opt => formData.cultivo_ids.includes(opt.value))}
+                                        onChange={handleCultivosChange}
+                                        placeholder="Selecciona cultivos..."
+                                    />
+                                    {formData.cultivo_ids.length > 0 && (
+                                        <button type="button" onClick={() => clearMultiSelect('cultivo_ids')} className='btn-limpiar'>Limpiar</button>
+                                    )}
+                                    {errors.cultivo_ids && <span className='errorText'>{errors.cultivo_ids}</span>}
+                                </div>
+
                                 <div className='formGroup'>
                                     <label>Empleados Responsables:</label>
                                     <MultiSelect
@@ -402,7 +455,7 @@ function Programas() {
                                         value={empleadosOptions.filter(opt => formData.empleados_ids.includes(opt.value))}
                                         onChange={handleEmpleadosChange}
                                         placeholder="Selecciona empleados..."
-                                        />
+                                    />
                                     {formData.empleados_ids.length > 0 && (
                                         <button type="button" onClick={() => clearMultiSelect('empleados_ids')} className='btn-limpiar'>Limpiar</button>
                                     )}
@@ -464,7 +517,6 @@ function Programas() {
                             <th>N°</th>
                             <th>Nombre</th>
                             <th>Tipo de Programa</th>
-                            <th>Plagas</th>
                             <th>Acción</th>
                         </tr>
                     </thead>
@@ -474,7 +526,7 @@ function Programas() {
                                 <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{programa.nombre}</td>
                                 <td>{programa.tipo_programa_nombre}</td>
-                                <td>{(programa.plagas || []).map(p => p.nombre).join(', ')}</td>
+                                {/* <td>{(programa.plagas || []).map(p => p.nombre).join(', ')}</td> */}
                                 {/* <td>{(programa.empleados || []).map(e => e.nombre).join(', ')}</td> */}
                                 <td>
                                     <div className={styles.iconContainer}>

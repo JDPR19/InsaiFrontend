@@ -1,4 +1,10 @@
+import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import './utils/instanceSession';
+import { useNotification } from './utils/useNotification';
+import Notification from './components/notification/Notification';
+import { setGlobalNotification } from './utils/globalNotification';
+import AutoLogout from './components/autoLogout/AutoLogout';
 import MainLayout from './components/Layouts/MainLayout';
 import Error from './pages/Error/Error';
 import Login from './pages/Login/Login';
@@ -13,6 +19,7 @@ import TipoCultivo from './pages/Cultivo/TipoCultivo';
 import Propiedad from './pages/Propiedad/Propiedad';
 import Solicitud from './pages/Solicitud/Solicitud';
 import Inspecciones from './pages/Inspecciones/Inspecciones';
+import Inspecciones_silos from './pages/Inspecciones/Inspecciones_silo';
 import Plagas from './pages/Plagas/Plagas';
 import TipoPlaga from './pages/Plagas/TipoPlaga';
 import Programas from './pages/Programas/Programas';
@@ -39,8 +46,25 @@ import ProtectedRoute from './ProtectedRoute';
 
 function App() {
 
+    const { addNotification, notifications, removeNotification } = useNotification();
+
+  React.useEffect(() => {
+    setGlobalNotification(addNotification);
+  }, [addNotification]);
+
   return (
+      <>
+      {/* Notificaciones siempre visibles */}
+        {notifications.map((notification) => (
+          <Notification
+            key={notification.id}
+            message={notification.message}
+            type={notification.type}
+            onClose={() => removeNotification(notification.id)}
+          />
+        ))}
     <BrowserRouter>
+        <AutoLogout />
       <Routes>
         {/* Ruta pública: Login */}
         <Route path="/" element={<Login />} />
@@ -159,9 +183,19 @@ function App() {
         <Route
           path="/Inspecciones"
           element={
-            <ProtectedRoute pantalla="inspeccion">
+            <ProtectedRoute pantalla="inspeccion_est">
               <MainLayout>
                 <Inspecciones />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/InspeccionesSilo"
+          element={
+            <ProtectedRoute pantalla="inspeccion_silo">
+              <MainLayout>
+                <Inspecciones_silos />
               </MainLayout>
             </ProtectedRoute>
           }
@@ -370,6 +404,8 @@ function App() {
         <Route path="*" element={<Error />} />
       </Routes>
     </BrowserRouter>
+
+    </>
   );
 }
 
