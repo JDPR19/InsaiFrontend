@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import MultiSelect from '../../components/selectmulti/MultiSelect';
-import SingleSelect from '../../components/selectmulti/SingleSelect';
 import styles from './inspecciones.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
@@ -11,6 +9,8 @@ import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import Spinner from '../../components/spinner/Spinner';
 import { validateField, validationRules } from '../../utils/validation';
+import SingleSelect from '../../components/selectmulti/SingleSelect';
+import MultiSelect from '../../components/selectmulti/MultiSelect';
 
 function InspeccionesEst() {
     const [datosOriginales, setDatosOriginales] = useState([]);

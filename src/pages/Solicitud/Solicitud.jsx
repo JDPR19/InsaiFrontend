@@ -1,270 +1,362 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import SingleSelect from '../../components/selectmulti/SingleSelect';
 import styles from './solicitud.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
+import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-
+import Notification from '../../components/notification/Notification';
+import { useNotification } from '../../utils/useNotification';
+import { validateField, validationRules } from '../../utils/validation';
+import Spinner from '../../components/spinner/Spinner';
 
 function Solicitud() {
+    const [datosOriginales, setDatosOriginales] = useState([]);
+    const [datosFiltrados, setDatosFiltrados] = useState([]);
+    const [tipoSolicitudes, setTipoSolicitudes] = useState([]);
+    const [propiedades, setPropiedades] = useState([]);
+    const [tipoPermisos, setTipoPermisos] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [currentModal, setCurrentModal] = useState(null);
+    const [detalleModal, setDetalleModal] = useState({ abierto: false, solicitud: null });
+    const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
+    const [selectedSolicitudId, setSelectedSolicitudId] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        id: '',
+        descripcion: '',
+        fecha_solicitada: '',
+        tipo_solicitud_id: '',
+        tipo_permiso_id: '',
+        propiedad_id: '',
+        fecha_programada: '',
+    });
+    const [errors, setErrors] = useState({});
+    const itemsPerPage = 8;
+    const { notifications, addNotification, removeNotification } = useNotification();
+    const user = JSON.parse(localStorage.getItem('user'));
+    const usuario_id = user?.id;
 
+    const tipoSolicitudOptions = tipoSolicitudes.map(t => ({ value: String(t.id), label: t.nombre }));
+    const tipoPermisoOptions = tipoPermisos.map(t => ({ value: String(t.id), label: t.nombre }));
+    const propiedadOptions = propiedades.map(p => ({ value: String(p.id), label: p.nombre }));
 
-      // Datos iniciales
-        const datosIniciales = [
-        {
-            codigorunsai: "051",
-            fechasolicitud: "15/04/2025",
-            nombreproductor: "Josè Chirinos",
-            propiedad: "Hacienda Napoles",
-            estadovegetal: "Òptimo",
-            tipopermiso: "Permiso de Translado",
-            inspectorresponsable: "Josè Martines",       
-            estadosolicitud: "Aprobada",
-            fecharesolucion:"18/04/2025",
-            observaciones:"Cumple con todas las regulaciones",
-            motivorechazo:"N/A",
+    // Fetchers
+    const fetchSolicitudes = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get('http://localhost:4000/solicitud', {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            setDatosOriginales(response.data);
+            setDatosFiltrados(response.data);
+        } catch (error) {
+            console.error('Error solicitando todas las solicitudes',error);
+            addNotification('Error al obtener solicitudes', 'error');
+        } finally {
+            setLoading(false);
         }
-       
-        ];
+    };
+
+    const fetchTipoSolicitudes = async () => {
+        try {
+            const response = await axios.get('http://localhost:4000/solicitud/tipo_solicitud/all', {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            setTipoSolicitudes(response.data);
+        } catch (error) {
+            console.error('Error solicitando todos los tipos de solicitudes',error);
+            addNotification('Error al obtener tipos de solicitud', 'error');
+        }
+    };
+
+    const fetchTipoPermisos = async () => {
+        try {
+            const response = await axios.get('http://localhost:4000/solicitud/tipo_permiso/all', {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            setTipoPermisos(response.data);
+        } catch (error) {
+            console.error('Error solicitando todos los permisos',error);
+            addNotification('Error al obtener tipos de permiso', 'error');
+        }
+    };
 
 
-    const [currentModal, setCurrentModal] = useState(null); // Estado para controlar cuál modal está abierto
-    const [datosFiltrados, setDatosFiltrados] = useState(datosIniciales);
-    const [currentPage, setCurrentPage] = useState(1); // Página actual
-    const itemsPerPage = 2; // Número de elementos por página
+    const fetchPropiedades = async () => {
+        try {
+            const response = await axios.get('http://localhost:4000/solicitud/propiedad/all', {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            setPropiedades(response.data);
+        } catch (error) {
+            console.error('Error solicitando todas las propiedades',error);
+            addNotification('Error al obtener propiedades', 'error');
+        }
+    };
 
-    // Calcular los datos para la página actual
+    useEffect(() => {
+        fetchSolicitudes();
+        fetchTipoSolicitudes();
+        fetchTipoPermisos();
+        fetchPropiedades();
+    }, []);
+
+    const resetFormData = () => {
+    setFormData({
+        id: '',
+        descripcion: '',
+        fecha_solicitada: '',
+        tipo_solicitud_id: '',
+        tipo_permiso_id: '',
+        propiedad_id: '',
+        fecha_programada: '',
+    });
+    setErrors({});
+};
+    // Paginación
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentData = datosFiltrados.slice(indexOfFirstItem, indexOfLastItem);
 
-      // Cambiar a la página anterior
     const handlePreviousPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage(currentPage - 1);
-        }
+        if (currentPage > 1) setCurrentPage(currentPage - 1);
     };
-
-    // Cambiar a la página siguiente
     const handleNextPage = () => {
-        if (indexOfLastItem < datosFiltrados.length) {
-            setCurrentPage(currentPage + 1);
-        }
+        if (indexOfLastItem < datosFiltrados.length) setCurrentPage(currentPage + 1);
+    };
+    const handlePreviousThreePages = () => {
+        setCurrentPage((prev) => Math.max(prev - 3, 1));
+    };
+    const handleNextThreePages = () => {
+        const maxPage = Math.ceil(datosFiltrados.length / itemsPerPage);
+        setCurrentPage((prev) => Math.min(prev + 3, maxPage));
     };
 
-    // modal //////////////////////////
-    const openModal = (modalName) => {
-        setCurrentModal(modalName); // Abre el modal especificado
+    // Modal
+    const openModal = () => {
+        resetFormData();
+        setCurrentModal('solicitud');
     };
 
     const closeModal = () => {
-        setCurrentModal(null); // Cierra cualquier modal
+        resetFormData();
+        setCurrentModal(null);
     };
 
-    const handleSave = () => {
-        console.log('Registro guardado');
-        closeModal(); // Cierra el modal después de guardar
+    const openEditModal = (item) => {
+        setFormData({
+            id: item.id,
+            descripcion: item.descripcion || '',
+            fecha_solicitada: item.fecha_solicitada || '',
+            fecha_resolucion: item.fecha_resolucion || '',
+            fecha_programada: item.fecha_programada || item.fecha_planificacion || '',
+            tipo_solicitud_id: item.tipo_solicitud_id ? String(item.tipo_solicitud_id) : '',
+            tipo_permiso_id: item.tipo_permiso_id ? String(item.tipo_permiso_id) : '',
+            propiedad_id: item.propiedad_id ? String(item.propiedad_id) : '',
+        });
+        setErrors({});
+        setCurrentModal('solicitud');
     };
 
-        // Componente para el encabezado de la tabla
-        const EncabezadoTabla = () => (
-            <thead>
-                <tr>
-                    <th>Codigo Runsai</th>
-                    <th>Fecha de Solicitud</th>
-                    <th>Productor</th>
-                    <th>Propiedad</th>
-                    <th>Tipo de Permiso</th>
-                    <th>Estado de la Solicitud</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-        );
-         // Componente para el cuerpo de la tabla
-        const CuerpoTabla = ({ datos }) => (
-            <tbody>
-                {datos.map((item, index) => (
-                <tr key={index}>
-                    <td>{item.codigorunsai}</td>
-                    <td>{item.fechasolicitud}</td>
-                    <td>{item.nombreproductor}</td>
-                    <td>{item.propiedad}</td>
-                    <td>{item.tipopermiso}</td>
-                    <td>{item.estadosolicitud}</td>
-                    <td>
-                    <div className='iconContainer'>
-                        <img 
-                        src={icon.ver} 
-                        alt="Eliminar" 
-                        className='iconver' 
-                        title="Ver mas" 
-                        />
-                        <img
-                        src={icon.editar}
-                        alt="Editar"
-                        className='iconeditar'
-                        title="Editar"
-                        />
-                        <img 
-                        src={icon.eliminar} 
-                        alt="Eliminar" 
-                        className='iconeliminar' 
-                        title="Eliminar" 
-                        />
-                    </div>
-                    </td>
-                </tr>
-                ))}
-            </tbody>
-        );
-        
-            // Componente para el pie de la tabla (paginación)
-            const PieTabla = () => (
-            <div className='tableFooter'>
-                <img
-                src={icon.flecha3}
-                alt="Anterior"
-                className='iconBack'
-                title="Anterior"
-                onClick={handlePreviousPage}
-                />
-                <span>{currentPage}</span>
-                <img
-                src={icon.flecha2}
-                alt="Siguiente"
-                className='iconNext'
-                title="Siguiente"
-                onClick={handleNextPage}
-                />
-            </div>
-            );
+    // Modal eliminar
+    const openConfirmDeleteModal = (id) => {
+        setSelectedSolicitudId(id);
+        setConfirmDeleteModal(true);
+    };
+    const closeConfirmDeleteModal = () => {
+        setSelectedSolicitudId(null);
+        setConfirmDeleteModal(false);
+    };
+
+    // Modal detalle
+    const openDetalleModal = (solicitud) => setDetalleModal({ abierto: true, solicitud });
+    const closeDetalleModal = () => setDetalleModal({ abierto: false, solicitud: null });
+
+    
+    const handleSave = async () => {
+        let newErrors = {};
+        for (const field of ['descripcion', 'fecha_solicitada', 'tipo_solicitud_id', 'tipo_permiso_id', 'propiedad_id', 'fecha_programada']) {
+            if (validationRules[field]) {
+                const error = validateField(field, formData[field], validationRules);
+                if (error) newErrors[field] = error;
+            } else if (!formData[field]) {
+                newErrors[field] = 'Campo obligatorio';
+            }
+        }
+        setErrors(newErrors);
+        if (Object.keys(newErrors).length > 0) {
+            addNotification('Completa todos los campos obligatorios', 'warning');
+            return;
+        }
+        setLoading(true);
+        try {
+            await axios.post('http://localhost:4000/solicitud',{ ...formData, usuario_id }, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            addNotification('Solicitud registrada con éxito', 'success');
+            fetchSolicitudes();
+            closeModal();
+        } catch (error) {
+            console.error('Error registrando la solicitud',error);
+            addNotification('Error al registrar solicitud', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    
+    const handleEdit = async () => {
+        let newErrors = {};
+        for (const field of ['descripcion', 'fecha_solicitada', 'tipo_solicitud_id', 'tipo_permiso_id', 'propiedad_id', 'fecha_programada']) {
+            if (validationRules[field]) {
+                const error = validateField(field, formData[field], validationRules);
+                if (error) newErrors[field] = error;
+            } else if (!formData[field]) {
+                newErrors[field] = 'Campo obligatorio';
+            }
+        }
+        setErrors(newErrors);
+        if (Object.keys(newErrors).length > 0) {
+            addNotification('Completa todos los campos obligatorios', 'warning');
+            return;
+        }
+        setLoading(true);
+        try {
+            await axios.put(`http://localhost:4000/solicitud/${formData.id}`,{ ...formData, usuario_id }, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            addNotification('Solicitud actualizada con éxito', 'success');
+            fetchSolicitudes();
+            closeModal();
+        } catch (error) {
+            console.error('Error editando la solicitud',error);
+            addNotification('Error al actualizar solicitud', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    
+    const handleDelete = async (id) => {
+        setLoading(true);
+        try {
+            await axios.delete(`http://localhost:4000/solicitud/${id}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            fetchSolicitudes();
+            addNotification('Solicitud eliminada con éxito', 'error');
+        } catch (error) {
+            console.error('Error eliminado la solicitud',error);
+            addNotification('Error al eliminar solicitud', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleChange = (e) => {
+            const { id, value } = e.target;
+            setFormData(prev => ({ ...prev, [id]: value }));
+    
+            if (validationRules[id]) {
+                const { regex, errorMessage } = validationRules[id];
+                const { valid, message } = validateField(value, regex, errorMessage);
+                setErrors(prev => ({ ...prev, [id]: valid ? '' : message }));
+            }
+        };
+
+    // Buscar y filtrar
+    const handleSearch = (searchTerm) => {
+        const filtered = filterData(datosOriginales, searchTerm, [
+            'id','descripcion', 'estado', 'propiedad_nombre','fecha_solicitada', 'fecha_resolucion','fecha_programada',
+        ]);
+        setDatosFiltrados(filtered);
+        setCurrentPage(1);
+    };
+
     return (
         <div className={styles.solicitudContainer}>
-        
+            {loading && <Spinner text="Procesando..." />}
+            {notifications.map((notification) => (
+                <Notification
+                    key={notification.id}
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => removeNotification(notification.id)}
+                />
+            ))}
 
-            {/* Modal /////////////////////////////////////// */}
-            {currentModal === 'solicitud' && (
+              {/* Modal Detalle */}
+            {detalleModal.abierto && (
                 <div className='modalOverlay'>
-                    <div className={styles.modal}>
-                        
-                        <button className='closeButton'  onClick={closeModal}>
-                            &times; {/* Ícono de cerrar */}
-                        </button>
-                        
-                        <h2>Registrar Empleado</h2>
-                        
+                    <div className='modal'>
+                        <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
+                        <h2>Detalle de Solicitud</h2>
                         <form className='modalForm'>
                             <div className={styles.formColumns}>
-
-                            <div className='formGroup'>
-                                <label htmlFor="runsai">Codigo Runsai:</label>
-                                <select 
-                                        id="runsai"
+                                <div className='formGroup'>
+                                    <label>Fecha Solicitada:</label>
+                                    <input
+                                        type="date"
+                                        value={detalleModal.solicitud.fecha_solicitada || ''}
+                                        className='date'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Fecha de Resolución:</label>
+                                    <input
+                                        type="date"
+                                        value={detalleModal.solicitud.fecha_resolucion || ''}
+                                        className='date'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Fecha Programada:</label>
+                                    <input
+                                        type="date"
+                                        value={detalleModal.solicitud.fecha_programada || detalleModal.solicitud.fecha_planificacion || ''}
+                                        className='date'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Tipo de Solicitud:</label>
+                                    <input
+                                        type="text"
+                                        value={tipoSolicitudes.find(t => String(t.id) === String(detalleModal.solicitud.tipo_solicitud_id))?.nombre || ''}
                                         className='select'
-                                    >
-                                        <option value="">001</option>
-                                        <option value="">002</option>
-                                        <option value="">050</option>
-                                </select>
-                            </div>
-
-                            <div className='formGroup'>
-                                <label htmlFor="ficha">Fecha de la Solicitud:</label>
-                                <input
-                                    type="date"
-                                    id="ficha"
-                                    placeholder="Rellene el Campo"
-                                    className='date'
-                                />
-                            </div>
-                            
-                            <div className='formGroup'>
-                                <label htmlFor="name">Nombre del productor:</label>
-                                <input
-                                    type="text"
-                                    id="name"
-                                    placeholder="Rellene el Campo"
-                                    className='input'
-                                />
-                            </div>
-
-                            <div className='formGroup'>
-                                <label htmlFor="apellidoEmpleado">Propiedad:</label>
-                                <input
-                                    type="text"
-                                    id="apellidoEmpleado"
-                                    placeholder="Rellene el Campo"
-                                    className='input'
-                                />
-                            </div>
-
-                            <div className='formGroup'>
-                                <label htmlFor="TLF">Estado del Cultivo:</label>
-                                <input
-                                    type="text"
-                                    id="TLF"
-                                    placeholder="Rellene el Campo"
-                                    className='input'
-                                />
-                            </div>
-
-                            <div className='formGroup'>
-                                <label htmlFor="inspector">Inspector Responsable:</label>
-                                <select 
-                                        id="inspector"
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Tipo de Permiso:</label>
+                                    <input
+                                        type="text"
+                                        value={tipoPermisos.find(t => String(t.id) === String(detalleModal.solicitud.tipo_permiso_id))?.nombre || ''}
                                         className='select'
-                                    >
-                                        <option value="">Josè Chirinos</option>
-                                        <option value="">Yudisca Alvarez</option>
-                                </select>
-                            </div>
-
-                            <div className='formGroup'>
-                                <label htmlFor="inspector">Estado de la Solicitud:</label>
-                                <select 
-                                        id="inspector"
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Propiedad:</label>
+                                    <input
+                                        type="text"
+                                        value={propiedades.find(p => String(p.id) === String(detalleModal.solicitud.propiedad_id))?.nombre || ''}
                                         className='select'
-                                    >
-                                        <option value="">Òptima</option>
-                                        <option value="">Critica</option>
-                                        <option value="">Cuarentena</option>
-                                </select>
-                            </div>
-
-                            <div className='formGroup'>
-                                <label htmlFor="date">Fecha de de Resoluciòn:</label>
-                                <input
-                                    type="date"
-                                    id="date"
-                                    placeholder="Rellene el Campo"
-                                    className='date'
-                                />
-                            </div>
-
-                            <div className='formGroup'>
-                                <label htmlFor="text"> Observaciones</label>
-                                <textarea className="textarea" id="text"></textarea>
-                            </div>
-
-                            <div className='formGroup'>
-                                <label htmlFor="rechazo"> Motivo de Rechazo</label>
-                                <textarea className="textarea" id="rechazo"></textarea>
-                            </div>
-                            
-                            <div className='formGroup'>
-                                <label htmlFor="permiso">Tipo de Permiso:</label>
-                                <select 
-                                        id="permiso"
-                                        className='select'
-                                    >
-                                        <option value="">Permiso de Translado</option>
-                                        <option value="">Aval Sanitario</option>
-                                </select>
-                            </div>
-
-                            <button type="button" className='saveButton' onClick={handleSave}>
-                                Guardar
-                            </button>
-                            
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Descripción:</label>
+                                    <textarea
+                                        value={detalleModal.solicitud.descripcion || ''}
+                                        className='textarea'
+                                        disabled
+                                    />
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -272,42 +364,171 @@ function Solicitud() {
             )}
 
 
+            {/* Modal registro */}
+            {currentModal === 'solicitud' && (
+                <div className='modalOverlay'>
+                    <div className='modal'>
+                        <button className='closeButton' onClick={closeModal}>&times;</button>
+                        <h2>{formData.id ? 'Editar Solicitud' : 'Registrar Solicitud'}</h2>
+                        <form className='modalForm'>
+                            <div className={styles.formColumns}>
+                                <div className='formGroup'>
+                                    <label>Fecha Solicitada:</label>
+                                    <input type="date" id='fecha_solicitada' value={formData.fecha_solicitada} onChange={handleChange} className='date' />
+                                    {errors.fecha_solicitada && <span className='errorText'>{errors.fecha_solicitada}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Fecha de Resolución:</label>
+                                    <input
+                                        type="date"
+                                        id="fecha_resolucion"
+                                        value={formData.fecha_resolucion}
+                                        className='date'
+                                        disabled
+                                        readOnly
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Fecha Programada:</label>
+                                    <input type="date" id='fecha_programada' value={formData.fecha_programada} onChange={handleChange} className='date' />
+                                    {errors.fecha_programada && <span className='errorText'>{errors.fecha_programada}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Tipo de Solicitud:</label>
+                                    <SingleSelect
+                                        options={tipoSolicitudOptions}
+                                        value={formData.tipo_solicitud_id}
+                                        onChange={val => setFormData({ ...formData, tipo_solicitud_id: val })}
+                                        placeholder="Seleccione tipo de solicitud"
+                                    />
+                                    {errors.tipo_solicitud_id && <span className='errorText'>{errors.tipo_solicitud_id}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Tipo de Permiso:</label>
+                                    <SingleSelect
+                                        options={tipoPermisoOptions}
+                                        value={formData.tipo_permiso_id}
+                                        onChange={val => setFormData({ ...formData, tipo_permiso_id: val })}
+                                        placeholder="Seleccione tipo de permiso"
+                                    />
+                                    {errors.tipo_permiso_id && <span className='errorText'>{errors.tipo_permiso_id}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Propiedad:</label>
+                                    <SingleSelect
+                                        options={propiedadOptions}
+                                        value={formData.propiedad_id}
+                                        onChange={val => setFormData({ ...formData, propiedad_id: val })}
+                                        placeholder="Seleccione propiedad"
+                                    />
+                                    {errors.propiedad_id && <span className='errorText'>{errors.propiedad_id}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="descripcion">Descripción:</label>
+                                    <textarea id="descripcion" value={formData.descripcion} onChange={handleChange} className='textarea' placeholder='Descripción'/>
+                                    {errors.descripcion && <span className='errorText'>{errors.descripcion}</span>}
+                                </div>
+                            </div>
+                            <button 
+                                type="button" 
+                                className='saveButton' 
+                                onClick={formData.id ? handleEdit : handleSave}
+                                title={formData.id ? 'Actualizar Solicitud' : 'Registrar Solicitud'}>
+                                    Guardar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal eliminar */}
+            {confirmDeleteModal && (
+                <div className='modalOverlay'>
+                    <div className='modal'>
+                        <h2>Confirmar Eliminación</h2>
+                        <p>¿Estás seguro de que deseas eliminar esta solicitud?</p>
+                        <div className='modalActions'>
+                            <button className='cancelButton' onClick={closeConfirmDeleteModal}>Cancelar</button>
+                            <button className='confirmButton' onClick={() => { handleDelete(selectedSolicitudId); closeConfirmDeleteModal(); }}>Confirmar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Tabla */}
             <div className='tableSection'>
-                 {/* Contenedor para filtros y acciones */}
                 <div className='filtersContainer'>
-                    <button 
+                    <button
                         type='button'
-                        onClick={() => openModal('solicitud')}
+                        onClick={openModal}
                         className='create'
-                        title='Registrar Empleado'
+                        title='Registrar Solicitud'
                     >
-                        <img src={icon.crear} alt="Crear" className='icon' />
-                       Solicitud
+                        <img src={icon.plus} alt="Crear" className='icon' />
+                        Solicitud
                     </button>
-                    <button 
-                        type='button'
-                        className='export'
-                        title='Exportar Solicitud'
-                    >
-                        <img src={icon.pdf} alt="Exportar Solicitud" className='icon' />
-                        Exportar
-                    </button>
-                
                     <h2>Solicitudes</h2>
-                    
                     <div className='searchContainer'>
-                        <SearchBar data={datosIniciales} onSearch={setDatosFiltrados} />
+                        <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-            
-                <table className='table'>
-                    <EncabezadoTabla />
-                    <CuerpoTabla datos={currentData} />
+                <table className={styles.table}>
+                    <thead>
+                        <tr>
+                            <th>N°</th>
+                            <th>Descripción</th>
+                            <th>Fecha Solicitada</th>
+                            <th>Fecha Programada</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {currentData.map((item, idx) => (
+                            <tr key={item.id}>
+                                <td>{indexOfFirstItem + idx + 1}</td>
+                                <td>{item.descripcion}</td>
+                                <td>{item.fecha_solicitada}</td>
+                                <td>{item.fecha_programada || item.fecha_planificacion || '-'}</td>
+                                <td>
+                                    <span className={`badge-estado badge-${item.estado}`}>
+                                        {item.estado}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div className={styles.iconContainer}>
+                                        <img
+                                            onClick={() => openDetalleModal(item)}
+                                            src={icon.ver}
+                                            className='iconver'
+                                            title='Ver más'
+                                        />
+                                        <img
+                                            onClick={() => openEditModal(item)}
+                                            src={icon.editar}
+                                            className='iconeditar'
+                                            title='Editar'
+                                        />
+                                        <img 
+                                            onClick={() => openConfirmDeleteModal(item.id)} 
+                                            src={icon.eliminar} 
+                                            className='iconeliminar' 
+                                            title='eliminar'
+                                        />
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
                 </table>
-                 {/* Contenedor para Footer en tabla */}
-                <PieTabla />
+                <div className='tableFooter'>
+                    <img onClick={handlePreviousPage} src={icon.flecha3} className='iconBack' title='Anterior' />
+                    <img onClick={handlePreviousThreePages} src={icon.flecha5} className='iconBack' title='Anterior' />
+                    <span>{currentPage}</span>
+                    <img onClick={handleNextThreePages} src={icon.flecha4} className='iconNext' title='Siguiente' />
+                    <img onClick={handleNextPage} src={icon.flecha2} className='iconNext' title='Siguiente' />
+                </div>
             </div>
         </div>
     );

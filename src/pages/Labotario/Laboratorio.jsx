@@ -541,7 +541,7 @@ function Laboratorio() {
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="descripcion">Descripción:</label>
-                                    <textarea id="descripcion" value={formData.descripcion} onChange={handleInputChange} className='input' placeholder='Descripción'/>
+                                    <textarea id="descripcion" value={formData.descripcion} onChange={handleInputChange} className='textarea' placeholder='Descripción'/>
                                     {errors.descripcion && <span className='errorText'>{errors.descripcion}</span>}
                                 </div>
                             </div>

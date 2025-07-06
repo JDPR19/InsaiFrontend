@@ -992,6 +992,25 @@
   transform: scale(1.1);
 }
 
+/* Estilos para estados dinamicos */
+
+.badge-estado {
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-weight: bold;
+  font-size: 0.95em;
+  display: inline-block;
+  text-transform: capitalize;
+}
+
+.badge-creada        { background: #cfe1b9ec; color: #444444; border: 1px solid #98c79a;}
+.badge-pendiente     { background: #ffd466bb; color: #444444; border: 1px solid #fbc12d;}
+.badge-enproceso     { background: #ffd466bb; color: #444444; border: 1px solid #fbc12d;}
+.badge-planificada   { background: #67b0fa81; color: #444444; border: 1px solid #67b0fa;}
+.badge-inspeccionando{ background: #67b0fa81; color: #444444; border: 1px solid #67b0fa;}
+.badge-aprobada      { background: #cfe1b9ec; color: #444444; border: 1px solid #98c79a;}
+.badge-rechazada     { background: #f5afaee1; color: #545454; border: 1px solid #fd5250;} 
+
 @media (max-width: 768px) {
   .formColumns {
       grid-template-columns: 1fr; /* Una sola columna en pantallas pequeñas */

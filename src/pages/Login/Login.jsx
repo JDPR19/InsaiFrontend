@@ -11,6 +11,8 @@ import { useNotification } from '../../utils/useNotification';
 import { registrarInicioSesion } from '../../utils/bitacoraService';
 import Spinner from '../../components/spinner/Spinner';
 import RecuperarModal from '../../components/modalrecuperar/RecuperarModal';
+///url 
+// const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 
 // --- Slider ---

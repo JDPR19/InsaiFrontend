@@ -17,6 +17,7 @@ function TipoLaboratorio() {
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(false);
     const [currentModal, setCurrentModal] = useState(null);
+    const [errors, setErrors] = useState({});
     const [formData, setFormData] = useState({
         id: '',
         nombre: '',
@@ -27,7 +28,6 @@ function TipoLaboratorio() {
     const { notifications, addNotification, removeNotification } = useNotification();
     const itemsPerPage = 8;
 
-    // Reiniciar el modal luego de cerrar
     const resetFormData = () => {
         setFormData({
             id: '',
@@ -35,9 +35,7 @@ function TipoLaboratorio() {
         });
     };
 
-    const [errors, setErrors] = useState({});
 
-    // Manejar cambios en el formulario
     const handleChange = (e) => {
         const { id, value } = e.target;
         setFormData({ ...formData, [id]: value });
