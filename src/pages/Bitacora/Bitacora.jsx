@@ -9,7 +9,7 @@ import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
-
+import { BaseUrl } from '../../utils/constans';
 
 function Bitacora() {
     const [datosOriginales, setDatosOriginales] = useState([]); // Datos originales de la bitácora
@@ -21,7 +21,7 @@ function Bitacora() {
 
     // Obtener datos de la bitácora al cargar el componente
     useEffect(() => {
-        axios.get('http://localhost:4000/bitacora', {
+        axios.get(`${BaseUrl}/bitacora`, {
             headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
             }

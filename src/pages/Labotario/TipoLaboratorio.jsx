@@ -9,7 +9,7 @@ import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
-
+import { BaseUrl } from '../../utils/constans';
 
 function TipoLaboratorio() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -57,7 +57,7 @@ function TipoLaboratorio() {
     const fetchTipoLaboratorio = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/tipo_laboratorio', {
+            const response = await axios.get(`${BaseUrl}/tipo_laboratorio`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -92,7 +92,7 @@ function TipoLaboratorio() {
         }
 
         try {
-            const response = await axios.post('http://localhost:4000/tipo_laboratorio', {
+            const response = await axios.post(`${BaseUrl}/tipo_laboratorio`, {
                 ...formData,
             }, {
                 headers: {
@@ -125,7 +125,7 @@ function TipoLaboratorio() {
         }
 
         try {
-            const response = await axios.put(`http://localhost:4000/tipo_laboratorio/${formData.id}`, {
+            const response = await axios.put(`${BaseUrl}/tipo_laboratorio/${formData.id}`, {
                 ...formData,
             }, {
                 headers: {
@@ -151,7 +151,7 @@ function TipoLaboratorio() {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`http://localhost:4000/tipo_laboratorio/${id}`, {
+            await axios.delete(`${BaseUrl}/tipo_laboratorio/${id}`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }

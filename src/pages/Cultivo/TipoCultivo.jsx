@@ -9,6 +9,7 @@ import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
+import { BaseUrl } from '../../utils/constans';
 
 
 function TipoCultivo() {
@@ -59,7 +60,7 @@ function TipoCultivo() {
     const fetchTipoCultivo = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/tipo_cultivo', {
+            const response = await axios.get(`${BaseUrl}/tipo_cultivo`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -94,7 +95,7 @@ function TipoCultivo() {
         }
 
         try {
-            const response = await axios.post('http://localhost:4000/tipo_cultivo', {
+            const response = await axios.post(`${BaseUrl}/tipo_cultivo`, {
                 ...formData,
             }, {
                 headers: {
@@ -127,7 +128,7 @@ function TipoCultivo() {
         }
 
         try {
-            const response = await axios.put(`http://localhost:4000/tipo_cultivo/${formData.id}`, {
+            const response = await axios.put(`${BaseUrl}/tipo_cultivo/${formData.id}`, {
                 ...formData,
             }, {
                 headers: {
@@ -153,7 +154,7 @@ function TipoCultivo() {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`http://localhost:4000/tipo_cultivo/${id}`, {
+            await axios.delete(`${BaseUrl}/tipo_cultivo/${id}`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }

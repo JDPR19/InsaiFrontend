@@ -10,7 +10,7 @@ import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import { PANTALLAS, ACCIONES } from '../../utils/permisouser';
 import Spinner from '../../components/spinner/Spinner';
-
+import { BaseUrl } from '../../utils/constans';
 
 function TipoUsuario() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -57,7 +57,7 @@ function TipoUsuario() {
         setLoading(true);
 
         try {
-            const response = await axios.get('http://localhost:4000/roles', {
+            const response = await axios.get(`${BaseUrl}/roles`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
@@ -93,7 +93,7 @@ function TipoUsuario() {
             }
         }
         try {
-            await axios.post('http://localhost:4000/roles', formData, {
+            await axios.post(`${BaseUrl}/roles`, formData, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
@@ -123,7 +123,7 @@ function TipoUsuario() {
             }
         }
         try {
-            await axios.put(`http://localhost:4000/roles/${formData.id}`, formData, {
+            await axios.put(`${BaseUrl}/roles/${formData.id}`, formData, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
@@ -144,7 +144,7 @@ function TipoUsuario() {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`http://localhost:4000/roles/${id}`, {
+            await axios.delete(`${BaseUrl}/roles/${id}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }

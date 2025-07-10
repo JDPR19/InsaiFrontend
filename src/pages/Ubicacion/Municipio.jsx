@@ -10,6 +10,7 @@ import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
+import { BaseUrl } from '../../utils/constans';
 
 function Municipio() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -34,7 +35,7 @@ function Municipio() {
     const fetchMunicipios = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/municipio', {
+            const response = await axios.get(`${BaseUrl}/municipio`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -52,7 +53,7 @@ function Municipio() {
     const fetchEstados = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/municipio/estados/all', {
+            const response = await axios.get(`${BaseUrl}/municipio/estados/all`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -111,7 +112,7 @@ function Municipio() {
 
 
         try {
-            await axios.post('http://localhost:4000/municipio', {
+            await axios.post(`${BaseUrl}/municipio`, {
                 nombre: formData.nombre,
                 estado_id: formData.estado_id,
             }, {
@@ -144,7 +145,7 @@ function Municipio() {
         }
 
         try {
-            await axios.put(`http://localhost:4000/municipio/${formData.id}`, {
+            await axios.put(`${BaseUrl}/municipio/${formData.id}`, {
                 nombre: formData.nombre,
                 estado_id: formData.estado_id,
             }, {
@@ -166,7 +167,7 @@ function Municipio() {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`http://localhost:4000/municipio/${id}`, {
+            await axios.delete(`${BaseUrl}/municipio/${id}`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }

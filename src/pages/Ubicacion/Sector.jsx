@@ -10,6 +10,7 @@ import { useNotification } from '../../utils/useNotification';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
+import { BaseUrl } from '../../utils/constans';
 
 function Sector() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -37,7 +38,7 @@ function Sector() {
     const fetchSectores = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/sector', {
+            const response = await axios.get(`${BaseUrl}/sector`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -55,7 +56,7 @@ function Sector() {
     const fetchEstados = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/sector/estados/all', {
+            const response = await axios.get(`${BaseUrl}/sector/estados/all`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -76,7 +77,7 @@ function Sector() {
                 setMunicipios([]);
                 return;
             }
-            const response = await axios.get('http://localhost:4000/sector/municipios/all', {
+            const response = await axios.get(`${BaseUrl}/sector/municipios/all`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -98,7 +99,7 @@ function Sector() {
                 setParroquias([]);
                 return;
             }
-            const response = await axios.get('http://localhost:4000/sector/parroquias/all', {
+            const response = await axios.get(`${BaseUrl}/sector/parroquias/all`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -202,7 +203,7 @@ function Sector() {
         }
 
         try {
-            await axios.post('http://localhost:4000/sector', {
+            await axios.post(`${BaseUrl}/sector`, {
                 nombre: formData.nombre,
                 parroquia_id: formData.parroquia_id,
             }, {
@@ -235,7 +236,7 @@ function Sector() {
         }
 
         try {
-            await axios.put(`http://localhost:4000/sector/${formData.id}`, {
+            await axios.put(`${BaseUrl}/sector/${formData.id}`, {
                 nombre: formData.nombre,
                 parroquia_id: formData.parroquia_id,
             }, {
@@ -257,7 +258,7 @@ function Sector() {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`http://localhost:4000/sector/${id}`, {
+            await axios.delete(`${BaseUrl}/sector/${id}`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }

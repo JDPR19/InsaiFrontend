@@ -8,6 +8,7 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
+import { BaseUrl } from '../../utils/constans';
 
 function TipoPrograma() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -55,7 +56,7 @@ function TipoPrograma() {
     // obterner o listar los cargos
     const fetchTipoPrograma = async () => {
         try {
-            const response = await axios.get('http://localhost:4000/tipo_programa', {
+            const response = await axios.get(`${BaseUrl}/tipo_programa`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -89,7 +90,7 @@ function TipoPrograma() {
         }
 
         try {
-            const response = await axios.post('http://localhost:4000/tipo_programa', {
+            const response = await axios.post(`${BaseUrl}/tipo_programa`, {
                 ...formData,
             }, {
                 headers: {
@@ -119,7 +120,7 @@ function TipoPrograma() {
         }
 
         try {
-            const response = await axios.put(`http://localhost:4000/tipo_programa/${formData.id}`, {
+            const response = await axios.put(`${BaseUrl}/tipo_programa/${formData.id}`, {
                 ...formData,
             }, {
                 headers: {
@@ -142,7 +143,7 @@ function TipoPrograma() {
     
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`http://localhost:4000/tipo_programa/${id}`, {
+            await axios.delete(`${BaseUrl}/tipo_programa/${id}`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }

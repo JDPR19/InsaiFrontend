@@ -10,6 +10,7 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import Spinner from '../../components/spinner/Spinner';
+import { BaseUrl } from '../../utils/constans';
 
 function Propiedad() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -62,7 +63,7 @@ function Propiedad() {
     const fetchPropiedades = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/propiedad', {
+            const response = await axios.get(`${BaseUrl}/propiedad`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setDatosOriginales(response.data);
@@ -77,7 +78,7 @@ function Propiedad() {
 
     const fetchCultivos = async () => {
         try {
-            const response = await axios.get('http://localhost:4000/propiedad/cultivos/all', {
+            const response = await axios.get(`${BaseUrl}/propiedad/cultivos/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setCultivos(response.data);
@@ -89,7 +90,7 @@ function Propiedad() {
 
     const fetchTipos = async () => {
         try {
-            const response = await axios.get('http://localhost:4000/propiedad/tipos/all', {
+            const response = await axios.get(`${BaseUrl}/propiedad/tipos/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setTipos(response.data);
@@ -101,7 +102,7 @@ function Propiedad() {
 
     const fetchEstados = async () => {
         try {
-            const response = await axios.get('http://localhost:4000/propiedad/estados/all', {
+            const response = await axios.get(`${BaseUrl}/propiedad/estados/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setEstados(response.data);
@@ -117,7 +118,7 @@ function Propiedad() {
                 setMunicipios([]);
                 return;
             }
-            const response = await axios.get('http://localhost:4000/propiedad/municipios/all', {
+            const response = await axios.get(`${BaseUrl}/propiedad/municipios/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setMunicipios(response.data.filter(m => Number(m.estado_id) === Number(estadoId)));
@@ -133,7 +134,7 @@ function Propiedad() {
                 setParroquias([]);
                 return;
             }
-            const response = await axios.get('http://localhost:4000/propiedad/parroquias/all', {
+            const response = await axios.get(`${BaseUrl}/propiedad/parroquias/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setParroquias(response.data.filter(p => Number(p.municipio_id) === Number(municipioId)));
@@ -149,7 +150,7 @@ function Propiedad() {
                 setSectores([]);
                 return;
             }
-            const response = await axios.get('http://localhost:4000/propiedad/sectores/all', {
+            const response = await axios.get(`${BaseUrl}/propiedad/sectores/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setSectores(response.data.filter(s => Number(s.parroquia_id) === Number(parroquiaId)));
@@ -161,7 +162,7 @@ function Propiedad() {
 
     const fetchProductores = async () => {
         try {
-            const response = await axios.get('http://localhost:4000/propiedad/productores/all', {
+            const response = await axios.get(`${BaseUrl}/propiedad/productores/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setProductores(response.data);
@@ -296,7 +297,7 @@ function Propiedad() {
             return;
         }
         try {
-            await axios.post('http://localhost:4000/propiedad', formData, {
+            await axios.post(`${BaseUrl}/propiedad`, formData, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Propiedad registrada con éxito', 'success');
@@ -318,7 +319,7 @@ function Propiedad() {
             return;
         }
         try {
-            await axios.put(`http://localhost:4000/propiedad/${formData.id}`, formData, {
+            await axios.put(`${BaseUrl}/propiedad/${formData.id}`, formData, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Propiedad actualizada con éxito', 'success');
@@ -335,7 +336,7 @@ function Propiedad() {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`http://localhost:4000/propiedad/${id}`, {
+            await axios.delete(`${BaseUrl}/propiedad/${id}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             fetchPropiedades();

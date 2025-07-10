@@ -11,6 +11,7 @@ import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
+import { BaseUrl } from '../../utils/constans';
 
 function Programas() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -42,7 +43,7 @@ function Programas() {
     const fetchProgramas = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/programa', {
+            const response = await axios.get(`${BaseUrl}/programa`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -60,7 +61,7 @@ function Programas() {
     const fetchPlagas = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/programa/plagas/all', {
+            const response = await axios.get(`${BaseUrl}/programa/plagas/all`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -77,7 +78,7 @@ function Programas() {
     const fetchTipos = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/programa/tipos/all', {
+            const response = await axios.get(`${BaseUrl}/programa/tipos/all`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -94,7 +95,7 @@ function Programas() {
     const fetchEmpleados = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/programa/empleados/all', {
+            const response = await axios.get(`${BaseUrl}/programa/empleados/all`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -111,7 +112,7 @@ function Programas() {
     const fetchCultivos = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/programa/cultivos/all', {
+            const response = await axios.get(`${BaseUrl}/programa/cultivos/all`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -213,7 +214,7 @@ function Programas() {
         }
 
         try {
-            await axios.post('http://localhost:4000/programa', {
+            await axios.post(`${BaseUrl}/programa`, {
                 nombre: formData.nombre,
                 descripcion: formData.descripcion,
                 tipo_programa_fito_id: formData.tipo_programa_fito_id,
@@ -250,7 +251,7 @@ function Programas() {
         }
 
         try {
-            await axios.put(`http://localhost:4000/programa/${formData.id}`, {
+            await axios.put(`${BaseUrl}/programa/${formData.id}`, {
                 nombre: formData.nombre,
                 descripcion: formData.descripcion,
                 tipo_programa_fito_id: formData.tipo_programa_fito_id,
@@ -276,7 +277,7 @@ function Programas() {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`http://localhost:4000/programa/${id}`, {
+            await axios.delete(`${BaseUrl}/programa/${id}`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }

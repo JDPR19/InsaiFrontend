@@ -10,6 +10,7 @@ import SingleSelect from '../../components/selectmulti/SingleSelect';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
+import { BaseUrl } from '../../utils/constans';
 
 function Parroquia() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -36,7 +37,7 @@ function Parroquia() {
     const fetchParroquias = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/parroquia', {
+            const response = await axios.get(`${BaseUrl}/parroquia`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -55,7 +56,7 @@ function Parroquia() {
     const fetchEstados = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/parroquia/estados/all', {
+            const response = await axios.get(`${BaseUrl}/parroquia/estados/all`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -77,7 +78,7 @@ function Parroquia() {
                 setMunicipios([]);
                 return;
             }
-            const response = await axios.get('http://localhost:4000/parroquia/municipios/all', {
+            const response = await axios.get(`${BaseUrl}/parroquia/municipios/all`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -162,7 +163,7 @@ function Parroquia() {
         }
 
         try {
-            await axios.post('http://localhost:4000/parroquia', {
+            await axios.post(`${BaseUrl}/parroquia`, {
                 nombre: formData.nombre,
                 municipio_id: formData.municipio_id,
             }, {
@@ -196,7 +197,7 @@ function Parroquia() {
         }
 
         try {
-            await axios.put(`http://localhost:4000/parroquia/${formData.id}`, {
+            await axios.put(`${BaseUrl}/parroquia/${formData.id}`, {
                 nombre: formData.nombre,
                 municipio_id: formData.municipio_id,
             }, {
@@ -218,7 +219,7 @@ function Parroquia() {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`http://localhost:4000/parroquia/${id}`, {
+            await axios.delete(`${BaseUrl}/parroquia/${id}`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }

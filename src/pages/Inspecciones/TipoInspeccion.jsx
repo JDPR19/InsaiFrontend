@@ -9,6 +9,7 @@ import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
+import { BaseUrl } from '../../utils/constans';
 
 
 function TipoInspeccion() {
@@ -59,7 +60,7 @@ function TipoInspeccion() {
     const fetchTipoInspeccion = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/tipo_inspeccion', {
+            const response = await axios.get(`${BaseUrl}/tipo_inspeccion`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -94,7 +95,7 @@ function TipoInspeccion() {
         }
 
         try {
-            const response = await axios.post('http://localhost:4000/tipo_inspeccion', {
+            const response = await axios.post(`${BaseUrl}/tipo_inspeccion`, {
                 ...formData,
             }, {
                 headers: {
@@ -127,7 +128,7 @@ function TipoInspeccion() {
         }
 
         try {
-            const response = await axios.put(`http://localhost:4000/tipo_inspeccion/${formData.id}`, {
+            const response = await axios.put(`${BaseUrl}/tipo_inspeccion/${formData.id}`, {
                 ...formData,
             }, {
                 headers: {
@@ -153,7 +154,7 @@ function TipoInspeccion() {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`http://localhost:4000/tipo_inspeccion/${id}`, {
+            await axios.delete(`${BaseUrl}/tipo_inspeccion/${id}`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }

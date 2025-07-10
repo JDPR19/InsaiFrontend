@@ -11,9 +11,7 @@ import { useNotification } from '../../utils/useNotification';
 import { registrarInicioSesion } from '../../utils/bitacoraService';
 import Spinner from '../../components/spinner/Spinner';
 import RecuperarModal from '../../components/modalrecuperar/RecuperarModal';
-///url 
-// const backendUrl = import.meta.env.VITE_BACKEND_URL;
-
+import { BaseUrl } from '../../utils/constans';
 
 // --- Slider ---
 function Slider({ slides, currentSlide, onMouseEnter, onMouseLeave }) {
@@ -133,7 +131,7 @@ function Login() {
         }
 
         try {
-            const response = await fetch('http://localhost:4000/auth/login', {
+            const response = await fetch(`${BaseUrl}/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

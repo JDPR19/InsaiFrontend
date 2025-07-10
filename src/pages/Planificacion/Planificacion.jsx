@@ -8,6 +8,7 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import Spinner from '../../components/spinner/Spinner';
+import { BaseUrl } from '../../utils/constans';
 
 function Planificacion() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -23,7 +24,7 @@ function Planificacion() {
     const fetchPlanificacion = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/planificacion', {
+            const response = await axios.get(`${BaseUrl}/planificacion`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setDatosOriginales(response.data);

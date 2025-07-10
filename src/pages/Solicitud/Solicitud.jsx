@@ -10,6 +10,7 @@ import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
+import { BaseUrl } from '../../utils/constans';
 
 function Solicitud() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -46,7 +47,7 @@ function Solicitud() {
     const fetchSolicitudes = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/solicitud', {
+            const response = await axios.get(`${BaseUrl}/solicitud`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setDatosOriginales(response.data);
@@ -61,7 +62,7 @@ function Solicitud() {
 
     const fetchTipoSolicitudes = async () => {
         try {
-            const response = await axios.get('http://localhost:4000/solicitud/tipo_solicitud/all', {
+            const response = await axios.get(`${BaseUrl}/solicitud/tipo_solicitud/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setTipoSolicitudes(response.data);
@@ -73,7 +74,7 @@ function Solicitud() {
 
     const fetchTipoPermisos = async () => {
         try {
-            const response = await axios.get('http://localhost:4000/solicitud/tipo_permiso/all', {
+            const response = await axios.get(`${BaseUrl}/solicitud/tipo_permiso/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setTipoPermisos(response.data);
@@ -86,7 +87,7 @@ function Solicitud() {
 
     const fetchPropiedades = async () => {
         try {
-            const response = await axios.get('http://localhost:4000/solicitud/propiedad/all', {
+            const response = await axios.get(`${BaseUrl}/solicitud/propiedad/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setPropiedades(response.data);
@@ -192,7 +193,7 @@ function Solicitud() {
         }
         setLoading(true);
         try {
-            await axios.post('http://localhost:4000/solicitud',{ ...formData, usuario_id }, {
+            await axios.post(`${BaseUrl}/solicitud`,{ ...formData, usuario_id }, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Solicitud registrada con éxito', 'success');
@@ -224,7 +225,7 @@ function Solicitud() {
         }
         setLoading(true);
         try {
-            await axios.put(`http://localhost:4000/solicitud/${formData.id}`,{ ...formData, usuario_id }, {
+            await axios.put(`${BaseUrl}/solicitud/${formData.id}`,{ ...formData, usuario_id }, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Solicitud actualizada con éxito', 'success');
@@ -242,7 +243,7 @@ function Solicitud() {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`http://localhost:4000/solicitud/${id}`, {
+            await axios.delete(`${BaseUrl}/solicitud/${id}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             fetchSolicitudes();

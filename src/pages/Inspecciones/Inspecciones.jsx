@@ -11,6 +11,7 @@ import Spinner from '../../components/spinner/Spinner';
 import { validateField, validationRules } from '../../utils/validation';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
 import MultiSelect from '../../components/selectmulti/MultiSelect';
+import { BaseUrl } from '../../utils/constans';
 
 function InspeccionesEst() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -78,7 +79,7 @@ function InspeccionesEst() {
     const fetchInspecciones = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/inspecciones_est', {
+            const response = await axios.get(`${BaseUrl}/inspecciones_est`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setDatosOriginales(response.data);
@@ -93,7 +94,7 @@ function InspeccionesEst() {
 
     const fetchEmpleados = async () => {
         try {
-            const response = await axios.get('http://localhost:4000/inspecciones_est/empleados/all', {
+            const response = await axios.get(`${BaseUrl}/inspecciones_est/empleados/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setEmpleados(response.data);
@@ -105,7 +106,7 @@ function InspeccionesEst() {
 
     const fetchProgramas = async () => {
         try {
-            const response = await axios.get('http://localhost:4000/inspecciones_est/programas/all', {
+            const response = await axios.get(`${BaseUrl}/inspecciones_est/programas/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setProgramas(response.data);
@@ -117,7 +118,7 @@ function InspeccionesEst() {
 
     const fetchTipoInspecciones = async () => {
         try {
-            const response = await axios.get('http://localhost:4000/inspecciones_est/tipo-inspeccion/all', {
+            const response = await axios.get(`${BaseUrl}/inspecciones_est/tipo-inspeccion/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setTipoInspecciones(response.data);
@@ -129,7 +130,7 @@ function InspeccionesEst() {
 
     const fetchPropiedades = async () => {
         try {
-            const response = await axios.get('http://localhost:4000/inspecciones_est/propiedades/all', {
+            const response = await axios.get(`${BaseUrl}/inspecciones_est/propiedades/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setPropiedades(response.data);
@@ -278,7 +279,7 @@ function InspeccionesEst() {
 
         try {
             if (imagenes.length === 0) {
-                await axios.post('http://localhost:4000/inspecciones_est', {
+                await axios.post(`${BaseUrl}/inspecciones_est`, {
                     ...formData,
                     empleados_ids: formData.empleados_ids,
                     programas_ids: formData.programas_ids
@@ -298,7 +299,7 @@ function InspeccionesEst() {
                     }
                 });
                 imagenes.forEach(img => form.append('imagenes', img));
-                await axios.post('http://localhost:4000/inspecciones_est', form, {
+                await axios.post(`${BaseUrl}/inspecciones_est`, form, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                         Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -326,7 +327,7 @@ function InspeccionesEst() {
         try {
 
             if (imagenes.length === 0) {
-                await axios.put(`http://localhost:4000/inspecciones_est/${formData.id}`, {
+                await axios.put(`${BaseUrl}/inspecciones_est/${formData.id}`, {
                     ...formData,
                     imagenesAEliminar,
                     empleados_ids: formData.empleados_ids,
@@ -348,7 +349,7 @@ function InspeccionesEst() {
                 });
                 imagenes.forEach(img => form.append('imagenes', img));
                 imagenesAEliminar.forEach(imgName => form.append('imagenesAEliminar', imgName));
-                await axios.put(`http://localhost:4000/inspecciones_est/${formData.id}`, form, {
+                await axios.put(`${BaseUrl}/inspecciones_est/${formData.id}`, form, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                         Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -369,7 +370,7 @@ function InspeccionesEst() {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`http://localhost:4000/inspecciones_est/${id}`, {
+            await axios.delete(`${BaseUrl}/inspecciones_est/${id}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             fetchInspecciones();
@@ -525,12 +526,12 @@ function InspeccionesEst() {
                                         {(detalleModal.inspeccion.imagenes || []).map(img => (
                                             <a
                                                 key={img.id}
-                                                href={`http://localhost:4000/uploads/inspeccion_est/${img.imagen}`}
+                                                href={`${BaseUrl}/uploads/inspeccion_est/${img.imagen}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                             >
                                                 <img
-                                                    src={`http://localhost:4000/uploads/inspeccion_est/${img.imagen}`}
+                                                    src={`${BaseUrl}/uploads/inspeccion_est/${img.imagen}`}
                                                     alt="Inspección"
                                                     style={{ maxWidth: 100, marginRight: 8 }}
                                                     onError={e => { e.target.style.display = 'none'; }}
@@ -587,7 +588,7 @@ function InspeccionesEst() {
                                     {imagenesGuardadas.map((img, idx) => (
                                         <div key={img.id || img.imagen} style={{ position: 'relative' }}>
                                             <img
-                                                src={`http://localhost:4000/uploads/inspeccion_est/${img.imagen}`}
+                                                src={`${BaseUrl}/uploads/inspeccion_est/${img.imagen}`}
                                                 alt={`guardada-${idx}`}
                                                 style={{ maxWidth: 80, maxHeight: 80, border: '1px solid #ccc' }}
                                                 onError={e => { e.target.style.display = 'none'; }}

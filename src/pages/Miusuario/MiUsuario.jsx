@@ -8,6 +8,7 @@ import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import { usePermiso } from '../../hooks/usePermiso';
 import Spinner from '../../components/spinner/Spinner';
+import { BaseUrl } from '../../utils/constans';
 
 function MiUsuario() {
     const [usuario, setUsuario] = useState(null);
@@ -26,7 +27,7 @@ function MiUsuario() {
 
 
     useEffect(() => {
-        axios.get('http://localhost:4000/miusuario', {
+        axios.get(`${BaseUrl}/miusuario`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         })
         .then(res => {
@@ -95,7 +96,7 @@ function MiUsuario() {
         if (formData.password) dataToSend.password = formData.password;
 
         try {
-            await axios.put('http://localhost:4000/miusuario', dataToSend, {
+            await axios.put(`${BaseUrl}/miusuario`, dataToSend, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
@@ -123,7 +124,7 @@ function MiUsuario() {
     const handleDelete = async () => {
         setLoading(true);
         try {
-            await axios.delete('http://localhost:4000/miusuario', {
+            await axios.delete(`${BaseUrl}/miusuario`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }

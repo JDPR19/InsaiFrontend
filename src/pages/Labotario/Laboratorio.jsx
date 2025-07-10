@@ -10,6 +10,7 @@ import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
+import { BaseUrl } from '../../utils/constans';
 
 function Laboratorio() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -51,7 +52,7 @@ function Laboratorio() {
     const fetchLaboratorios = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/laboratorio', {
+            const response = await axios.get(`${BaseUrl}/laboratorio`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -69,7 +70,7 @@ function Laboratorio() {
     const fetchTipos = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/laboratorio/tipos/all', {
+            const response = await axios.get(`${BaseUrl}/laboratorio/tipos/all`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -86,7 +87,7 @@ function Laboratorio() {
     const fetchEstados = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/laboratorio/estados/all', {
+            const response = await axios.get(`${BaseUrl}/laboratorio/estados/all`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -107,7 +108,7 @@ function Laboratorio() {
                 setMunicipios([]);
                 return;
             }
-            const response = await axios.get('http://localhost:4000/laboratorio/municipios/all', {
+            const response = await axios.get(`${BaseUrl}/laboratorio/municipios/all`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -128,7 +129,7 @@ function Laboratorio() {
                 setParroquias([]);
                 return;
             }
-            const response = await axios.get('http://localhost:4000/laboratorio/parroquias/all', {
+            const response = await axios.get(`${BaseUrl}/laboratorio/parroquias/all`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -149,7 +150,7 @@ function Laboratorio() {
                 setSectores([]);
                 return;
             }
-            const response = await axios.get('http://localhost:4000/laboratorio/sectores/all', {
+            const response = await axios.get(`${BaseUrl}/laboratorio/sectores/all`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -277,7 +278,7 @@ function Laboratorio() {
         }
 
         try {
-            await axios.post('http://localhost:4000/laboratorio', {
+            await axios.post(`${BaseUrl}/laboratorio`, {
                 nombre: formData.nombre,
                 descripcion: formData.descripcion,
                 ubicación: formData.ubicación,
@@ -313,7 +314,7 @@ function Laboratorio() {
         }
 
         try {
-            await axios.put(`http://localhost:4000/laboratorio/${formData.id}`, {
+            await axios.put(`${BaseUrl}/laboratorio/${formData.id}`, {
                 nombre: formData.nombre,
                 descripcion: formData.descripcion,
                 ubicación: formData.ubicación,
@@ -338,7 +339,7 @@ function Laboratorio() {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`http://localhost:4000/laboratorio/${id}`, {
+            await axios.delete(`${BaseUrl}/laboratorio/${id}`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }

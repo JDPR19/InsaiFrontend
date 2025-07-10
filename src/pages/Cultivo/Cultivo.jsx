@@ -10,6 +10,7 @@ import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
+import { BaseUrl } from '../../utils/constans';
 
 function Cultivo() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -43,7 +44,7 @@ function Cultivo() {
     const fetchCultivos = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/cultivo', {
+            const response = await axios.get(`${BaseUrl}/cultivo`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -61,7 +62,7 @@ function Cultivo() {
     const fetchTipos = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/cultivo/tipos/all', {
+            const response = await axios.get(`${BaseUrl}/cultivo/tipos/all`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -129,7 +130,7 @@ function Cultivo() {
         }
 
         try {
-            await axios.post('http://localhost:4000/cultivo', {
+            await axios.post(`${BaseUrl}/cultivo`, {
                 nombre: formData.nombre,
                 nombre_cientifico: formData.nombre_cientifico,
                 descripcion: formData.descripcion,
@@ -164,7 +165,7 @@ function Cultivo() {
         }
 
         try {
-            await axios.put(`http://localhost:4000/cultivo/${formData.id}`, {
+            await axios.put(`${BaseUrl}/cultivo/${formData.id}`, {
                 nombre: formData.nombre,
                 nombre_cientifico: formData.nombre_cientifico,
                 descripcion: formData.descripcion,
@@ -188,7 +189,7 @@ function Cultivo() {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`http://localhost:4000/cultivo/${id}`, {
+            await axios.delete(`${BaseUrl}/cultivo/${id}`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }

@@ -10,6 +10,7 @@ import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
+import { BaseUrl } from '../../utils/constans';
 
 function Plagas() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -43,7 +44,7 @@ function Plagas() {
     const fetchPlagas = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/plagas', {
+            const response = await axios.get(`${BaseUrl}/plagas`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -61,7 +62,7 @@ function Plagas() {
     const fetchTipos = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/plagas/tipos/all', {
+            const response = await axios.get(`${BaseUrl}/plagas/tipos/all`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -129,7 +130,7 @@ function Plagas() {
         }
 
         try {
-            await axios.post('http://localhost:4000/plagas', {
+            await axios.post(`${BaseUrl}/plagas`, {
                 nombre: formData.nombre,
                 nombre_cientifico: formData.nombre_cientifico,
                 observaciones: formData.observaciones,
@@ -164,7 +165,7 @@ function Plagas() {
         }
 
         try {
-            await axios.put(`http://localhost:4000/plagas/${formData.id}`, {
+            await axios.put(`${BaseUrl}/plagas/${formData.id}`, {
                 nombre: formData.nombre,
                 nombre_cientifico: formData.nombre_cientifico,
                 observaciones: formData.observaciones,
@@ -188,7 +189,7 @@ function Plagas() {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`http://localhost:4000/plagas/${id}`, {
+            await axios.delete(`${BaseUrl}/plagas/${id}`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }

@@ -9,6 +9,7 @@ import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
+import { BaseUrl } from '../../utils/constans';
 
 function Estados() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -58,7 +59,7 @@ function Estados() {
     const fetchEstados = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/estado', {
+            const response = await axios.get(`${BaseUrl}/estado`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -94,7 +95,7 @@ function Estados() {
         }
 
         try {
-            const response = await axios.post('http://localhost:4000/estado', {
+            const response = await axios.post(`${BaseUrl}/estado`, {
                 ...formData,
             }, {
                 headers: {
@@ -127,7 +128,7 @@ function Estados() {
         }
 
         try {
-            const response = await axios.put(`http://localhost:4000/estado/${formData.id}`, {
+            const response = await axios.put(`${BaseUrl}/estado/${formData.id}`, {
                 ...formData,
             }, {
                 headers: {
@@ -152,7 +153,7 @@ function Estados() {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`http://localhost:4000/estado/${id}`, {
+            await axios.delete(`${BaseUrl}/estado/${id}`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }

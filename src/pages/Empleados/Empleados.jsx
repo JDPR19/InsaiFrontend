@@ -10,6 +10,7 @@ import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner'; 
+import { BaseUrl } from '../../utils/constans';
 
 function Empleado() {
     const [loading, setLoading] = useState(false);
@@ -67,7 +68,7 @@ function Empleado() {
         const fetchEmpleados = async () => {
             setLoading(true);
             try {
-                const response = await axios.get('http://localhost:4000/empleados', {
+                const response = await axios.get(`${BaseUrl}/empleados`, {
                     headers: {
                         Authorization : `Bearer ${localStorage.getItem('token')}`
                     }
@@ -90,7 +91,7 @@ function Empleado() {
         const fetchCargos = async () => {
             setLoading(true);
             try {
-                const response = await axios.get('http://localhost:4000/empleados/cargos', {
+                const response = await axios.get(`${BaseUrl}/empleados/cargos`, {
                     headers: {
                         Authorization : `Bearer ${localStorage.getItem('token')}`
                     }
@@ -122,7 +123,7 @@ function Empleado() {
             }
         }
         try {
-            const response = await axios.post('http://localhost:4000/empleados', formData, {
+            const response = await axios.post(`${BaseUrl}/empleados`, formData, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -154,7 +155,7 @@ function Empleado() {
             }
         }
         try {
-            const response = await axios.put(`http://localhost:4000/empleados/${formData.id}`, formData, {
+            const response = await axios.put(`${BaseUrl}/empleados/${formData.id}`, formData, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -177,7 +178,7 @@ function Empleado() {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`http://localhost:4000/empleados/${id}`, {
+            await axios.delete(`${BaseUrl}/empleados/${id}`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }

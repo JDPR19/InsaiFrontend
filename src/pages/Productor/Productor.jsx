@@ -10,6 +10,7 @@ import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
+import { BaseUrl } from '../../utils/constans';
 
 function Productor() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -45,7 +46,7 @@ function Productor() {
     const fetchProductores = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/productor', {
+            const response = await axios.get(`${BaseUrl}/productor`, {
                 headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
             setDatosOriginales(response.data);
@@ -61,7 +62,7 @@ function Productor() {
     const fetchTipos = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/productor/tipos/all', {
+            const response = await axios.get(`${BaseUrl}/productor/tipos/all`, {
                 headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
             setTipos(response.data);
@@ -130,7 +131,7 @@ function Productor() {
             }
         }
         try {
-            await axios.post('http://localhost:4000/productor', formData, {
+            await axios.post(`${BaseUrl}/productor`, formData, {
                 headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Productor registrado con éxito', 'success');
@@ -158,7 +159,7 @@ function Productor() {
             }
         }
         try {
-            await axios.put(`http://localhost:4000/productor/${formData.id}`, formData, {
+            await axios.put(`${BaseUrl}/productor/${formData.id}`, formData, {
                 headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Productor actualizado con éxito', 'success');
@@ -175,7 +176,7 @@ function Productor() {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`http://localhost:4000/productor/${id}`, {
+            await axios.delete(`${BaseUrl}/productor/${id}`, {
                 headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
             fetchProductores();

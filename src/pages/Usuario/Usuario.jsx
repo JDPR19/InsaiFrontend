@@ -12,6 +12,7 @@ import { validateField, validationRules } from '../../utils/validation';
 import { getCurrentUser } from '../../utils/usernameauth';
 import { usePermiso } from '../../hooks/usePermiso';
 import Spinner from '../../components/spinner/Spinner';
+import { BaseUrl } from '../../utils/constans';
 
 function Usuario() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -77,7 +78,7 @@ function Usuario() {
     const fetchUsuarios = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/usuarios', {
+            const response = await axios.get(`${BaseUrl}/usuarios`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -99,7 +100,7 @@ function Usuario() {
     const fetchTiposUsuario = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/usuarios/tipos', {
+            const response = await axios.get(`${BaseUrl}/usuarios/tipos`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -116,7 +117,7 @@ function Usuario() {
     const fetchCedulas = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:4000/usuarios/empleados/cedulas', {
+            const response = await axios.get(`${BaseUrl}/usuarios/empleados/cedulas`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -130,15 +131,6 @@ function Usuario() {
         }
     };
 
-    // const handleCedulaChange = (e) => {
-    //     const empleado_id = e.target.value;
-    //     const empleado = cedulas.find((c) => c.id === parseInt(empleado_id));
-    //     setFormData((prev) => ({
-    //         ...prev,
-    //         empleado_id,
-    //         cedula: empleado ? empleado.cedula : ''
-    //     }));
-    // };
 
     const handleSave = async () => {
         setLoading(true);
@@ -165,7 +157,7 @@ function Usuario() {
         }
 
         try {
-            const response = await axios.post('http://localhost:4000/usuarios', {
+            const response = await axios.post(`${BaseUrl}/usuarios`, {
                 ...formData,
             }, {
                 headers: {
@@ -198,7 +190,7 @@ function Usuario() {
         }
 
         try {
-            const response = await axios.put(`http://localhost:4000/usuarios/${formData.id}`, {
+            const response = await axios.put(`${BaseUrl}/usuarios/${formData.id}`, {
                 ...formData,
             }, {
                 headers: {
@@ -223,7 +215,7 @@ function Usuario() {
     const disableUser = async (id, estado) => {
         setLoading(true);
         try {
-            await axios.patch(`http://localhost:4000/usuarios/${id}/estado`, { estado }, {
+            await axios.patch(`${BaseUrl}/usuarios/${id}/estado`, { estado }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -250,7 +242,7 @@ function Usuario() {
 
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`http://localhost:4000/usuarios/${id}`, {
+            await axios.delete(`${BaseUrl}/usuarios/${id}`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -326,7 +318,7 @@ function Usuario() {
         setDetalleModal({ abierto: true, usuario: null });
         setLoading(true);
         try {
-            const response = await axios.get(`http://localhost:4000/usuarios/${usuario.id}`, {
+            const response = await axios.get(`${BaseUrl}/usuarios/${usuario.id}`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
