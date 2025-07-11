@@ -113,6 +113,18 @@ function Menu() {
                         />
                     )}
 
+                        <NavItem
+                            id="maestro"
+                            openSubmenus={openSubmenus}
+                            setOpenSubmenus={setOpenSubmenus}
+                            selectedItem={selectedItem}
+                            setSelectedItem={setSelectedItem}
+                            iconSrc={icon.homeIcon}
+                            label="maestro"
+                            linkTo="/Maestro"
+                        />
+
+
                       {/* Datos del Productor */}
                     {(tienePermiso('productor', 'ver') || tienePermiso('propiedad', 'ver') || tienePermiso('tipo_propiedad', 'ver') || tienePermiso('tipo_productor', 'ver')) && (
                         <NavItem

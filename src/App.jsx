@@ -42,7 +42,7 @@ import MuestraPlaga from './pages/MuestraPlaga/MuestraPlaga';
 import TipoSolicitud from './pages/Solicitud/TipoSolicitud';
 import MiUsuario from './pages/Miusuario/MiUsuario';
 import ProtectedRoute from './ProtectedRoute';
-
+import MaestroProductorPropiedad from './pages/MaestroProductorPropiedad/MaestroProductorPropiedad';
 
 function App() {
 
@@ -80,6 +80,13 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route 
+        path="/Maestro" 
+        element={
+          <MainLayout> 
+            <MaestroProductorPropiedad />
+          </MainLayout>
+        } />
         <Route
           path="/MiUsuario"
           element={

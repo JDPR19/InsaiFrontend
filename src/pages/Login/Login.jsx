@@ -147,8 +147,8 @@ function Login() {
                 localStorage.setItem('user', JSON.stringify({
                     id: data.user.id,
                     username: data.user.username,
-                    tipo_usuario_id: data.user.tipo_usuario_id,
-                    tipo_usuario_nombre: data.user.tipo_usuario_nombre
+                    roles_id: data.user.roles_id,
+                    roles_nombre: data.user.roles_nombre
                 }));
 
                 localStorage.setItem('permisos', JSON.stringify(data.user.permisos));

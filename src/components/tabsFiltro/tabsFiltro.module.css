@@ -1,0 +1,62 @@
+.tabsContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 25px 30px 25px;
+    width: 100%;
+    gap: 15px;
+    margin-bottom: 18px;
+    border-radius: 10px;
+    border-bottom: 1px solid #98c79ab2;
+    box-shadow: 0 2px 8px #b5c99a10;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--lithg-green) #e9ecef;
+}
+
+.tabsContainer::-webkit-scrollbar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 8px;
+}
+.tabsContainer::-webkit-scrollbar-thumb {
+    background: var(--lithg-green);
+    border-radius: 8px;
+}
+.tabsContainer::-webkit-scrollbar-thumb:hover {
+    background: var(--green-hover1);
+}
+
+.tabsTitle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+    color: var(--black);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.tabButton {
+    background: #bddaaf73;
+    color: #444444;
+    border: 1.5px solid #98c79a;
+    border-radius: 16px;
+    padding: 8px 18px;
+    font-size: 1em;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    margin-bottom: 2px;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+    outline: none;
+}
+
+.tabButton.active,
+.tabButton:hover {
+    background: #b5dba3c7;
+    color: var(--black);
+    border: 1.5px solid #99cc5e;
+    box-shadow: 0 2px 8px #98c79a3a;
+}

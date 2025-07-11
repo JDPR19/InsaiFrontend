@@ -4,29 +4,28 @@ import icon from '../../components/iconos/iconos';
 import insai from '../../../public/assets/image.png';
 
 function Header() {
-    const [user, setUser] = useState({ name: '', tipo_usuario_nombre: '' }); // Estado para almacenar el usuario
+    const [user, setUser] = useState({ name: '', roles_nombre: '' }); 
 
     useEffect(() => {
         // Obtén los datos del usuario desde localStorage
         const storedUser = JSON.parse(localStorage.getItem('user'));
         if (storedUser) {
-            setUser({ name: storedUser.username, tipo_usuario_nombre: storedUser.tipo_usuario_nombre});
+            setUser({ name: storedUser.username, roles_nombre: storedUser.roles_nombre }); // Cambia aquí
         }
     }, []);
 
     // Determina el título dinámico según el rol del usuario
     const getPanelTitle = () => {
-    switch ((user.tipo_usuario_nombre || '').toLowerCase()) {
-        case 'administrador':
-            return 'Panel Administrador';
-        case 'jefe de oficina':
-            return 'Panel Jefe de Oficina';
-        case 'inspector':
-            return 'Panel Inspector';
-        default:
-            return 'Panel';
-    }
-};
+        const rol = (user.roles_nombre || '').toLowerCase().trim();
+        switch (rol) {
+            case 'administrador':
+                return 'Panel Administrador';
+            case 'moderador':
+                return 'Panel Moderador';
+            default:
+                return 'Panel';
+        }
+    };
 
     return (
         <header className={styles.header}>

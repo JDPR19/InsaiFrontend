@@ -368,7 +368,7 @@ function Productor() {
                         onClick={openModal} 
                         className='create'
                         title='Registrar Productor'>
-                        <img src={icon.crear} alt="Crear" className='icon' />
+                        <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
                     <h2>Productores</h2>
