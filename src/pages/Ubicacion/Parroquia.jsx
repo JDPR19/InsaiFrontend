@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from './ubicacion.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
@@ -284,7 +283,7 @@ function Parroquia() {
     };
 
     return (
-        <div className={styles.ubicacionContainer}>
+        <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
@@ -297,23 +296,11 @@ function Parroquia() {
 
             {currentModal === 'parroquia' && (
                 <div className='modalOverlay'>
-                    <div className='modal_mono'>
+                    <div className='modal'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Parroquia' : 'Registrar Parroquia'}</h2>
                         <form className='modalForm'>
-                            <div>
-                                <div className='formGroup'>
-                                    <label htmlFor="nombre">Parroquia:</label>
-                                    <input
-                                        type="text"
-                                        id="nombre"
-                                        value={formData.nombre}
-                                        onChange={handleInputChange}
-                                        className='input'
-                                        placeholder='Rellene el Campo'
-                                    />
-                                    {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
-                                </div>
+                            <div className='formColumns'>
                                 <div className='formGroup'>
                                     <label htmlFor="estado_id">Estado:</label>
                                     <SingleSelect
@@ -334,6 +321,18 @@ function Parroquia() {
                                         isDisabled={!formData.estado_id || municipios.length === 0}
                                     />
                                     {errors.municipio_id && <span className='errorText'>{errors.municipio_id}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="nombre">Parroquia:</label>
+                                    <input
+                                        type="text"
+                                        id="nombre"
+                                        value={formData.nombre}
+                                        onChange={handleInputChange}
+                                        className='input'
+                                        placeholder='Rellene el Campo'
+                                    />
+                                    {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>
                             </div>
                             <button
@@ -379,7 +378,7 @@ function Parroquia() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
                             <th>N°</th>
@@ -397,7 +396,7 @@ function Parroquia() {
                                 <td>{parroquia.municipio_nombre}</td>
                                 <td>{parroquia.estado_nombre}</td>
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                         <img
                                             onClick={() => openEditModal(parroquia)}
                                             src={icon.editar}

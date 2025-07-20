@@ -50,6 +50,10 @@ const customSelectStyles = {
         maxHeight: 160, 
         overflowY: 'auto'
     }),
+    menuPortal: base => ({
+        ...base,
+        zIndex: 9999, 
+    }),
     input: (provided) => ({
         ...provided,
         color: '#242424',
@@ -75,6 +79,7 @@ const customSelectStyles = {
         classNamePrefix="react-select"
         styles={customSelectStyles}
         isClearable={isClearable}
+        menuPortalTarget={document.body}
         {...props}
     />
     );

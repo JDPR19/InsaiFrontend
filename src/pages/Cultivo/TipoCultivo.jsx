@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from './cultivo.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
@@ -223,7 +222,7 @@ function TipoCultivo() {
 
 
     return (
-        <div className={styles.tcultivoContainer}>
+        <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
@@ -241,7 +240,7 @@ function TipoCultivo() {
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Tipo de Cultivo' : 'Registrar Tipo de Cultivo'}</h2>
                         <form className='modalForm'>
-                            <div>
+                            <div className='formColumns_mono'>
 
                                 <div className='formGroup'>
                                     <label htmlFor="tipo_cultivo">Tipo de Cultivo:</label>
@@ -295,7 +294,7 @@ function TipoCultivo() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
                             <th>N°</th>
@@ -309,7 +308,7 @@ function TipoCultivo() {
                                 <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{tipo_cultivo.nombre}</td>
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                         <img
                                             onClick={() => openEditModal(tipo_cultivo)}
                                             src={icon.editar}

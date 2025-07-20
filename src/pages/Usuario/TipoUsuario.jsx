@@ -246,7 +246,7 @@ function TipoUsuario() {
     };
 
     return (
-        <div className={styles.usuarioContainer}>
+        <div className='mainContainer'>
 
             {loading && <Spinner text="Procesando..." />}
 
@@ -369,7 +369,7 @@ function TipoUsuario() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
                             <th>Nombre</th>
@@ -394,7 +394,7 @@ function TipoUsuario() {
                                     </button>
                                 </td>
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                         <img
                                             onClick={() => openEditModal(tipo)}
                                             src={icon.editar}

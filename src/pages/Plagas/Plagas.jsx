@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from './plaga.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
@@ -258,7 +257,7 @@ function Plagas() {
     const closeDetalleModal = () => setDetalleModal({ abierto: false, plaga: null });
 
     return (
-        <div className={styles.plagaContainer}>
+        <div className='mainContainer'>
 
             {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
@@ -271,31 +270,52 @@ function Plagas() {
             ))}
 
             {/* Modal Detalle */}
-            {detalleModal.abierto && (
+            {detalleModal.abierto && detalleModal.plaga && (
                 <div className='modalOverlay'>
-                    <div className='modalDetalle'>
+                    <div className='modal'>
                         <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
                         <h2>Detalles de la Plaga</h2>
-                        <table className='detalleTable'>
-                            <tbody>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <td>{detalleModal.plaga.nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Nombre Científico</th>
-                                    <td>{detalleModal.plaga.nombre_cientifico}</td>
-                                </tr>
-                                <tr>
-                                    <th>Tipo de Plaga</th>
-                                    <td>{detalleModal.plaga.tipo_plaga_fito_nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Observaciones</th>
-                                    <td>{detalleModal.plaga.observaciones}</td>      
-                                </tr>
-                            </tbody>
-                        </table>
+                        <form className='modalForm'>
+                            <div className='formColumns'>
+                                <div className='formGroup'>
+                                    <label htmlFor="nombre">Nombre:</label>
+                                    <input
+                                        type="text"
+                                        id="nombre"
+                                        value={detalleModal.plaga.nombre || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="nombre_cientifico">Nombre Científico:</label>
+                                    <input
+                                        type="text"
+                                        id="nombre_cientifico"
+                                        value={detalleModal.plaga.nombre_cientifico || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="tipo_plaga_fito_id">Tipo:</label>
+                                    <SingleSelect
+                                        options={tiposOptions}
+                                        value={detalleModal.plaga.tipo_plaga_fito_id}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="observaciones">Observaciones:</label>
+                                    <textarea
+                                        id="observaciones"
+                                        value={detalleModal.plaga.observaciones || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
@@ -303,11 +323,11 @@ function Plagas() {
             {/* Modal registro y editar */}
             {currentModal === 'plaga' && (
                 <div className='modalOverlay'>
-                    <div className='modal_mono'>
+                    <div className='modal'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Plaga' : 'Registrar Plaga'}</h2>
                         <form className='modalForm'>
-                            <div className={styles.formColumns}>
+                            <div className='formColumns'>
                                 <div className='formGroup'>
                                     <label htmlFor="nombre">Nombre:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Nombre de la plaga'/>
@@ -328,7 +348,7 @@ function Plagas() {
                                     />
                                     {errors.tipo_plaga_fito_id && <span className='errorText'>{errors.tipo_plaga_fito_id}</span>}
                                 </div>
-                                <div className='formGroup' style={{ gridColumn: '1 / -1' }}>
+                                <div className='formGroup'>
                                     <label htmlFor="observaciones">Observaciones:</label>
                                     <textarea id="observaciones" value={formData.observaciones} onChange={handleChange} className='input' placeholder='Observaciones'/>
                                     {errors.observaciones && <span className='errorText'>{errors.observaciones}</span>}
@@ -378,7 +398,7 @@ function Plagas() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
                             <th>N°</th>
@@ -396,7 +416,7 @@ function Plagas() {
                                 <td>{plaga.nombre_cientifico}</td>
                                 <td>{plaga.tipo_plaga_fito_nombre}</td>
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                         <img
                                             onClick={() => openDetalleModal(plaga)}
                                             src={icon.ver}

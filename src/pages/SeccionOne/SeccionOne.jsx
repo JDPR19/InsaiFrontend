@@ -3,21 +3,21 @@ import Productor from '../Productor/Productor';
 import Propiedad from '../Propiedad/Propiedad';
 import TablaProductorPropiedad from './TablaAsociada'; 
 import TipoPropiedad from '../Propiedad/TipoPropiedad';
-import TabsFiltro from '../../components/tabsFiltro/TabsFiltro';
-import Styles from './maestro.module.css';
+import TabsFiltro from '../../components/TabsFiltro/TabsFiltro';
+import { usePermiso } from '../../hooks/usePermiso';
+import '../../main.css';
 
-function MaestroProductorPropiedad() {
+function SeccionOne() {
     const [activeTab, setActiveTab] = useState('asociados');
-
+    const tienePermiso = usePermiso();
     // Tabs principales
-    const tabs = [
-        { key: 'asociados', label: 'Asociados' },
-        { key: 'productores', label: 'Productores' },
-        { key: 'propiedades', label: 'Propiedades' },
-        { key: 'tipo_propiedad', label: 'Tipos de Propiedad' }
-    ];
+        const tabs = [
+        tienePermiso('asociados', 'ver') && { key: 'asociados', label: 'Asociados' },
+        tienePermiso('productor', 'ver') && { key: 'productores', label: 'Productores' },
+        tienePermiso('propiedad', 'ver') && { key: 'propiedades', label: 'Propiedades' },
+        tienePermiso('tipo_propiedad', 'ver') && { key: 'tipo_propiedad', label: 'Tipos de Propiedad' }
+    ].filter(Boolean);
 
-    // Renderizado condicional de tablas
     let tablaRenderizada;
     if (activeTab === 'asociados') {
         tablaRenderizada = <TablaProductorPropiedad />;
@@ -30,11 +30,11 @@ function MaestroProductorPropiedad() {
     }
 
     return (
-        <div className={Styles.Container}>
+        <div>
             <TabsFiltro tabs={tabs} activeTab={activeTab} onTabClick={tab => setActiveTab(tab.key)} />
             {tablaRenderizada}
         </div>
     );
 }
 
-export default MaestroProductorPropiedad;
+export default SeccionOne;

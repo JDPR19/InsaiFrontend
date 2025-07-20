@@ -4,6 +4,7 @@ import styles from './menu.module.css';
 import icon from '../../components/iconos/iconos';
 import { registrarCierreSesion } from '../../utils/bitacoraService';
 import { usePermiso } from '../../hooks/usePermiso';
+import { BaseUrl } from '../../utils/constans';
 
 function NavItem({ id, openSubmenus, setOpenSubmenus, selectedItem, setSelectedItem, iconSrc, label, linkTo, children }) {
     const isOpen = openSubmenus[id];
@@ -65,7 +66,7 @@ function Menu() {
                 registrarCierreSesion(userId, username);
             }
 
-            const response = await fetch('http://localhost:4000/auth/logout', {
+            const response = await fetch(`${BaseUrl}/auth/logout`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -113,20 +114,21 @@ function Menu() {
                         />
                     )}
 
+                    {/* Seccion Uno Productores y Propiedades */}
                         <NavItem
                             id="maestro"
                             openSubmenus={openSubmenus}
                             setOpenSubmenus={setOpenSubmenus}
                             selectedItem={selectedItem}
                             setSelectedItem={setSelectedItem}
-                            iconSrc={icon.homeIcon}
-                            label="maestro"
-                            linkTo="/Maestro"
+                            iconSrc={icon.farmer2}
+                            label="Productores y Propiedades"
+                            linkTo="/SeccionOne"
                         />
 
 
                       {/* Datos del Productor */}
-                    {(tienePermiso('productor', 'ver') || tienePermiso('propiedad', 'ver') || tienePermiso('tipo_propiedad', 'ver') || tienePermiso('tipo_productor', 'ver')) && (
+                    {(tienePermiso('productor', 'ver') || tienePermiso('propiedad', 'ver') || tienePermiso('tipo_propiedad', 'ver')) && (
                         <NavItem
                             id="datosPropietario"
                             openSubmenus={openSubmenus}
@@ -162,18 +164,6 @@ function Menu() {
                                     </li>
                                 )}
 
-                                {tienePermiso('tipo_productor', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/TipoProductor"
-                                            className={`${styles.submenuItem} ${selectedItem === 'tipoproductor' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('tipoproductor')}
-                                        >
-                                            Tipo de Productor
-                                        </Link>
-                                    </li>
-                                )}
-
                                 {tienePermiso('tipo_propiedad', 'ver') && (
                                     <li>
                                         <Link
@@ -191,7 +181,7 @@ function Menu() {
                     )}
 
                     {/* Inspecciones /////////////////// */}
-                    {(tienePermiso('solicitud', 'ver') || tienePermiso('inspeccion_est', 'ver') || tienePermiso('inspeccion_silo', 'ver') || tienePermiso('planificacion', 'ver') || tienePermiso('tipo_solicitud', 'ver') || tienePermiso('tipo_inspeccion', 'ver')) && (
+                    {(tienePermiso('solicitud', 'ver') || tienePermiso('inspecciones', 'ver') || tienePermiso('planificacion', 'ver') || tienePermiso('tipo_solicitud', 'ver') || tienePermiso('tipo_inspeccion', 'ver')) && (
                         <NavItem
                             id="inspecciones"
                             openSubmenus={openSubmenus}
@@ -227,26 +217,14 @@ function Menu() {
                                     </li>
                                 )}
 
-                                {tienePermiso('inspeccion_est', 'ver') && (
+                                {tienePermiso('inspecciones', 'ver') && (
                                     <li>
                                         <Link
                                             to="/Inspecciones"
                                             className={`${styles.submenuItem} ${selectedItem === 'inspeccion' ? styles.selected : ''}`}
                                             onClick={() => setSelectedItem('inspeccion')}
                                         >
-                                            Inspecciones Rutinarias
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('inspeccion_silo', 'ver') && (
-                                    <li>
-                                        <Link
-                                        to="/InspeccionesSilo"
-                                        className={`${styles.submenuItem} ${selectedItem === 'inspeccion_silo' ? styles.selected : ''}`}
-                                        onClick={() => setSelectedItem('inspeccion_silo')}
-                                        >
-                                            Inspecciones Silos
+                                            Inspecciones 
                                         </Link>
                                     </li>
                                 )}

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import MultiSelect from '../../components/selectmulti/MultiSelect';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
-import styles from './propiedad.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
@@ -415,7 +414,7 @@ function Propiedad() {
     const closeDetalleModal = () => setDetalleModal({ abierto: false, propiedad: null });
 
     return (
-        <div className={styles.tipopropiedadContainer}>
+        <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
@@ -427,83 +426,126 @@ function Propiedad() {
             ))}
 
             {/* Modal Detalle */}
-            {detalleModal.abierto && (
+            {detalleModal.abierto && detalleModal.propiedad && (
                 <div className='modalOverlay'>
-                    <div className='modalDetalle'>
+                    <div className='modal_tree'>
                         <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
                         <h2>Detalles de la Propiedad</h2>
-                        <table className='detalleTable'>
-                            <tbody>
-                                <tr>
-                                    <th>RIF</th>
-                                    <td>{detalleModal.propiedad.rif}</td>
-                                </tr>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <td>{detalleModal.propiedad.nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>¿Posee Certificado?</th>
-                                    <td>{detalleModal.propiedad.posee_certificado}</td>
-                                </tr>
-                                <tr>
-                                    <th>Código RUNSAI del Productor</th>
-                                    <td>{detalleModal.propiedad.productor_codigo}</td>
-                                </tr>
-                                <tr>
-                                    <th>Cédula Productor</th>
-                                    <td>{detalleModal.propiedad.productor_cedula}</td>
-                                </tr>
-                                <tr>
-                                    <th>Productor Responsable</th>
-                                    <td>{detalleModal.propiedad.productor_nombre} {detalleModal.propiedad.productor_apellido}</td>
-                                </tr>
-                                <tr>
-                                    <th>Hectáreas</th>
-                                    <td>{detalleModal.propiedad.hectareas}</td>
-                                </tr>
-                                <tr>
-                                    <th>Cantidad de Cultivos</th>
-                                    <td>{detalleModal.propiedad.c_cultivo}</td>
-                                </tr>
-                                <tr>
-                                    <th>Cultivos</th>
-                                    <td dangerouslySetInnerHTML={{ __html: detalleModal.propiedad.cultivos_detalle || '' }} />
-                                </tr>
-                                <tr>
-                                    <th>Tipo de Propiedad</th>
-                                    <td>{detalleModal.propiedad.tipo_propiedad_nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Ubicación</th>
-                                    <td>{detalleModal.propiedad.ubicación}</td>
-                                </tr>
-                                <tr>
-                                    <th>Sector</th>
-                                    <td>{detalleModal.propiedad.sector_nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Parroquia</th>
-                                    <td>{detalleModal.propiedad.parroquia_nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Municipio</th>
-                                    <td>{detalleModal.propiedad.municipio_nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Estado</th>
-                                    <td>{detalleModal.propiedad.estado_nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Sitios Asociados</th>
-                                    <td>{detalleModal.propiedad.sitios_asociados}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <form className='modalForm'>
+                            <div className='formColumns_tree'>
+                                <div className='formGroup'>
+                                    <label>RIF:</label>
+                                    <input type="text" value={detalleModal.propiedad.rif || ''} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Nombre:</label>
+                                    <input type="text" value={detalleModal.propiedad.nombre || ''} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Productor Responsable:</label>
+                                    <SingleSelect
+                                        options={productoresOptions}
+                                        value={detalleModal.propiedad.productor_id}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Tipo de Propiedad:</label>
+                                    <SingleSelect
+                                        options={tiposOptions}
+                                        value={detalleModal.propiedad.tipo_propiedad_id}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Hectáreas:</label>
+                                    <input type="number" value={detalleModal.propiedad.hectareas || ''} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Cantidad de Cultivos:</label>
+                                    <input type="number" value={detalleModal.propiedad.c_cultivo || ''} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Cultivos:</label>
+                                    <MultiSelect
+                                        options={cultivosOptions}
+                                        value={cultivosOptions.filter(opt =>
+                                            (detalleModal.propiedad.cultivos || []).map(c => String(c.id)).includes(String(opt.value))
+                                        )}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Sitios Asociados:</label>
+                                    <input type="text" value={detalleModal.propiedad.sitios_asociados || ''} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Ubicación:</label>
+                                    <input type="text" value={detalleModal.propiedad.ubicación || ''} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Estado:</label>
+                                    <SingleSelect
+                                        options={estadosOptions}
+                                        value={detalleModal.propiedad.estado_id}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Municipio:</label>
+                                    <SingleSelect
+                                        options={municipiosOptions}
+                                        value={detalleModal.propiedad.municipio_id}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Parroquia:</label>
+                                    <SingleSelect
+                                        options={parroquiasOptions}
+                                        value={detalleModal.propiedad.parroquia_id}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Sector:</label>
+                                    <SingleSelect
+                                        options={sectoresOptions}
+                                        value={detalleModal.propiedad.sector_id}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>¿Posee Certificado?</label>
+                                    <div className="radio-group">
+                                        <label style={{ marginLeft: '1em' }}>
+                                            <input
+                                                type="radio"
+                                                className="radio-input"
+                                                name="posee_certificado_detalle"
+                                                value="SI"
+                                                checked={detalleModal.propiedad.posee_certificado === 'SI'}
+                                                disabled
+                                            /> SI
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                className="radio-input"
+                                                name="posee_certificado_detalle"
+                                                value="NO"
+                                                checked={detalleModal.propiedad.posee_certificado === 'NO'}
+                                                disabled
+                                            /> NO
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
-
+            
             {/* Modal registro y editar */}
             {currentModal === 'propiedad' && (
                 <div className='modalOverlay'>
@@ -511,7 +553,7 @@ function Propiedad() {
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Propiedad' : 'Registrar Propiedad'}</h2>
                         <form className='modalForm'>
-                            <div className={styles.formColumns}>
+                            <div className='formColumns_tree'>
                                 <div className='formGroup'>
                                     <label htmlFor="rif">RIF:</label>
                                     <input type="text" id="rif" value={formData.rif} onChange={handleChange} className='input' placeholder='RIF'/>
@@ -677,7 +719,7 @@ function Propiedad() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
                             <th>N°</th>
@@ -697,7 +739,7 @@ function Propiedad() {
                                 <td>{item.ubicación}</td>
                                 <td>{item.sector_nombre}</td>
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                         <img
                                             onClick={() => openDetalleModal(item)}
                                             src={icon.ver}

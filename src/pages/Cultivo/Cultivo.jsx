@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from './cultivo.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
@@ -257,7 +256,7 @@ function Cultivo() {
     const closeDetalleModal = () => setDetalleModal({ abierto: false, cultivo: null });
 
     return (
-        <div className={styles.cultivoContainer}>
+        <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
@@ -269,31 +268,52 @@ function Cultivo() {
             ))}
 
             {/* Modal Detalle */}
-            {detalleModal.abierto && (
+            {detalleModal.abierto && detalleModal.cultivo && (
                 <div className='modalOverlay'>
-                    <div className='modalDetalle'>
+                    <div className='modal'>
                         <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
                         <h2>Detalles del Cultivo</h2>
-                        <table className='detalleTable'>
-                            <tbody>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <td>{detalleModal.cultivo.nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Nombre Científico</th>
-                                    <td>{detalleModal.cultivo.nombre_cientifico}</td>
-                                </tr>
-                                <tr>
-                                    <th>Tipo</th>
-                                    <td>{detalleModal.cultivo.tipo_cultivo_nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Descripción</th>
-                                    <td>{detalleModal.cultivo.descripcion}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <form className='modalForm'>
+                            <div className='formColumns'>
+                                <div className='formGroup'>
+                                    <label htmlFor="nombre">Nombre:</label>
+                                    <input
+                                        type="text"
+                                        id="nombre"
+                                        value={detalleModal.cultivo.nombre || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="nombre_cientifico">Nombre Científico:</label>
+                                    <input
+                                        type="text"
+                                        id="nombre_cientifico"
+                                        value={detalleModal.cultivo.nombre_cientifico || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="tipo_cultivo_id">Tipo:</label>
+                                    <SingleSelect
+                                        options={tiposOptions}
+                                        value={detalleModal.cultivo.tipo_cultivo_id}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="descripcion">Descripción:</label>
+                                    <textarea
+                                        id="descripcion"
+                                        value={detalleModal.cultivo.descripcion || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
@@ -301,11 +321,11 @@ function Cultivo() {
             {/* Modal registro y editar */}
             {currentModal === 'cultivo' && (
                 <div className='modalOverlay'>
-                    <div className='modal_mono'>
+                    <div className='modal'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Cultivo' : 'Registrar Cultivo'}</h2>
                         <form className='modalForm'>
-                            <div className={styles.formColumns}>
+                            <div className='formColumns'>
                                 <div className='formGroup'>
                                     <label htmlFor="nombre">Nombre:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Nombre del cultivo'/>
@@ -326,7 +346,7 @@ function Cultivo() {
                                     />
                                     {errors.tipo_cultivo_id && <span className='errorText'>{errors.tipo_cultivo_id}</span>}
                                 </div>
-                                <div className='formGroup' style={{ gridColumn: '1 / -1' }}>
+                                <div className='formGroup'>
                                     <label htmlFor="descripcion">Descripción:</label>
                                     <textarea id="descripcion" value={formData.descripcion} onChange={handleChange} className='input' placeholder='Descripción'/>
                                     {errors.descripcion && <span className='errorText'>{errors.descripcion}</span>}
@@ -376,7 +396,7 @@ function Cultivo() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
                             <th>N°</th>
@@ -394,7 +414,7 @@ function Cultivo() {
                                 <td>{cultivo.nombre_cientifico}</td>
                                 <td>{cultivo.tipo_cultivo_nombre}</td>
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                         <img
                                             onClick={() => openDetalleModal(cultivo)}
                                             src={icon.ver}

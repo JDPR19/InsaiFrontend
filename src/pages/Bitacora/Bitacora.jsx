@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from './bitacora.module.css';
 import BitacoraModal from '../../components/modalbitacora/BitacoraModal';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
@@ -79,7 +78,7 @@ function Bitacora() {
     };
 
     return (
-        <div className={styles.bitacoraContainer}>
+        <div className='mainContainer'>
             {notifications.map((notification) => (
                 <Notification
                     key={notification.id}

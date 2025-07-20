@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
-import styles from './solicitud.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
@@ -277,7 +276,7 @@ function Solicitud() {
     };
 
     return (
-        <div className={styles.solicitudContainer}>
+        <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
@@ -295,7 +294,7 @@ function Solicitud() {
                         <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
                         <h2>Detalle de Solicitud</h2>
                         <form className='modalForm'>
-                            <div className={styles.formColumns}>
+                            <div className='formColumns'>
                                 <div className='formGroup'>
                                     <label>Fecha Solicitada:</label>
                                     <input
@@ -372,7 +371,7 @@ function Solicitud() {
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Solicitud' : 'Registrar Solicitud'}</h2>
                         <form className='modalForm'>
-                            <div className={styles.formColumns}>
+                            <div className='formColumns'>
                                 <div className='formGroup'>
                                     <label>Fecha Solicitada:</label>
                                     <input type="date" id='fecha_solicitada' value={formData.fecha_solicitada} onChange={handleChange} className='date' />
@@ -474,7 +473,7 @@ function Solicitud() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
                             <th>N°</th>
@@ -498,7 +497,7 @@ function Solicitud() {
                                     </span>
                                 </td>
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                         <img
                                             onClick={() => openDetalleModal(item)}
                                             src={icon.ver}

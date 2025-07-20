@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from './programas.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
@@ -210,7 +209,7 @@ function TipoPrograma() {
 
 
     return (
-        <div className={styles.tipoprogramaContainer}>
+        <div className='mainContainer'>
             {notifications.map((notification) => (
                 <Notification
                     key={notification.id}
@@ -281,7 +280,7 @@ function TipoPrograma() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
                             <th>N°</th>
@@ -295,7 +294,7 @@ function TipoPrograma() {
                                 <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{tipo_programa.nombre}</td>
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                         <img
                                             onClick={() => openEditModal(tipo_programa)}
                                             src={icon.editar}

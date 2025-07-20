@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from './empleados.module.css';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
@@ -243,7 +242,7 @@ function Empleado() {
     const closeDetalleModal = () => setDetalleModal({ abierto: false, empleado: null });
 
     return (
-        <div className={styles.personaContainer}>
+        <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
@@ -255,39 +254,66 @@ function Empleado() {
             ))}
 
             {/* Modal de detalle */}
-            {detalleModal.abierto && (
+            {detalleModal.abierto && detalleModal.empleado && (
                 <div className='modalOverlay'>
-                    <div className='modalDetalle'>
+                    <div className='modal'>
                         <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
                         <h2>Detalles del Empleado</h2>
-                        <table className='detalleTable'>
-                            <tbody>
-                                <tr>
-                                    <th>Cédula</th>
-                                    <td>{detalleModal.empleado.cedula}</td>
-                                </tr>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <td>{detalleModal.empleado.nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Apellido</th>
-                                    <td>{detalleModal.empleado.apellido}</td>
-                                </tr>
-                                <tr>
-                                    <th>Contacto</th>
-                                    <td>{detalleModal.empleado.contacto}</td>
-                                </tr>
-                                <tr>
-                                    <th>Cargo</th>
-                                    <td>{detalleModal.empleado.cargo_nombre}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <form className='modalForm'>
+                            <div className='formColumns'>
+                                <div className='formGroup'>
+                                    <label htmlFor="cedula">Cédula:</label>
+                                    <input
+                                        type="text"
+                                        id="cedula"
+                                        value={detalleModal.empleado.cedula || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="nombre">Nombre:</label>
+                                    <input
+                                        type="text"
+                                        id="nombre"
+                                        value={detalleModal.empleado.nombre || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="apellido">Apellido:</label>
+                                    <input
+                                        type="text"
+                                        id="apellido"
+                                        value={detalleModal.empleado.apellido || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="contacto">Contacto:</label>
+                                    <input
+                                        type="text"
+                                        id="contacto"
+                                        value={detalleModal.empleado.contacto || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="cargo_id">Cargo:</label>
+                                    <SingleSelect
+                                        options={cargos.map(cargo => ({ value: String(cargo.id), label: cargo.nombre }))}
+                                        value={detalleModal.empleado.cargo_id}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
-
             {/* Modal registro y editar */}
             {currentModal === 'empleado' && (
                 <div className='modalOverlay'>

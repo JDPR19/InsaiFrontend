@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import MultiSelect from '../../components/selectmulti/MultiSelect';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
-import styles from './programas.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
@@ -347,7 +346,7 @@ function Programas() {
     const closeDetalleModal = () => setDetalleModal({ abierto: false, programa: null });
 
     return (
-        <div className={styles.programaContainer}>
+        <div className='mainContainer'>
 
             {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
@@ -360,39 +359,72 @@ function Programas() {
             ))}
 
             {/* Modal Detalle */}
-            {detalleModal.abierto && (
+            {detalleModal.abierto && detalleModal.programa && (
                 <div className='modalOverlay'>
-                    <div className='modalDetalle'>
+                    <div className='modal'>
                         <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
                         <h2>Detalles del Programa</h2>
-                        <table className='detalleTable'>
-                            <tbody>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <td>{detalleModal.programa.nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Tipo de Programa</th>
-                                    <td>{detalleModal.programa.tipo_programa_nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Plagas</th>
-                                    <td dangerouslySetInnerHTML={{ __html: detalleModal.programa.plagas_detalle }} />
-                                </tr>
-                                <tr>
-                                    <th>Empleados Responsables</th>
-                                    <td dangerouslySetInnerHTML={{ __html: detalleModal.programa.empleados_detalle }} />
-                                </tr>
-                                <tr>
-                                    <th>Cultivos Asociados</th>
-                                    <td dangerouslySetInnerHTML={{ __html: detalleModal.programa.cultivos_detalle }} />
-                                </tr>
-                                <tr>
-                                    <th>Descripción</th>
-                                    <td>{detalleModal.programa.descripcion}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <form className='modalForm'>
+                            <div className='formColumns'>
+                                <div className='formGroup'>
+                                    <label htmlFor="nombre">Nombre:</label>
+                                    <input
+                                        type="text"
+                                        id="nombre"
+                                        value={detalleModal.programa.nombre || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="tipo_programa_fito_id">Tipo de Programa:</label>
+                                    <SingleSelect
+                                        options={tipos.map(tipo => ({ value: String(tipo.id), label: tipo.nombre }))}
+                                        value={detalleModal.programa.tipo_programa_fito_id}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Plagas a Tratar:</label>
+                                    <MultiSelect
+                                        options={plagasOptions}
+                                        value={plagasOptions.filter(opt =>
+                                            (detalleModal.programa.plagas || []).map(p => String(p.id)).includes(String(opt.value))
+                                        )}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Cultivos Asociados:</label>
+                                    <MultiSelect
+                                        options={cultivosOptions}
+                                        value={cultivosOptions.filter(opt =>
+                                            (detalleModal.programa.cultivos || []).map(c => String(c.id)).includes(String(opt.value))
+                                        )}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Empleados Responsables:</label>
+                                    <MultiSelect
+                                        options={empleadosOptions}
+                                        value={empleadosOptions.filter(opt =>
+                                            (detalleModal.programa.empleados || []).map(e => String(e.id)).includes(String(opt.value))
+                                        )}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="descripcion">Descripción:</label>
+                                    <textarea
+                                        id="descripcion"
+                                        value={detalleModal.programa.descripcion || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
@@ -404,7 +436,7 @@ function Programas() {
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Programa' : 'Registrar Programa'}</h2>
                         <form className='modalForm'>
-                            <div className={styles.formColumns}>
+                            <div className='formColumns'>
                                 <div className='formGroup'>
                                     <label htmlFor="nombre">Nombre:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Nombre del programa'/>
@@ -512,7 +544,7 @@ function Programas() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
                             <th>N°</th>
@@ -530,7 +562,7 @@ function Programas() {
                                 {/* <td>{(programa.plagas || []).map(p => p.nombre).join(', ')}</td> */}
                                 {/* <td>{(programa.empleados || []).map(e => e.nombre).join(', ')}</td> */}
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                         <img
                                             onClick={() => openDetalleModal(programa)}
                                             src={icon.ver}

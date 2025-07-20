@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from './ubicacion.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
@@ -339,7 +338,7 @@ function Sector() {
     }));
 
     return (
-        <div className={styles.ubicacionContainer}>
+        <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
@@ -352,16 +351,11 @@ function Sector() {
 
             {currentModal === 'sector' && (
                 <div className='modalOverlay'>
-                    <div className='modal_mono'>
+                    <div className='modal'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Sector' : 'Registrar Sector'}</h2>
                         <form className='modalForm'>
-                            <div>
-                                <div className='formGroup'>
-                                    <label htmlFor="nombre">Sector:</label>
-                                    <input type="text" id="nombre" value={formData.nombre} onChange={handleInputChange} className='input' placeholder='Rellene el Campo'/>
-                                    {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
-                                </div>
+                            <div className='formColumns'>
                                 <div className='formGroup'>
                                     <label htmlFor="estado_id">Estado:</label>
                                     <SingleSelect
@@ -393,6 +387,11 @@ function Sector() {
                                         isDisabled={!formData.municipio_id || parroquiasOptions.length === 0}
                                     />
                                     {errors.parroquia_id && <span className='errorText'>{errors.parroquia_id}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="nombre">Sector:</label>
+                                    <input type="text" id="nombre" value={formData.nombre} onChange={handleInputChange} className='input' placeholder='Rellene el Campo'/>
+                                    {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>
                             </div>
                             <button 
@@ -438,7 +437,7 @@ function Sector() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
                             <th>N°</th>
@@ -458,7 +457,7 @@ function Sector() {
                                 <td>{sector.municipio_nombre}</td>
                                 <td>{sector.estado_nombre}</td>
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                         <img
                                             onClick={() => openEditModal(sector)}
                                             src={icon.editar}

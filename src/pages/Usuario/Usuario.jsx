@@ -304,10 +304,10 @@ function Usuario() {
         setCurrentModal('usuario');
     };
 
-    const openConfirmDeleteModal = (id) => {
-        setSelectedEmpleadoId(id);
-        setConfirmDeleteModal(true);
-    };
+    // const openConfirmDeleteModal = (id) => {
+    //     setSelectedEmpleadoId(id);
+    //     setConfirmDeleteModal(true);
+    // };
     const closeConfirmDeleteModal = () => {
         setSelectedEmpleadoId(null);
         setConfirmDeleteModal(false);
@@ -337,7 +337,7 @@ function Usuario() {
     const empleadoSeleccionado = cedulas.find((c) => c.id === parseInt(formData.empleado_id));
 
     return (
-        <div className={styles.usuarioContainer}>
+        <div className='mainContainer'>
 
             {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
@@ -350,51 +350,83 @@ function Usuario() {
             ))}
 
             {/* Modal de detalle */}
-            {detalleModal.abierto && (
+            {detalleModal.abierto && detalleModal.usuario && (
                 <div className='modalOverlay'>
-                    <div className='modalDetalle'>
+                    <div className='modal'>
                         <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
                         <h2>Detalle del Usuario</h2>
-                        {detalleModal.usuario ? (
-                            <table className='detalleTable'>
-                                <tbody>
-                                    <tr>
-                                        <th>Usuario</th>
-                                        <td>{detalleModal.usuario.username}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Email</th>
-                                        <td>{detalleModal.usuario.email}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Rol</th>
-                                        <td>{detalleModal.usuario.roles_nombre}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Cédula</th>
-                                        <td>{detalleModal.usuario.cedula}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Nombre</th>
-                                        <td>{detalleModal.usuario.empleado_nombre}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Apellido</th>
-                                        <td>{detalleModal.usuario.apellido}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Contacto</th>
-                                        <td>{detalleModal.usuario.contacto}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Cargo</th>
-                                        <td>{detalleModal.usuario.cargo_nombre}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        ) : (
-                            <div>No se encontró información del usuario.</div>
-                        )}
+                        <form className='modalForm'>
+                            <div className='formColumns'>
+                                <div className='formGroup'>
+                                    <label htmlFor="empleado_id">Cédula:</label>
+                                    <SingleSelect
+                                        options={cedulas.map(cedula => ({ value: String(cedula.id), label: cedula.cedula }))}
+                                        value={detalleModal.usuario.empleado_id}
+                                        isDisabled={true}
+                                    />
+                                    <div className='text_empleado'>
+                                        {detalleModal.usuario.empleado_nombre && detalleModal.usuario.apellido
+                                            ? `${detalleModal.usuario.empleado_nombre} ${detalleModal.usuario.apellido}`
+                                            : '\u00A0'}
+                                    </div>
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="username">Usuario:</label>
+                                    <input
+                                        type="text"
+                                        id="username"
+                                        value={detalleModal.usuario.username || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="email">Email:</label>
+                                    <input
+                                        type="text"
+                                        id="email"
+                                        value={detalleModal.usuario.email || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="tipo_usuario_id">Tipo de Usuario:</label>
+                                    <SingleSelect
+                                        options={tiposUsuario.map(roles => ({ value: String(roles.id), label: roles.nombre }))}
+                                        value={detalleModal.usuario.roles_id}
+                                        isDisabled={true}
+                                    />
+                                </div>
+
+                                {user.id === detalleModal.usuario.id && detalleModal.usuario.estado && (
+                                    <>
+                                        <div className='formGroup'>
+                                            <label htmlFor="password">Contraseña</label>
+                                            <input
+                                                type="password"
+                                                id="password"
+                                                value={detalleModal.usuario.password || ''}
+                                                className='password'
+                                                disabled
+                                                placeholder="********"
+                                            />
+                                        </div>
+                                        <div className='formGroup'>
+                                            <label htmlFor="confirmarpassword">Confirme:</label>
+                                            <input
+                                                type="password"
+                                                id="confirmarpassword"
+                                                value={detalleModal.usuario.confirmarpassword || ''}
+                                                className='password'
+                                                disabled
+                                                placeholder="********"
+                                            />
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
@@ -533,14 +565,14 @@ function Usuario() {
                                                 title='Editar'
                                             />
                                         )}
-                                        {tienePermiso('usuarios','eliminar') && user.id === usuario.id &&( 
+                                        {/* {tienePermiso('usuarios','eliminar') && user.id === usuario.id &&( 
                                             <img 
                                             onClick={() => openConfirmDeleteModal(usuario.id)} 
                                             src={icon.eliminar} 
                                             className='iconeliminar' 
                                             title='eliminar'
                                             />
-                                        )}
+                                        )} */}
                                         {tienePermiso('usuarios', 'deshabilitar') && user.id !== usuario.id && usuario.estado && (
                                             <img 
                                                 onClick={() => disableUser(usuario.id, false)} 

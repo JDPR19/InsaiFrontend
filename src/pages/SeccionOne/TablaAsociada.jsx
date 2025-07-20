@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from './maestro.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
@@ -69,7 +68,7 @@ function TablaAsociada() {
     const closeDetalleModal = () => setDetalleModal({ abierto: false, propiedad: null });
 
     return (
-        <div className={styles.Container}>
+        <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
@@ -144,7 +143,7 @@ function TablaAsociada() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
                             <th>N°</th>
@@ -171,7 +170,7 @@ function TablaAsociada() {
                                 <td>{item.propiedad_nombre}</td>
                                 <td>{item.propiedad_ubicacion}</td>
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                         <img
                                             src={icon.pdf2}
                                             className='iconver'

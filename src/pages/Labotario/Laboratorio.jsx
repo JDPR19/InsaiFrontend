@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from './laboratorios.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
@@ -414,7 +413,7 @@ function Laboratorio() {
     const closeDetalleModal = () => setDetalleModal({ abierto: false, laboratorio: null });
 
     return (
-        <div className={styles.laboratorioContainer}>
+        <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
@@ -425,47 +424,84 @@ function Laboratorio() {
                 />
             ))}
 
-            {detalleModal.abierto && (
+            {detalleModal.abierto && detalleModal.laboratorio && (
                 <div className='modalOverlay'>
-                    <div className='modalDetalle'>
+                    <div className='modal'>
                         <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
                         <h2>Detalles del Laboratorio</h2>
-                        <table className='detalleTable'>
-                            <tbody>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <td>{detalleModal.laboratorio.nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Descripción</th>
-                                    <td>{detalleModal.laboratorio.descripcion}</td>
-                                </tr>
-                                <tr>
-                                    <th>Ubicación</th>
-                                    <td>{detalleModal.laboratorio.ubicación}</td>
-                                </tr>
-                                <tr>
-                                    <th>Tipo de Laboratorio</th>
-                                    <td>{detalleModal.laboratorio.tipo_laboratorio_nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Sector</th>
-                                    <td>{detalleModal.laboratorio.sector_nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Parroquia</th>
-                                    <td>{detalleModal.laboratorio.parroquia_nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Municipio</th>
-                                    <td>{detalleModal.laboratorio.municipio_nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Estado</th>
-                                    <td>{detalleModal.laboratorio.estado_nombre}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <form className='modalForm'>
+                            <div className='formColumns'>
+                                <div className='formGroup'>
+                                    <label htmlFor="nombre">Nombre:</label>
+                                    <input
+                                        type="text"
+                                        id="nombre"
+                                        value={detalleModal.laboratorio.nombre || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="ubicación">Ubicación:</label>
+                                    <input
+                                        type="text"
+                                        id="ubicación"
+                                        value={detalleModal.laboratorio.ubicación || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="tipo_laboratorio_id">Tipo de laboratorio:</label>
+                                    <SingleSelect
+                                        options={tiposOptions}
+                                        value={detalleModal.laboratorio.tipo_laboratorio_id}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="estado_id">Estado:</label>
+                                    <SingleSelect
+                                        options={estadosOptions}
+                                        value={detalleModal.laboratorio.estado_id}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="municipio_id">Municipio:</label>
+                                    <SingleSelect
+                                        options={municipiosOptions}
+                                        value={detalleModal.laboratorio.municipio_id}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="parroquia_id">Parroquia:</label>
+                                    <SingleSelect
+                                        options={parroquiasOptions}
+                                        value={detalleModal.laboratorio.parroquia_id}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="sector_id">Sector:</label>
+                                    <SingleSelect
+                                        options={sectoresOptions}
+                                        value={detalleModal.laboratorio.sector_id}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="descripcion">Descripción:</label>
+                                    <textarea
+                                        id="descripcion"
+                                        value={detalleModal.laboratorio.descripcion || ''}
+                                        className='textarea'
+                                        disabled
+                                    />
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
@@ -476,7 +512,7 @@ function Laboratorio() {
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Laboratorio' : 'Registrar Laboratorio'}</h2>
                         <form className='modalForm'>
-                            <div className={styles.formColumns}>
+                            <div className='formColumns'>
                                 <div className='formGroup'>
                                     <label htmlFor="nombre">Nombre:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleInputChange} className='input' placeholder='Nombre del laboratorio'/>
@@ -589,7 +625,7 @@ function Laboratorio() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
                             <th>N°</th>
@@ -605,7 +641,7 @@ function Laboratorio() {
                                 <td>{lab.nombre}</td>
                                 <td>{lab.ubicación} </td>
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                         <img
                                             onClick={() => openDetalleModal(lab)}
                                             src={icon.ver}

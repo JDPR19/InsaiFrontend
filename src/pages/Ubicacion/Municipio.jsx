@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from './ubicacion.module.css';
 import '../../main.css';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
 import icon from '../../components/iconos/iconos';
@@ -230,7 +229,7 @@ function Municipio() {
     };
 
     return (
-        <div className={styles.ubicacionContainer}>
+        <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
@@ -243,16 +242,11 @@ function Municipio() {
 
             {currentModal === 'municipio' && (
                 <div className='modalOverlay'>
-                    <div className='modal_mono'>
+                    <div className='modal'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Municipio' : 'Registrar Municipio'}</h2>
                         <form className='modalForm'>
-                            <div>
-                                <div className='formGroup'>
-                                    <label htmlFor="nombre">Municipio:</label>
-                                    <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
-                                    {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
-                                </div>
+                            <div className='formColumns'>
                                 <div className='formGroup'>
                                     <label htmlFor="estado_id">Estado:</label>
                                     <SingleSelect
@@ -262,6 +256,11 @@ function Municipio() {
                                         placeholder="Seleccione un tipo"
                                         />
                                     {errors.estado_id && <span className='errorText'>{errors.estado_id}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="nombre">Municipio:</label>
+                                    <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
+                                    {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>
                             </div>
                             <button 
@@ -307,7 +306,7 @@ function Municipio() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
                             <th>N°</th>
@@ -323,7 +322,7 @@ function Municipio() {
                                 <td>{municipio.nombre}</td>
                                 <td>{municipio.estado_nombre}</td>
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                         <img
                                             onClick={() => openEditModal(municipio)}
                                             src={icon.editar}

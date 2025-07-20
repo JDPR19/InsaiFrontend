@@ -1,9 +1,0 @@
-/* Contenedor principal del Persona */
-.personaContainer {
-    padding: 20px;
-    background-color: var(--white1);
-    min-height: calc(100vh - 60px); 
-    margin-left: 110px; 
-    margin-top: 50px;
-    margin-right: 50px;
-}

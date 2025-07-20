@@ -148,7 +148,7 @@ function MiUsuario() {
     if (!usuario) return <div>Cargando...</div>;
 
     return (
-        <div className={styles.miuserContainer}>
+        <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
@@ -162,9 +162,11 @@ function MiUsuario() {
             {/* Modal editar usuario */}
             {currentModal === 'usuario' && (
                 <div className='modalOverlay'>
-                    <div className={styles.modal}>
+                    <div className='modal'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
-                        <h2 className={styles.title}>Editar Mi Usuario</h2>
+                        <div>
+                            <h2 className={styles.title}>Editar Mi Usuario</h2>
+                        </div>
                         {/* Mostrar datos como texto */}
                         <div className={styles.infoGrid}>
                                 <div className={styles.infoRow}>
@@ -232,7 +234,7 @@ function MiUsuario() {
             )}
 
             <div className='tableSection'>
-                <h2>Mi Usuario</h2>
+                <h2 className={styles.title}>Mi Usuario</h2>
                 <table className='table'>
                     <thead>
                         <tr>

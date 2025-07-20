@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from './laboratorios.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
@@ -220,7 +219,7 @@ function TipoLaboratorio() {
 
 
     return (
-        <div className={styles.tipolaboratorioContainer}>
+        <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
@@ -238,7 +237,7 @@ function TipoLaboratorio() {
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Tipo de Laboratorio' : 'Registrar Tipo de Laboratorio'}</h2>
                         <form className='modalForm'>
-                            <div>
+                            <div className='fromColumns_mono'>
 
                                 <div className='formGroup'>
                                     <label htmlFor="tipo_laboratorio">Tipo de Laboratorio:</label>
@@ -292,7 +291,7 @@ function TipoLaboratorio() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
                             <th>N°</th>
@@ -306,7 +305,7 @@ function TipoLaboratorio() {
                                 <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{tipo_laboratorio.nombre}</td>
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                         <img
                                             onClick={() => openEditModal(tipo_laboratorio)}
                                             src={icon.editar}

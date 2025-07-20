@@ -71,6 +71,10 @@ import Select from 'react-select';
         maxHeight: 160, 
         overflowY: 'auto'
     }),
+    menuPortal: base => ({
+        ...base,
+        zIndex: 9999, 
+    }),
     input: (provided) => ({
         ...provided,
         color: '#242424',
@@ -95,6 +99,7 @@ import Select from 'react-select';
         placeholder={placeholder}
         classNamePrefix="react-select"
         styles={customSelectStyles}
+        menuPortalTarget={document.body}
         {...props}
     />
     );

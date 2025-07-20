@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from './productor.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
@@ -9,13 +8,12 @@ import Notification from '../../components/notification/Notification';
 import { useNotification } from '../../utils/useNotification';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
-import SingleSelect from '../../components/selectmulti/SingleSelect';
+// import SingleSelect from '../../components/selectmulti/SingleSelect';
 import { BaseUrl } from '../../utils/constans';
 
 function Productor() {
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
-    const [tipos, setTipos] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(false);
     const [currentModal, setCurrentModal] = useState(null);
@@ -27,7 +25,6 @@ function Productor() {
         nombre: '',
         apellido: '',
         contacto: '',
-        tipo_productor_id: '',
         email: ''
     });
     const [errors, setErrors] = useState({});
@@ -37,11 +34,6 @@ function Productor() {
     const { notifications, addNotification, removeNotification } = useNotification();
     const itemsPerPage = 8;
 
-    // Opciones para select
-    const tiposOptions = tipos.map(tipo => ({
-        value: String(tipo.id),
-        label: tipo.nombre
-    }));
 
     const fetchProductores = async () => {
         setLoading(true);
@@ -59,24 +51,8 @@ function Productor() {
         }
     };
 
-    const fetchTipos = async () => {
-        setLoading(true);
-        try {
-            const response = await axios.get(`${BaseUrl}/productor/tipos/all`, {
-                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
-            });
-            setTipos(response.data);
-        } catch (error) {
-            console.error('Error obteniendo todos los tipos de productores', error);
-            addNotification('Error al obtener tipos de productores', 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
         fetchProductores();
-        fetchTipos();
     }, []);
 
     const resetFormData = () => {
@@ -87,7 +63,6 @@ function Productor() {
             nombre: '',
             apellido: '',
             contacto: '',
-            tipo_productor_id: '',
             email: ''
         });
         setErrors({});
@@ -102,10 +77,6 @@ function Productor() {
             const { valid, message } = validateField(value, regex, errorMessage);
             setErrors(prev => ({ ...prev, [id]: valid ? '' : message }));
         }
-    };
-
-    const handleTipoChange = (val) => {
-        setFormData(prev => ({ ...prev, tipo_productor_id: val }));
     };
 
     const handleSearch = (searchTerm) => {
@@ -200,6 +171,16 @@ function Productor() {
         if (indexOfLastItem < datosFiltrados.length) setCurrentPage(currentPage + 1);
     };
 
+    const handlePreviousThreePages = () => {
+    setCurrentPage((prev) => Math.max(prev - 3, 1));
+    };
+
+    const handleNextThreePages = () => {
+        const maxPage = Math.ceil(datosFiltrados.length / itemsPerPage);
+        setCurrentPage((prev) => Math.min(prev + 3, maxPage));
+    };
+
+
     const openModal = () => {
         resetFormData();
         setCurrentModal('productor');
@@ -214,7 +195,6 @@ function Productor() {
             nombre: productor.nombre || '',
             apellido: productor.apellido || '',
             contacto: productor.contacto || '',
-            tipo_productor_id: productor.tipo_productor_id || '',
             email: productor.email || ''
         });
         setErrors({});
@@ -234,7 +214,7 @@ function Productor() {
     const closeDetalleModal = () => setDetalleModal({ abierto: false, productor: null });
 
     return (
-        <div className={styles.tipoproductorContainer}>
+        <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
                 <Notification
@@ -245,43 +225,75 @@ function Productor() {
                 />
             ))}
 
-            {detalleModal.abierto && (
+            {detalleModal.abierto && detalleModal.productor && (
                 <div className='modalOverlay'>
-                    <div className='modalDetalle'>
+                    <div className='modal'>
                         <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
                         <h2>Detalles del Productor</h2>
-                        <table className='detalleTable'>
-                            <tbody>
-                                <tr>
-                                    <th>Código</th>
-                                    <td>{detalleModal.productor.codigo}</td>
-                                </tr>
-                                <tr>
-                                    <th>Cédula</th>
-                                    <td>{detalleModal.productor.cedula}</td>
-                                </tr>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <td>{detalleModal.productor.nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Apellido</th>
-                                    <td>{detalleModal.productor.apellido}</td>
-                                </tr>
-                                <tr>
-                                    <th>Contacto</th>
-                                    <td>{detalleModal.productor.contacto}</td>
-                                </tr>
-                                <tr>
-                                    <th>Correo</th>
-                                    <td>{detalleModal.productor.email}</td>
-                                </tr>
-                                <tr>
-                                    <th>Tipo de Productor</th>
-                                    <td>{detalleModal.productor.tipo_productor_nombre}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <form className='modalForm'>
+                            <div className='formColumns'>
+                                <div className='formGroup'>
+                                    <label htmlFor="codigo">Código Runsai:</label>
+                                    <input
+                                        type="text"
+                                        id="codigo"
+                                        value={detalleModal.productor.codigo || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="cedula">Cédula:</label>
+                                    <input
+                                        type="text"
+                                        id="cedula"
+                                        value={detalleModal.productor.cedula || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="nombre">Nombre:</label>
+                                    <input
+                                        type="text"
+                                        id="nombre"
+                                        value={detalleModal.productor.nombre || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="apellido">Apellido:</label>
+                                    <input
+                                        type="text"
+                                        id="apellido"
+                                        value={detalleModal.productor.apellido || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="contacto">Contacto:</label>
+                                    <input
+                                        type="text"
+                                        id="contacto"
+                                        value={detalleModal.productor.contacto || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="email">Correo:</label>
+                                    <input
+                                        type="email"
+                                        id="email"
+                                        value={detalleModal.productor.email || ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
@@ -293,9 +305,9 @@ function Productor() {
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Productor' : 'Registrar Productor'}</h2>
                         <form className='modalForm'>
-                            <div className={styles.formColumns}>
+                            <div className='formColumns'>
                                 <div className='formGroup'>
-                                    <label htmlFor="codigo">Código:</label>
+                                    <label htmlFor="codigo">Código Runsai:</label>
                                     <input type="text" id="codigo" value={formData.codigo} onChange={handleChange} className='input' placeholder='Código único'/>
                                     {errors.codigo && <span className='errorText'>{errors.codigo}</span>}
                                 </div>
@@ -318,16 +330,6 @@ function Productor() {
                                     <label htmlFor="contacto">Contacto:</label>
                                     <input type="text" id="contacto" value={formData.contacto} onChange={handleChange} className='input' placeholder='Teléfono'/>
                                     {errors.contacto && <span className='errorText'>{errors.contacto}</span>}
-                                </div>
-                                <div className='formGroup'>
-                                    <label htmlFor="tipo_productor_id">Tipo de Productor:</label>
-                                    <SingleSelect
-                                        options={tiposOptions}
-                                        value={formData.tipo_productor_id}
-                                        onChange={handleTipoChange}
-                                        placeholder="Seleccione un tipo"
-                                    />
-                                    {errors.tipo_productor_id && <span className='errorText'>{errors.tipo_productor_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="email">Correo:</label>
@@ -377,14 +379,15 @@ function Productor() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
-                            <th>Código</th>
+                            <th>Código Runsai</th>
                             <th>Cédula</th>
                             <th>Nombre</th>
                             <th>Apellido</th>
                             <th>Contacto</th>
+                            <th>Correo</th>
                             <th>Acción</th>
                         </tr>
                     </thead>
@@ -396,8 +399,9 @@ function Productor() {
                                 <td>{prod.nombre}</td>
                                 <td>{prod.apellido}</td>
                                 <td>{prod.contacto}</td>
+                                <td>{prod.email}</td>
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                         <img
                                             onClick={() => openDetalleModal(prod)}
                                             src={icon.ver}
@@ -423,9 +427,11 @@ function Productor() {
                     </tbody>
                 </table>
                 <div className='tableFooter'>
-                    <img onClick={handlePreviousPage} src={icon.flecha3} className='iconBack' title='Anterior'/>
+                    <img onClick={handlePreviousPage} src={icon.flecha3} className='iconBack' title='Anterior' />
+                    <img onClick={handlePreviousThreePages} src={icon.flecha5} className='iconBack' title='Anterior' />
                     <span>{currentPage}</span>
-                    <img onClick={handleNextPage} src={icon.flecha2} className='iconNext' title='Siguiente'/>
+                    <img onClick={handleNextThreePages} src={icon.flecha4} className='iconNext' title='Siguiente' />
+                    <img onClick={handleNextPage} src={icon.flecha2} className='iconNext' title='Siguiente' />
                 </div>
             </div>
         </div>

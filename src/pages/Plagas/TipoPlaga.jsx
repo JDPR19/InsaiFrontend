@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from './plaga.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
@@ -222,7 +221,7 @@ function TipoPlaga() {
 
 
     return (
-        <div className={styles.tipoplagaContainer}>
+        <div className='mainContainer'>
 
             {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
@@ -241,7 +240,7 @@ function TipoPlaga() {
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Tipo de Plaga' : 'Registrar Tipo de Plaga'}</h2>
                         <form className='modalForm'>
-                            <div>
+                            <div className='formColumns_mono'>
 
                                 <div className='formGroup'>
                                     <label htmlFor="tipo_plaga">Tipo de Plaga:</label>
@@ -295,7 +294,7 @@ function TipoPlaga() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
                             <th>N°</th>
@@ -309,7 +308,7 @@ function TipoPlaga() {
                                 <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{tipo_plaga.nombre}</td>
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                         <img
                                             onClick={() => openEditModal(tipo_plaga)}
                                             src={icon.editar}

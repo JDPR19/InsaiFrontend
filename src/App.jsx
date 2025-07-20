@@ -12,14 +12,12 @@ import Home from './pages/Home/Home';
 import Empleados from './pages/Empleados/Empleados';
 import Usuarios from './pages/Usuario/Usuario';
 import Productor from './pages/Productor/Productor';
-import TipoProductor from './pages/Productor/Tipo_productor';
 import Bitacora from './pages/Bitacora/Bitacora';
 import Cultivo from './pages/Cultivo/Cultivo';
 import TipoCultivo from './pages/Cultivo/TipoCultivo';
 import Propiedad from './pages/Propiedad/Propiedad';
 import Solicitud from './pages/Solicitud/Solicitud';
 import Inspecciones from './pages/Inspecciones/Inspecciones';
-import Inspecciones_silos from './pages/Inspecciones/Inspecciones_silo';
 import Plagas from './pages/Plagas/Plagas';
 import TipoPlaga from './pages/Plagas/TipoPlaga';
 import Programas from './pages/Programas/Programas';
@@ -42,7 +40,7 @@ import MuestraPlaga from './pages/MuestraPlaga/MuestraPlaga';
 import TipoSolicitud from './pages/Solicitud/TipoSolicitud';
 import MiUsuario from './pages/Miusuario/MiUsuario';
 import ProtectedRoute from './ProtectedRoute';
-import MaestroProductorPropiedad from './pages/MaestroProductorPropiedad/MaestroProductorPropiedad';
+import SeccionOne from './pages/SeccionOne/SeccionOne';
 
 function App() {
 
@@ -81,10 +79,10 @@ function App() {
           }
         />
         <Route 
-        path="/Maestro" 
+        path="/SeccionOne" 
         element={
           <MainLayout> 
-            <MaestroProductorPropiedad />
+            <SeccionOne />
           </MainLayout>
         } />
         <Route
@@ -190,19 +188,9 @@ function App() {
         <Route
           path="/Inspecciones"
           element={
-            <ProtectedRoute pantalla="inspeccion_est">
+            <ProtectedRoute pantalla="inspecciones">
               <MainLayout>
                 <Inspecciones />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/InspeccionesSilo"
-          element={
-            <ProtectedRoute pantalla="inspeccion_silo">
-              <MainLayout>
-                <Inspecciones_silos />
               </MainLayout>
             </ProtectedRoute>
           }
@@ -266,17 +254,6 @@ function App() {
           </MainLayout>
           </ProtectedRoute> 
         }/>
-
-        <Route
-          path="/TipoProductor"
-          element={
-            <ProtectedRoute pantalla="tipo_productor">
-              <MainLayout>
-                <TipoProductor />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
         <Route
           path="/TipoCultivo"
           element={

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from './propiedad.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
@@ -223,7 +222,7 @@ function TipoPropiedad() {
 
 
     return (
-        <div className={styles.tipopropiedadContainer}>
+        <div className='mainContainer'>
 
             {loading && <Spinner text="Procesando..." />}
             {notifications.map((notification) => (
@@ -296,7 +295,7 @@ function TipoPropiedad() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
                             <th>N°</th>
@@ -310,7 +309,7 @@ function TipoPropiedad() {
                                 <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{tipo_propiedad.nombre}</td>
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                         <img
                                             onClick={() => openEditModal(tipo_propiedad)}
                                             src={icon.editar}
