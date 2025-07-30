@@ -4,8 +4,7 @@ import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import { BaseUrl } from '../../utils/constans';
 
@@ -20,8 +19,7 @@ function TipoPrograma() {
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedTipoProgramaId, setSelectedTipoProgramaId] = useState(null);
-
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const itemsPerPage = 8;
 
     // Reiniciar el modal luego de cerrar
@@ -150,7 +148,7 @@ function TipoPrograma() {
 
             setDatosOriginales(datosOriginales.filter((tipo_programa) => tipo_programa.id !== id));
             setDatosFiltrados(datosFiltrados.filter((tipo_programa) => tipo_programa.id !== id));
-            addNotification('Tipo de Programa eliminada con éxito', 'error');
+            addNotification('Tipo de Programa eliminada con éxito', 'success');
         } catch (error) {
             console.error('Error eliminando tipo de programa:', error);
             addNotification('Error al eliminar tipo de programa', 'error');
@@ -210,15 +208,6 @@ function TipoPrograma() {
 
     return (
         <div className='mainContainer'>
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             {/* modal registro y editar */}
             {currentModal === 'tipo_programa' && (
                 <div className='modalOverlay'>

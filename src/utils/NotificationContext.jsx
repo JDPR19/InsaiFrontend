@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
-export const useNotification = () => {
+const NotificationContext = createContext();
+
+export function NotificationProvider({ children }) {
     const [notifications, setNotifications] = useState([]);
 
     const addNotification = (message, type, duration = 8000) => {
@@ -10,7 +12,6 @@ export const useNotification = () => {
             { id, message, type, progress: 100 }
         ]);
 
-        // Barra de progreso animada
         let progress = 100;
         const interval = setInterval(() => {
             progress -= 100 / (duration / 100);
@@ -31,5 +32,13 @@ export const useNotification = () => {
         setNotifications((prev) => prev.filter((n) => n.id !== id));
     };
 
-    return { notifications, addNotification, removeNotification };
-};
+    return (
+        <NotificationContext.Provider value={{ notifications, addNotification, removeNotification }}>
+            {children}
+        </NotificationContext.Provider>
+    );
+}
+
+export function useNotification() {
+    return useContext(NotificationContext);
+}

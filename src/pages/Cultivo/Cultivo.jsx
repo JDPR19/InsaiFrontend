@@ -4,8 +4,7 @@ import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
@@ -29,7 +28,7 @@ function Cultivo() {
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedCultivoId, setSelectedCultivoId] = useState(null);
 
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
 
@@ -195,7 +194,7 @@ function Cultivo() {
             });
 
             fetchCultivos();
-            addNotification('Cultivo eliminado con éxito', 'error');
+            addNotification('Cultivo eliminado con éxito', 'success');
         } catch (error) {
             console.error('error eliminando cultivo', error);
             addNotification('Error al eliminar cultivo', 'error');
@@ -258,15 +257,6 @@ function Cultivo() {
     return (
         <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             {/* Modal Detalle */}
             {detalleModal.abierto && detalleModal.cultivo && (
                 <div className='modalOverlay'>

@@ -4,9 +4,8 @@ import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
@@ -27,8 +26,7 @@ function Parroquia() {
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedParroquiaId, setSelectedParroquiaId] = useState(null);
-
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
 
@@ -225,7 +223,7 @@ function Parroquia() {
             });
 
             fetchParroquias();
-            addNotification('Parroquia eliminada con éxito', 'error');
+            addNotification('Parroquia eliminada con éxito', 'success');
         } catch (error) {
             console.error('error eliminando la parroquia',error);
             addNotification('Error al eliminar parroquia', 'error');
@@ -285,15 +283,6 @@ function Parroquia() {
     return (
         <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             {currentModal === 'parroquia' && (
                 <div className='modalOverlay'>
                     <div className='modal'>

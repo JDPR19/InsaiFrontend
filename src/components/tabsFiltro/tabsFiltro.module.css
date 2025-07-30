@@ -1,21 +1,25 @@
 .tabsGeneralContainer {
-    width: 80%;
+    width: 100%;
     margin: auto auto auto auto;
     margin-bottom: -50px;
-    margin-left: 170px;
+    margin-left: 30px;
+    margin-right: 30px;
     margin-top: 50px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
 }
 
 .tabsContainer {
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 20px;
-    width: 80%;
-    gap: 10px;
+    justify-content: flex-start;
+    padding: 25px;
+    /* min-width: max-content;  */
+    max-width: 900px;
+    width: max-content;
+    gap: 5px;
     border-radius: 10px;
     border-bottom: 1px solid #98c79ab2;
     overflow-x: auto;
@@ -26,7 +30,7 @@
 }
 
 .tabsContainer::-webkit-scrollbar {
-    height: 8px;
+    height: 6px;
     background: #e9ecef;
     border-radius: 8px;
 }
@@ -36,6 +40,11 @@
 }
 .tabsContainer::-webkit-scrollbar-thumb:hover {
     background: var(--green-hover1);
+}
+.tabsContainer::-webkit-scrollbar-button {
+    display: none;
+    height: 0;
+    width: 0;
 }
 
 .tabsTitle {
@@ -48,11 +57,12 @@
 }
 
 .tabButton {
+    flex-shrink: 0;
     background: #bddaaf31;
     color: #4444448e;
     border: 1.5px solid #98c79a;
     border-radius: 30px;
-    padding: 6px 20px;
+    padding: 6px 18px;
     font-size: 1em;
     cursor: pointer;
     font-family: 'Poppins', sans-serif;
@@ -64,6 +74,40 @@
 
 .tabButton.active,
 .tabButton:hover {
+    background: #b5dba3c7;
+    color: #444444;
+    border: 1.5px solid #99cc5e;
+    box-shadow: 0 2px 8px #98c79a3a;
+}
+
+/* Tabs del menú de notificaciones */
+.tabsNoti {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+    justify-content: flex-start;
+    border-bottom: 1px solid var(--grey2);
+
+}
+
+.tabButtonNoti {
+    flex-shrink: 0;
+    background: #bddaaf31;
+    color: #4444448e;
+    border: 1.5px solid #98c79a;
+    border-radius: 30px;
+    padding: 5px 10px;
+    font-size: 0.80em;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    margin-bottom: 10px;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+    outline: none;
+}
+
+.tabButtonNoti.active,
+.tabButtonNoti:hover {
     background: #b5dba3c7;
     color: #444444;
     border: 1.5px solid #99cc5e;

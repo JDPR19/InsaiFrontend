@@ -4,8 +4,7 @@ import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
@@ -23,8 +22,7 @@ function TipoLaboratorio() {
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedTipoLaboratorioId, setSelectedTipoLaboratorioId] = useState(null);
-
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const itemsPerPage = 8;
 
     const resetFormData = () => {
@@ -158,7 +156,7 @@ function TipoLaboratorio() {
 
             setDatosOriginales(datosOriginales.filter((tipo_laboratorio) => tipo_laboratorio.id !== id));
             setDatosFiltrados(datosFiltrados.filter((tipo_laboratorio) => tipo_laboratorio.id !== id));
-            addNotification('Tipo de Laboratorio eliminado con éxito', 'error');
+            addNotification('Tipo de Laboratorio eliminado con éxito', 'success');
         } catch (error) {
             console.error('Error eliminando tipo de laboratorio:', error);
             addNotification('Error al eliminar tipo de laboratorio', 'error');
@@ -221,15 +219,6 @@ function TipoLaboratorio() {
     return (
         <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             {/* modal registro y editar */}
             {currentModal === 'tipo_laboratorio' && (
                 <div className='modalOverlay'>

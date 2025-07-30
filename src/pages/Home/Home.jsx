@@ -4,8 +4,7 @@ import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import Chart from '../../components/chart/chart4';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 
 function Home() {
     
@@ -47,7 +46,7 @@ function Home() {
             // Agrega más datos si es necesario
             ];  
 
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const {  addNotification } = useNotification();
     const [notificationShown, setNotificationShown] = useState(false); // Estado para controlar la notificación
     const [chartType, setChartType] = useState('Bar'); // Estado para el tipo de gráfica
     const [chartFilter, setChartFilter] = useState('avales'); // Estado para el filtro
@@ -161,15 +160,6 @@ function Home() {
     return (
         <div className={styles.homeContainer}>
 
-            {/* Renderizar las notificaciones */}
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
             {/* Cartas */}
             <div className={styles.cardsContainer}>
                 <div className={styles.card}>

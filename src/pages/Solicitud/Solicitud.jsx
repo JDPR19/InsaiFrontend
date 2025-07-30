@@ -5,8 +5,7 @@ import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
@@ -16,7 +15,6 @@ function Solicitud() {
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [tipoSolicitudes, setTipoSolicitudes] = useState([]);
     const [propiedades, setPropiedades] = useState([]);
-    const [tipoPermisos, setTipoPermisos] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
     const [detalleModal, setDetalleModal] = useState({ abierto: false, solicitud: null });
@@ -28,18 +26,17 @@ function Solicitud() {
         descripcion: '',
         fecha_solicitada: '',
         tipo_solicitud_id: '',
-        tipo_permiso_id: '',
         propiedad_id: '',
         fecha_programada: '',
+        estado: '',
     });
     const [errors, setErrors] = useState({});
     const itemsPerPage = 8;
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const user = JSON.parse(localStorage.getItem('user'));
     const usuario_id = user?.id;
 
     const tipoSolicitudOptions = tipoSolicitudes.map(t => ({ value: String(t.id), label: t.nombre }));
-    const tipoPermisoOptions = tipoPermisos.map(t => ({ value: String(t.id), label: t.nombre }));
     const propiedadOptions = propiedades.map(p => ({ value: String(p.id), label: p.nombre }));
 
     // Fetchers
@@ -71,19 +68,6 @@ function Solicitud() {
         }
     };
 
-    const fetchTipoPermisos = async () => {
-        try {
-            const response = await axios.get(`${BaseUrl}/solicitud/tipo_permiso/all`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            setTipoPermisos(response.data);
-        } catch (error) {
-            console.error('Error solicitando todos los permisos',error);
-            addNotification('Error al obtener tipos de permiso', 'error');
-        }
-    };
-
-
     const fetchPropiedades = async () => {
         try {
             const response = await axios.get(`${BaseUrl}/solicitud/propiedad/all`, {
@@ -99,7 +83,6 @@ function Solicitud() {
     useEffect(() => {
         fetchSolicitudes();
         fetchTipoSolicitudes();
-        fetchTipoPermisos();
         fetchPropiedades();
     }, []);
 
@@ -109,9 +92,9 @@ function Solicitud() {
         descripcion: '',
         fecha_solicitada: '',
         tipo_solicitud_id: '',
-        tipo_permiso_id: '',
         propiedad_id: '',
         fecha_programada: '',
+        estado: '',
     });
     setErrors({});
 };
@@ -153,8 +136,8 @@ function Solicitud() {
             fecha_resolucion: item.fecha_resolucion || '',
             fecha_programada: item.fecha_programada || item.fecha_planificacion || '',
             tipo_solicitud_id: item.tipo_solicitud_id ? String(item.tipo_solicitud_id) : '',
-            tipo_permiso_id: item.tipo_permiso_id ? String(item.tipo_permiso_id) : '',
             propiedad_id: item.propiedad_id ? String(item.propiedad_id) : '',
+            estado: item.estado || 'creada',
         });
         setErrors({});
         setCurrentModal('solicitud');
@@ -177,7 +160,7 @@ function Solicitud() {
     
     const handleSave = async () => {
         let newErrors = {};
-        for (const field of ['descripcion', 'fecha_solicitada', 'tipo_solicitud_id', 'tipo_permiso_id', 'propiedad_id', 'fecha_programada']) {
+        for (const field of ['descripcion', 'fecha_solicitada', 'tipo_solicitud_id', 'propiedad_id']) {
             if (validationRules[field]) {
                 const error = validateField(field, formData[field], validationRules);
                 if (error) newErrors[field] = error;
@@ -192,7 +175,13 @@ function Solicitud() {
         }
         setLoading(true);
         try {
-            await axios.post(`${BaseUrl}/solicitud`,{ ...formData, usuario_id }, {
+            const cleanFormData = {
+                ...formData,
+                fecha_solicitada: formData.fecha_solicitada || null,
+                fecha_resolucion: formData.fecha_resolucion || null,
+                estado: formData.estado || 'creada',
+            };
+            await axios.post(`${BaseUrl}/solicitud`,{ ...cleanFormData, usuario_id }, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Solicitud registrada con éxito', 'success');
@@ -209,7 +198,7 @@ function Solicitud() {
     
     const handleEdit = async () => {
         let newErrors = {};
-        for (const field of ['descripcion', 'fecha_solicitada', 'tipo_solicitud_id', 'tipo_permiso_id', 'propiedad_id', 'fecha_programada']) {
+        for (const field of ['descripcion', 'fecha_solicitada', 'tipo_solicitud_id', 'propiedad_id']) {
             if (validationRules[field]) {
                 const error = validateField(field, formData[field], validationRules);
                 if (error) newErrors[field] = error;
@@ -224,7 +213,13 @@ function Solicitud() {
         }
         setLoading(true);
         try {
-            await axios.put(`${BaseUrl}/solicitud/${formData.id}`,{ ...formData, usuario_id }, {
+            const cleanFormData = {
+                ...formData,
+                fecha_solicitada: formData.fecha_solicitada || null,
+                fecha_resolucion: formData.fecha_resolucion || null,
+                estado: formData.estado || 'creada',
+            };
+            await axios.put(`${BaseUrl}/solicitud/${formData.id}`,{ ...cleanFormData, usuario_id }, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Solicitud actualizada con éxito', 'success');
@@ -246,7 +241,7 @@ function Solicitud() {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             fetchSolicitudes();
-            addNotification('Solicitud eliminada con éxito', 'error');
+            addNotification('Solicitud eliminada con éxito', 'success');
         } catch (error) {
             console.error('Error eliminado la solicitud',error);
             addNotification('Error al eliminar solicitud', 'error');
@@ -269,7 +264,7 @@ function Solicitud() {
     // Buscar y filtrar
     const handleSearch = (searchTerm) => {
         const filtered = filterData(datosOriginales, searchTerm, [
-            'id','descripcion', 'estado', 'propiedad_nombre','fecha_solicitada', 'fecha_resolucion','fecha_programada',
+            'id','descripcion', 'estado', 'propiedad_nombre','fecha_solicitada', 'fecha_resolucion',
         ]);
         setDatosFiltrados(filtered);
         setCurrentPage(1);
@@ -278,15 +273,6 @@ function Solicitud() {
     return (
         <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
               {/* Modal Detalle */}
             {detalleModal.abierto && (
                 <div className='modalOverlay'>
@@ -305,37 +291,10 @@ function Solicitud() {
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Fecha de Resolución:</label>
-                                    <input
-                                        type="date"
-                                        value={detalleModal.solicitud.fecha_resolucion || ''}
-                                        className='date'
-                                        disabled
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Fecha Programada:</label>
-                                    <input
-                                        type="date"
-                                        value={detalleModal.solicitud.fecha_programada || detalleModal.solicitud.fecha_planificacion || ''}
-                                        className='date'
-                                        disabled
-                                    />
-                                </div>
-                                <div className='formGroup'>
                                     <label>Tipo de Solicitud:</label>
                                     <input
                                         type="text"
                                         value={tipoSolicitudes.find(t => String(t.id) === String(detalleModal.solicitud.tipo_solicitud_id))?.nombre || ''}
-                                        className='select'
-                                        disabled
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Tipo de Permiso:</label>
-                                    <input
-                                        type="text"
-                                        value={tipoPermisos.find(t => String(t.id) === String(detalleModal.solicitud.tipo_permiso_id))?.nombre || ''}
                                         className='select'
                                         disabled
                                     />
@@ -378,22 +337,6 @@ function Solicitud() {
                                     {errors.fecha_solicitada && <span className='errorText'>{errors.fecha_solicitada}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Fecha de Resolución:</label>
-                                    <input
-                                        type="date"
-                                        id="fecha_resolucion"
-                                        value={formData.fecha_resolucion}
-                                        className='date'
-                                        disabled
-                                        readOnly
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Fecha Programada:</label>
-                                    <input type="date" id='fecha_programada' value={formData.fecha_programada} onChange={handleChange} className='date' />
-                                    {errors.fecha_programada && <span className='errorText'>{errors.fecha_programada}</span>}
-                                </div>
-                                <div className='formGroup'>
                                     <label>Tipo de Solicitud:</label>
                                     <SingleSelect
                                         options={tipoSolicitudOptions}
@@ -402,16 +345,6 @@ function Solicitud() {
                                         placeholder="Seleccione tipo de solicitud"
                                     />
                                     {errors.tipo_solicitud_id && <span className='errorText'>{errors.tipo_solicitud_id}</span>}
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Tipo de Permiso:</label>
-                                    <SingleSelect
-                                        options={tipoPermisoOptions}
-                                        value={formData.tipo_permiso_id}
-                                        onChange={val => setFormData({ ...formData, tipo_permiso_id: val })}
-                                        placeholder="Seleccione tipo de permiso"
-                                    />
-                                    {errors.tipo_permiso_id && <span className='errorText'>{errors.tipo_permiso_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label>Propiedad:</label>
@@ -479,7 +412,6 @@ function Solicitud() {
                             <th>N°</th>
                             <th>Descripción</th>
                             <th>Fecha Solicitada</th>
-                            <th>Fecha Programada</th>
                             <th>Estado</th>
                             <th>Acción</th>
                         </tr>
@@ -490,7 +422,6 @@ function Solicitud() {
                                 <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{item.descripcion}</td>
                                 <td>{item.fecha_solicitada}</td>
-                                <td>{item.fecha_programada || item.fecha_planificacion || '-'}</td>
                                 <td>
                                     <span className={`badge-estado badge-${item.estado}`}>
                                         {item.estado}

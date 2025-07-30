@@ -166,12 +166,12 @@
 }
 /* contenedor genral */
 .mainContainer {
-    padding: 30px;
+    padding: 20px;
     background-color: var(--white1);
     min-height: calc(100vh - 60px); 
     margin-left: 110px; 
-    margin-top: 50px;
     margin-right: 50px;
+    margin-top: 50px;
 }
 /* Estilos para el modal /////////////////////////*/
 .modalOverlay {
@@ -207,7 +207,7 @@
   width: 100%;
   min-width: 0vh;
   min-height: 0vh;
-  max-width: 140vh;
+  max-width: 150vh;
   max-height: 90vh;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
   position: relative;
@@ -234,7 +234,7 @@
   width: 100%;
   min-width: 0vh;
   min-height: 0vh;
-  max-width: 90vh;
+  max-width: 100vh;
   max-height: 90vh;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
   position: relative;
@@ -406,6 +406,8 @@
     box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
     position: relative;
     overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--lithg-green) #e9ecef;
 }
 .detalleTable {
     width: 100%;
@@ -1018,9 +1020,9 @@
 .react-select__value-container {
     max-height: 60px;  
     overflow-y: auto !important;
+    cursor: pointer;
     scrollbar-width: thin;
     scrollbar-color: #a5cfa7 #e8ece6;
-    cursor: pointer;
 }
 .react-select__value-container::-webkit-scrollbar {
     width: 6px;
@@ -1033,6 +1035,12 @@
 }
 .react-select__value-container::-webkit-scrollbar-thumb:hover{
   background: #6ba55a;
+}
+
+.react-select__value-container::-webkit-scrollbar-button {
+    display: none;
+    height: 0;
+    width: 0;
 }
 
 /* Estilos para estados dinamicos */

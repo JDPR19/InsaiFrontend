@@ -5,6 +5,8 @@ import icon from '../../components/iconos/iconos';
 import { registrarCierreSesion } from '../../utils/bitacoraService';
 import { usePermiso } from '../../hooks/usePermiso';
 import { BaseUrl } from '../../utils/constans';
+import { useNotification } from '../../utils/NotificationContext';
+import Spinner from '../spinner/Spinner';
 
 function NavItem({ id, openSubmenus, setOpenSubmenus, selectedItem, setSelectedItem, iconSrc, label, linkTo, children }) {
     const isOpen = openSubmenus[id];
@@ -53,10 +55,15 @@ function Menu() {
     const [openSubmenus, setOpenSubmenus] = useState({});
     const [selectedItem, setSelectedItem] = useState(null);
     const [isCollapsed, setIsCollapsed] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const { addNotification } = useNotification();
     const navigate = useNavigate();
     const tienePermiso = usePermiso();
+    const user = JSON.parse(localStorage.getItem('user'));
+    const rol = user?.roles_nombre; 
 
     const handleLogout = async () => {
+        setLoading(true);
         try {
             const user = JSON.parse(localStorage.getItem('user'));
             const userId = user?.id;
@@ -77,17 +84,34 @@ function Menu() {
             if (response.ok) {
                 localStorage.removeItem('user');
                 localStorage.removeItem('token');
+                localStorage.removeItem('permisos');
+                localStorage.removeItem('seccionOneTab');
+                localStorage.removeItem('seccionTwoTab');
+                localStorage.removeItem('seccionThreeTab');
+                localStorage.removeItem('seccionFourTab');
+                localStorage.removeItem('seccionFiveTab');
+                localStorage.removeItem('seccionSixTab');
+                localStorage.removeItem('seccionSevenTab');
                 window.history.replaceState(null, '', '/');
                 navigate('/', { replace: true });
             }
         } catch (error) {
             console.error('Error al cerrar sesión:', error);
+            addNotification('Error al cerrar la sesión el servidor tardo en responder', 'error');
         } finally {
             localStorage.removeItem('user');
             localStorage.removeItem('token');
-            localStorage.removeItem('permiso');
+            localStorage.removeItem('permisos');
+            localStorage.removeItem('seccionOneTab');
+            localStorage.removeItem('seccionTwoTab');
+            localStorage.removeItem('seccionThreeTab');
+            localStorage.removeItem('seccionFourTab');
+            localStorage.removeItem('seccionFiveTab');
+            localStorage.removeItem('seccionSixTab');
+            localStorage.removeItem('seccionSevenTab');
             window.history.replaceState(null, '', '/');
             navigate('/', { replace: true });
+            setLoading(false);
         }
     };
 
@@ -97,6 +121,8 @@ function Menu() {
             onMouseEnter={() => setIsCollapsed(false)}
             onMouseLeave={() => setIsCollapsed(true)}
         >
+            {loading && <Spinner text="Procesando..." />}
+
             <nav className={styles.sidebar}>
                 <ul className={styles.navList}>
 
@@ -115,410 +141,115 @@ function Menu() {
                     )}
 
                     {/* Seccion Uno Productores y Propiedades */}
+                    {['Administrador', 'Moderador'].includes(rol) && ( 
                         <NavItem
-                            id="maestro"
-                            openSubmenus={openSubmenus}
-                            setOpenSubmenus={setOpenSubmenus}
-                            selectedItem={selectedItem}
-                            setSelectedItem={setSelectedItem}
-                            iconSrc={icon.farmer2}
-                            label="Productores y Propiedades"
-                            linkTo="/SeccionOne"
+                        id="seccionOne"
+                        openSubmenus={openSubmenus}
+                        setOpenSubmenus={setOpenSubmenus}
+                        selectedItem={selectedItem}
+                        setSelectedItem={setSelectedItem}
+                        iconSrc={icon.farmer2}
+                        label="Productores y Propiedades"
+                        linkTo="/SeccionOne"
                         />
-
-
-                      {/* Datos del Productor */}
-                    {(tienePermiso('productor', 'ver') || tienePermiso('propiedad', 'ver') || tienePermiso('tipo_propiedad', 'ver')) && (
-                        <NavItem
-                            id="datosPropietario"
-                            openSubmenus={openSubmenus}
-                            setOpenSubmenus={setOpenSubmenus}
-                            selectedItem={selectedItem}
-                            setSelectedItem={setSelectedItem}
-                            iconSrc={icon.farmer2}
-                            label="Datos del Productor"
-                        >
-                            <ul className={styles.submenu}>
-
-                                {tienePermiso('productor', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Productor"
-                                            className={`${styles.submenuItem} ${selectedItem === 'productores' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('productores')}
-                                        >
-                                            Productores
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('propiedad', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Propiedad"
-                                            className={`${styles.submenuItem} ${selectedItem === 'propiedad' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('propiedad')}
-                                        >
-                                            Propiedades
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('tipo_propiedad', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/TipoPropiedad"
-                                            className={`${styles.submenuItem} ${selectedItem === 'tipopropiedad' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('tipopropiedad')}
-                                        >
-                                            Tipo de Propiedad
-                                        </Link>
-                                    </li>
-                                )}
-
-                            </ul>
-                        </NavItem>
                     )}
 
-                    {/* Inspecciones /////////////////// */}
-                    {(tienePermiso('solicitud', 'ver') || tienePermiso('inspecciones', 'ver') || tienePermiso('planificacion', 'ver') || tienePermiso('tipo_solicitud', 'ver') || tienePermiso('tipo_inspeccion', 'ver')) && (
-                        <NavItem
-                            id="inspecciones"
+                    {/* Seccion Dos Solicitudes y Planificaciones */}
+                        {['Administrador', 'Moderador', 'User'].includes(rol) && (
+                            <NavItem
+                            id="SeccionTwo"
+                            openSubmenus={openSubmenus}
+                            setOpenSubmenus={setOpenSubmenus}
+                            selectedItem={selectedItem}
+                            setSelectedItem={setSelectedItem}
+                            iconSrc={icon.altavoz}
+                            label="Solicitudes y Planificaciones"
+                            linkTo="/SeccionTwo"
+                            />
+                        )}
+
+                    {/* Seccion Tres Inspecciones y Programas */}
+                        {['Administrador', 'Moderador', 'User'].includes(rol) && (
+                            <NavItem
+                            id="SeccionThree"
                             openSubmenus={openSubmenus}
                             setOpenSubmenus={setOpenSubmenus}
                             selectedItem={selectedItem}
                             setSelectedItem={setSelectedItem}
                             iconSrc={icon.escudobien}
-                            label="Inspecciones"
-                        >
-                            <ul className={styles.submenu}>
+                            label="Protección Fitosanitaria"
+                            linkTo="/SeccionThree"
+                            />
+                        )}
 
-                                {tienePermiso('solicitud', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Solicitud"
-                                            className={`${styles.submenuItem} ${selectedItem === 'solicitud' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('solicitud')}
-                                        >
-                                            Solicitud de Inspecciones
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('planificacion', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Planificacion"
-                                            className={`${styles.submenuItem} ${selectedItem === 'planificacion' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('planificacion')}
-                                        >
-                                            Planificación de Inspecciones
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('inspecciones', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Inspecciones"
-                                            className={`${styles.submenuItem} ${selectedItem === 'inspeccion' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('inspeccion')}
-                                        >
-                                            Inspecciones 
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('tipo_solicitud', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/TipoSolicitud"
-                                            className={`${styles.submenuItem} ${selectedItem === 'tiposolicitud' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('tiposolicitud')}
-                                        >
-                                            Tipos de Solicitud
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('tipo_inspeccion', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/TipoInspeccion"
-                                            className={`${styles.submenuItem} ${selectedItem === 'tipoinspeccion' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('tipoinspeccion')}
-                                        >
-                                            Tipos de Inspecciones
-                                        </Link>
-                                    </li>
-                                )}
-
-                            </ul>
-                        </NavItem>
-                    )}
-
-                    
-                    {/* Datos Epidemiologicos /////////////////// */}
-                    {(tienePermiso('plaga', 'ver') || tienePermiso('cultivo', 'ver') || tienePermiso('laboratorio', 'ver') || tienePermiso('tipo_plaga', 'ver') || 
-                    tienePermiso('tipo_cultivo', 'ver') || tienePermiso('tipo_laboratorio', 'ver')) && (
-                        <NavItem
-                            id="datos"
+                    {/* Seccion Cuatro Cultivos y Plagas */}
+                        {['Administrador', 'Moderador'].includes(rol) && (
+                            <NavItem
+                            id="SeccionFour"
                             openSubmenus={openSubmenus}
                             setOpenSubmenus={setOpenSubmenus}
                             selectedItem={selectedItem}
                             setSelectedItem={setSelectedItem}
                             iconSrc={icon.hormiga}
                             label="Datos Epidemiologicos"
-                        >
-                            <ul className={styles.submenu}>
+                            linkTo="/SeccionFour"
+                            />
+                        )}
 
-                                {tienePermiso('plaga', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Plagas"
-                                            className={`${styles.submenuItem} ${selectedItem === 'plagas' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('plagas')}
-                                        >
-                                            Plagas
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('cultivo', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Cultivo"
-                                            className={`${styles.submenuItem} ${selectedItem === 'cultivo' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('cultivo')}
-                                        >
-                                            Cultivos
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('laboratorio', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Laboratorio"
-                                            className={`${styles.submenuItem} ${selectedItem === 'laboratorio' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('laboratorio')}
-                                        >
-                                            Laboratorios
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('tipo_plaga', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/TipoPlaga"
-                                            className={`${styles.submenuItem} ${selectedItem === 'tipoplaga' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('tipoplaga')}
-                                        >
-                                            Tipos de Plagas
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('tipo_cultivo', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/TipoCultivo"
-                                            className={`${styles.submenuItem} ${selectedItem === 'tipocultivos' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('tipocultivos')}
-                                        >
-                                            Tipos de Cultivos
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('tipo_laboratorio', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/TipoLaboratorio"
-                                            className={`${styles.submenuItem} ${selectedItem === 'tipolaboratorio' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('tipolaboratorio')}
-                                        >
-                                            Tipos de Laboratorios
-                                        </Link>
-                                    </li>
-                                )}
-
-                            </ul>
-                        </NavItem>
-                    )}
-
-
-                    {/* Programas Epidemiologicos///////////////// */}
-                    {(tienePermiso('programa', 'ver') || tienePermiso('tipo_programa', 'ver') || tienePermiso('tipo_evento', 'ver')) && (
-                        <NavItem
-                            id="proteccion"
-                            openSubmenus={openSubmenus}
-                            setOpenSubmenus={setOpenSubmenus}
-                            selectedItem={selectedItem}
-                            setSelectedItem={setSelectedItem}
-                            iconSrc={icon.escudomalo}
-                            label="Protección Fitosanitaria"
-                        >
-                            <ul className={styles.submenu}>
-
-                                {tienePermiso('programa', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Programas"
-                                            className={`${styles.submenuItem} ${selectedItem === 'programas' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('programas')}
-                                        >
-                                            Programas Epidemiologicos
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('tipo_programa', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/TipoPrograma"
-                                            className={`${styles.submenuItem} ${selectedItem === 'tipoprograma' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('tipoprograma')}
-                                        >
-                                            Tipos de Programas
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('tipo_evento', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/TipoEvento"
-                                            className={`${styles.submenuItem} ${selectedItem === 'tipoevento' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('tipoevento')}
-                                        >
-                                            Tipos de Eventos
-                                        </Link>
-                                    </li>
-                                )}
-
-                            </ul>
-                        </NavItem>
-                    )}
-
-                    {/* Catálogo de Datos ///////////////////// */}
-                    {( tienePermiso('estado', 'ver') ||
-                    tienePermiso('municipio', 'ver') || tienePermiso('parroquia', 'ver') || tienePermiso('sector', 'ver')) && (
-                        <NavItem
-                            id="miscelaneos"
-                            openSubmenus={openSubmenus}
-                            setOpenSubmenus={setOpenSubmenus}
-                            selectedItem={selectedItem}
-                            setSelectedItem={setSelectedItem}
-                            iconSrc={icon.folder}
-                            label="Datos Misceláneos"
-                        >
-                            <ul className={styles.submenu}>
-
-                                {tienePermiso('estado', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Estados"
-                                            className={`${styles.submenuItem} ${selectedItem === 'estados' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('estados')}
-                                        >
-                                            Estados
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('municipio', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Municipio"
-                                            className={`${styles.submenuItem} ${selectedItem === 'municipio' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('municipio')}
-                                        >
-                                            Municipios
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('parroquia', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Parroquia"
-                                            className={`${styles.submenuItem} ${selectedItem === 'parroquia' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('parroquia')}
-                                        >
-                                            Parroquias
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('sector', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Sector"
-                                            className={`${styles.submenuItem} ${selectedItem === 'sector' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('sector')}
-                                        >
-                                            Sector
-                                        </Link>
-                                    </li>
-                                )}
-
-                            </ul>
-                        </NavItem>
-                    )}
-
-                    {/* Reportes ////////////*/}
-                    {(tienePermiso('muestras', 'ver') || tienePermiso('permiso', 'ver') || tienePermiso('tipo_permiso', 'ver')) && (
-                        <NavItem
-                            id="reportes"
+                    {/* Seccion Cinco Permisos y Resumen de Reportes */}
+                        {['Administrador', 'Moderador'].includes(rol) && (
+                            <NavItem
+                            id="SeccionFive"
                             openSubmenus={openSubmenus}
                             setOpenSubmenus={setOpenSubmenus}
                             selectedItem={selectedItem}
                             setSelectedItem={setSelectedItem}
                             iconSrc={icon.grafica}
-                            label="Reportes"
-                        >
-                            <ul className={styles.submenu}>
-                                {tienePermiso('permiso', 'ver') && (
+                            label="Permisos y Reportes"
+                            linkTo="/SeccionFive"
+                            />
+                        )}
+                    
+                    {/* Seccion Seis Ubicaciones */}
+                        {rol === 'Administrador' && (
+                            <NavItem
+                            id="SeccionSix"
+                            openSubmenus={openSubmenus}
+                            setOpenSubmenus={setOpenSubmenus}
+                            selectedItem={selectedItem}
+                            setSelectedItem={setSelectedItem}
+                            iconSrc={icon.mundo}
+                            label="Áreas de Ubicación"
+                            linkTo="/SeccionSix"
+                            />
+                        )}
 
-                                    <li>
-                                        <Link
-                                            to="/Permiso"
-                                            className={`${styles.submenuItem} ${selectedItem === 'permiso' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('permiso')}
-                                        >
-                                            Reporte de Permisos
-                                        </Link>
-                                    </li>
-                                )}
+                    {/* Seccion Siete Usuarios y Empleados (Administrador) */}
+                        {rol === 'Administrador' && (
+                            <NavItem
+                            id="SeccionSeven"
+                            openSubmenus={openSubmenus}
+                            setOpenSubmenus={setOpenSubmenus}
+                            selectedItem={selectedItem}
+                            setSelectedItem={setSelectedItem}
+                            iconSrc={icon.admin}
+                            label="Administrador"
+                            linkTo="/SeccionSeven"
+                            />
+                        )}
 
-                                {tienePermiso('muestras', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/MuestraPlaga"
-                                            className={`${styles.submenuItem} ${selectedItem === 'muestraplaga' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('muestraplaga')}
-                                        >
-                                            Reporte de Muestras
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('tipo_permiso', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/TipoPermiso"
-                                            className={`${styles.submenuItem} ${selectedItem === 'tipopermiso' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('tipopermiso')}
-                                        >
-                                            Tipos de Permisos
-                                        </Link>
-                                    </li>
-                                )}
-
-                            </ul>
-                        </NavItem>
+                    {/* Bitacora del Sistema (Administrador) */}
+                    {tienePermiso('bitacora', 'ver') && (
+                        <NavItem
+                            id="bitacora"
+                            openSubmenus={openSubmenus}
+                            setOpenSubmenus={setOpenSubmenus}
+                            selectedItem={selectedItem}
+                            setSelectedItem={setSelectedItem}
+                            iconSrc={icon.bitacora}
+                            label="Bitacora del Sistema"
+                            linkTo="/Bitacora"
+                        />
                     )}
 
                     {/* Mi Usuario */}
@@ -533,87 +264,6 @@ function Menu() {
                         label="Mi Usuario"
                         linkTo="/MiUsuario"
                         />
-                    )}
-
-                    {/* Administrador ///////////////// */}
-                    {(tienePermiso('empleados', 'ver') ||
-                        tienePermiso('usuarios', 'ver') ||
-                        tienePermiso('tipo_usuario', 'ver') ||
-                        tienePermiso('bitacora', 'ver')) && (
-
-                        <NavItem
-                            id="admin"
-                            openSubmenus={openSubmenus}
-                            setOpenSubmenus={setOpenSubmenus}
-                            selectedItem={selectedItem}
-                            setSelectedItem={setSelectedItem}
-                            iconSrc={icon.admin}
-                            label="Administrador"
-                        >
-                            <ul className={styles.submenu}>
-                                {tienePermiso('empleados', 'ver') && (
-
-                                    <li>
-                                        <Link
-                                            to="/Empleados"
-                                            className={`${styles.submenuItem} ${selectedItem === 'empleados' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('empleados')}
-                                        >
-                                            Empleados
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('usuarios', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Usuario"
-                                            className={`${styles.submenuItem} ${selectedItem === 'usuario' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('usuario')}
-                                        >
-                                            Usuarios
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('cargos', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Cargo"
-                                            className={`${styles.submenuItem} ${selectedItem === 'cargo' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('cargo')}
-                                        >
-                                            Cargos
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('tipo_usuario', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/TipoUsuario"
-                                            className={`${styles.submenuItem} ${selectedItem === 'tipousuario' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('tipousuario')}
-                                        >
-                                            Roles & Permisos
-                                        </Link>
-                                    </li>
-                                )}
-
-                                {tienePermiso('bitacora', 'ver') && (
-                                    <li>
-                                        <Link
-                                            to="/Bitacora"
-                                            className={`${styles.submenuItem} ${selectedItem === 'bitacora' ? styles.selected : ''}`}
-                                            onClick={() => setSelectedItem('bitacora')}
-                                        >
-                                            Bitacora
-                                        </Link>
-                                    </li>
-                                )}
-
-                            </ul>
-                        </NavItem>
                     )}
 
                 </ul>

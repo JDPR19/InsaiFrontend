@@ -1,18 +1,19 @@
 /* Header Principal */
 .header {
+    width: 100%;
     display: flex;
-    align-items: center; /* Centra verticalmente los elementos */
-    justify-content: space-between; /* Espacia los elementos horizontalmente */
-    padding: 0 25px; /* Espaciado interno */
-    background-color: var(--grey2); /* Color de fondo */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.253); /* Sombra para el header */
-    position: sticky; /* Fija el header en la parte superior */
+    align-items: center;
+    justify-content: space-between; 
+    padding: 5px 25px 3px 25px; 
+    background-color: var(--grey2); 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.253); 
+    position: sticky; 
     top: 0;
     z-index: 1000;
 }
 
 .logoContainer {
-    flex: 0 0 auto; /* Evita que el logo cambie de tamaño */
+    flex: 0 0 auto; 
     display: flex;
     align-items: center;
 }
@@ -27,7 +28,7 @@
     text-align: center; 
     font-size: 1.5rem;
     font-weight: bold;
-    color: #333;
+    color: #343434;
     white-space: nowrap; 
     overflow: hidden; 
     text-overflow: ellipsis; 
@@ -43,116 +44,204 @@
 }
 
 .campanaIcon {
-    height: 30px; 
+    height: 35px; 
     width: auto;
+    padding: 3px 3px;
+    background: #a7d199dc;
+    border: 1px solid #709c73fa;
     cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    border-radius: 50%;
+    outline: none;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.438);
 }
+
+.lupaIcon {
+    height: 35px; 
+    width: auto;
+    padding: 3px 3px;
+    background: #a7d199dc;
+    border: 1px solid #709c73fa;
+    cursor: pointer;
+    transition: transform 0.4s ease-in-out, background 0.2s, box-shadow 0.2s;
+    border-radius: 50%;
+    outline: none;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.438);
+}
+
+
+.campanaIcon:hover,
+.campanaIcon:focus {
+    background: var(--lithg-green);
+    box-shadow: 0 0 8px var(--lithg-green);
+    animation: campanaShake 0.5s;
+}
+
+.campanaIcon:active {
+    background: var(--green8);
+    box-shadow: 0 0 8px var(--lithg-green);
+}
+
+.lupaIcon:hover,
+.lupaIcon:focus {
+    background: var(--lithg-green);
+    box-shadow: 0 0 8px var(--lithg-green);
+    transform: rotate(360deg);
+}
+
+.lupaIcon:active {
+    background: var(--green8);
+    box-shadow: 0 0 8px var(--lithg-green);
+}
+
+@keyframes campanaShake {
+    0% { transform: rotate(0deg); }
+    20% { transform: rotate(-15deg); }
+    40% { transform: rotate(15deg); }
+    60% { transform: rotate(-10deg); }
+    80% { transform: rotate(10deg); }
+    100% { transform: rotate(0deg); }
+}
+
 
 .username {
     font-size: 1rem;
     font-weight: 500;
     color: #555;
     text-align: right;
+    border-bottom: 1px solid #a7d199dc;
+    padding: 10px 8px 10px 8px;
+}
+
+/* Dropdown de notificaciones */
+.campanaWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.badge {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    background: var(--vino-red);
+    color: var(--white);
+    border-radius: 50%;
+    min-width: 20px;
+    height: 20px;
+    font-size: 0.95rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 2;
+    border: 2px solid var(--white);
+}
+
+.dropdown {
+    position: absolute;
+    top: 38px;
+    right: 0;
+    background: var(--white);
+    color: #444;
+    min-width: 320px;
+    max-width: 400px;
+    max-height: 650px;
+    border-radius: 12px;
+    word-break: break-word;
+    box-sizing: border-box;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    padding: 18px 18px 10px 18px;
+    font-family: 'Poppins', sans-serif;
+    z-index: 100;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #a5cfa7 #e8ece6;
+}
+
+.dropdown::-webkit-scrollbar {
+    width: 6px;
+    background: #e9ecef;
+    border-radius: 8px;
+}
+.dropdown::-webkit-scrollbar-thumb {
+    background: #a5cfa7;
+    border-radius: 8px;
+}
+.dropdown::-webkit-scrollbar-thumb:hover{
+    background: #6ba55a;
+}
+
+.dropdown::-webkit-scrollbar-button {
+    display: none;
+    height: 0;
+    width: 0;
+}
+
+.dropdown h4 {
+    margin: 0 0 10px 0;
+    font-size: 1.1rem;
+    color: var(--lithg-green);
+    font-weight: 600;
+    border-bottom: 1px solid var(--grey2);
+    padding-bottom: 6px;
+}
+
+.empty {
+    color: var(--grey4);
+    text-align: center;
+    padding: 18px 0;
+    font-size: 1rem;
+}
+
+.notificacionItem {
+    padding: 10px 8px;
+    margin-bottom: 6px;
+    border-radius: 7px;
+    background: var(--green8);
+    color: #444;
+    font-size: 0.98rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    position: relative;
+    max-width: 100%;
+    word-break: break-word;      
+    white-space: pre-line;       
+    overflow-wrap: break-word;   
+    box-sizing: border-box;
+}
+
+.notificacionItem:hover {
+    background: var(--lithg-green);
+    color: var(--white);
+}
+
+.leida {
+    background: var(--grey2);
+    color: #888;
+}
+
+.fecha {
+    font-size: 0.85em;
+    color: var(--grey4);
+    margin-top: 2px;
+    word-break: break-word;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.nueva {
+    color: var(--vino-red);
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-left: 6px;
+    vertical-align: middle;
 }
 
 /* Responsividad */
-@media (min-width: 768px) and (max-width: 1024px) {
-    .header {
-        padding: 0 15px; 
-    }
-
-    .logoContainer {
-        justify-content: flex-start; 
-    }
-
-    .title {
-        font-size: 1.3rem; 
-    }
-
-    .logo {
-        width: 60px;
-        height: 55px;
-    }
-
-    .campanaIcon {
-        width: 25px;
-        height: 25px;
-    }
-}
-
-@media (max-width: 768px) {
-    .header {
-        height: 50px; 
-        padding: 0 10px; 
-    }
-
-    .logoContainer {
-        justify-content: flex-start; 
-    }
-
-    .logo {
-        width: 40px;
-        height: 40px;
-    }
-
-
-    .title {
-        font-size: 1.2rem;
-        margin-left: 10px; 
-    }
-
-
-    .campanaIcon {
-        width: 20px;
-        height: 20px;
-    }
-
-    .username {
-        font-size: 0.9rem; 
-    }
-}
-
-@media  (min-width: 480px) and (max-width: 624px) {
-    .header {
-        padding: 0 5px; 
-    }
-
-    .title {
-        font-size: 1rem; 
-    }
-
-    .logo {
-        width: 30px;
-        height: 30px;
-    }
-
-    .campanaIcon {
-        display: none; 
-    }
-
-    .username {
-        font-size: 0.8rem; 
-    }
-}
-@media  (min-width: 350px) and (max-width: 480px) {
-    .header {
-        padding: 0 5px;
-    }
-
-    .title {
-        font-size: 1rem; 
-
-    }
-
-    .logo {
-    display: none;
-    }
-
-    .campanaIcon {
-        display: none; 
-    }
-
-    .username {
-        font-size: 0.8rem; 
-    }
-}

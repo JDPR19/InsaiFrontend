@@ -45,6 +45,9 @@ import flecha5 from '../../../public/flecha5.svg';
 import plus from '../../../public/plus.svg';
 import planta from '../../../public/planta.svg';
 import pdf3 from '../../../public/pdf3.svg';
+import lupa2 from '../../../public/lupa2.svg';
+import sun from '../../../public/sun.svg';
+import moon from '../../../public/moon.svg';
 
 
 const Iconos = {
@@ -94,7 +97,10 @@ const Iconos = {
     habilitar,
     plus,
     planta,
-    pdf3
+    pdf3,
+    lupa2,
+    sun,
+    moon,
 };
 
 export default Iconos;

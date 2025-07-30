@@ -6,8 +6,7 @@ import Perro from '../../../public/assets/perro.png';
 import Importancia from '../../../public/assets/impor.png';
 import inspecciones from '../../../public/assets/export.png';
 import icon from '../../components/iconos/iconos';
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import { registrarInicioSesion } from '../../utils/bitacoraService';
 import Spinner from '../../components/spinner/Spinner';
 import RecuperarModal from '../../components/modalrecuperar/RecuperarModal';
@@ -68,7 +67,7 @@ function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const [isHovered, setIsHovered] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showRecuperar, setShowRecuperar] = useState(false);
@@ -118,8 +117,14 @@ function Login() {
 
         setLoading(true);
 
+        if (!username.trim() && !password.trim()) {
+            addNotification('Debes ingresar usuario/correo y contraseña.', 'error');
+            setLoading(false);
+            return;
+        }
+
         if (!username.trim()) {
-            addNotification('El campo de usuario no puede estar vacío.', 'error');
+            addNotification('El campo de usuario o correo no puede estar vacío.', 'error');
             setLoading(false);
             return;
         }
@@ -129,6 +134,8 @@ function Login() {
             setLoading(false);
             return;
         }
+
+        
 
         try {
             const response = await fetch(`${BaseUrl}/auth/login`, {
@@ -159,7 +166,7 @@ function Login() {
                     navigate('/Home');
                 }, 500);
             } else {
-                addNotification(data.message || 'Error al iniciar sesión', 'error');
+                addNotification(data.message || 'Error al iniciar sesión ', 'error');
             }
         } catch (error) {
             console.error('Error al conectar con el servidor:', error);
@@ -174,16 +181,6 @@ function Login() {
             
             {loading && <Spinner text="Procesando..." />}
             
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
-            
             {showRecuperar && <RecuperarModal onClose={() => setShowRecuperar(false)} />}
 
             {/* Formulario */}
@@ -195,7 +192,7 @@ function Login() {
                     <InputGroup
                         iconSrc={icon.user}
                         type="text"
-                        placeholder="Usuario"
+                        placeholder="Usuario o correo"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                     />

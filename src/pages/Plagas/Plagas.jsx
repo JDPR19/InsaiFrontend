@@ -4,8 +4,7 @@ import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
@@ -28,8 +27,7 @@ function Plagas() {
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedPlagaId, setSelectedPlagaId] = useState(null);
-
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
 
@@ -195,7 +193,7 @@ function Plagas() {
             });
 
             fetchPlagas();
-            addNotification('Plaga eliminada con éxito', 'error');
+            addNotification('Plaga eliminada con éxito', 'success');
         } catch (error) {
             console.error('error eliminando la plaga', error);
             addNotification('Error al eliminar plaga', 'error');
@@ -260,15 +258,6 @@ function Plagas() {
         <div className='mainContainer'>
 
             {loading && <Spinner text="Procesando..." />}
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             {/* Modal Detalle */}
             {detalleModal.abierto && detalleModal.plaga && (
                 <div className='modalOverlay'>

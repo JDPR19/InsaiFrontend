@@ -1,10 +1,10 @@
 import React from 'react';
 import styles from './tabsFiltro.module.css';
 
-function TabsFiltro({ tabs, activeTab, onTabClick }) {
+function TabsFiltro({ tabs, activeTab, onTabClick, showTitle = true }) {
     return (
         <div className={styles.tabsGeneralContainer}>
-            <h3 className={styles.tabsTitle}>Secciones principales</h3>
+            {showTitle && <h3 className={styles.tabsTitle}>Secciones Principales</h3>}
             <div className={styles.tabsContainer}>
                 {tabs.map(tab => (
                     <button

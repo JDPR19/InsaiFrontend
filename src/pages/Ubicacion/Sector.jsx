@@ -4,8 +4,7 @@ import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
@@ -29,8 +28,7 @@ function Sector() {
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedSectorId, setSelectedSectorId] = useState(null);
-
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
 
@@ -264,7 +262,7 @@ function Sector() {
             });
 
             fetchSectores();
-            addNotification('Sector eliminado con éxito', 'error');
+            addNotification('Sector eliminado con éxito', 'success');
         } catch (error) {
             console.error('error eliminando sector',error);
             addNotification('Error al eliminar sector', 'error');
@@ -340,15 +338,6 @@ function Sector() {
     return (
         <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             {currentModal === 'sector' && (
                 <div className='modalOverlay'>
                     <div className='modal'>

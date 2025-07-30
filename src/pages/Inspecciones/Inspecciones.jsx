@@ -5,8 +5,7 @@ import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import Spinner from '../../components/spinner/Spinner';
 import { validateField, validationRules } from '../../utils/validation';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
@@ -61,7 +60,7 @@ function InspeccionesEst() {
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedInspeccionId, setSelectedInspeccionId] = useState(null);
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
 
@@ -79,7 +78,7 @@ function InspeccionesEst() {
     const fetchInspecciones = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`${BaseUrl}/inspecciones_est`, {
+            const response = await axios.get(`${BaseUrl}/inspecciones`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setDatosOriginales(response.data);
@@ -94,7 +93,7 @@ function InspeccionesEst() {
 
     const fetchEmpleados = async () => {
         try {
-            const response = await axios.get(`${BaseUrl}/inspecciones_est/empleados/all`, {
+            const response = await axios.get(`${BaseUrl}/inspecciones/empleados/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setEmpleados(response.data);
@@ -106,7 +105,7 @@ function InspeccionesEst() {
 
     const fetchProgramas = async () => {
         try {
-            const response = await axios.get(`${BaseUrl}/inspecciones_est/programas/all`, {
+            const response = await axios.get(`${BaseUrl}/inspecciones/programas/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setProgramas(response.data);
@@ -118,7 +117,7 @@ function InspeccionesEst() {
 
     const fetchTipoInspecciones = async () => {
         try {
-            const response = await axios.get(`${BaseUrl}/inspecciones_est/tipo-inspeccion/all`, {
+            const response = await axios.get(`${BaseUrl}/inspecciones/tipo-inspeccion/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setTipoInspecciones(response.data);
@@ -130,7 +129,7 @@ function InspeccionesEst() {
 
     const fetchPropiedades = async () => {
         try {
-            const response = await axios.get(`${BaseUrl}/inspecciones_est/propiedades/all`, {
+            const response = await axios.get(`${BaseUrl}/inspecciones/propiedades/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setPropiedades(response.data);
@@ -279,7 +278,7 @@ function InspeccionesEst() {
 
         try {
             if (imagenes.length === 0) {
-                await axios.post(`${BaseUrl}/inspecciones_est`, {
+                await axios.post(`${BaseUrl}/inspecciones`, {
                     ...formData,
                     empleados_ids: formData.empleados_ids,
                     programas_ids: formData.programas_ids
@@ -327,7 +326,7 @@ function InspeccionesEst() {
         try {
 
             if (imagenes.length === 0) {
-                await axios.put(`${BaseUrl}/inspecciones_est/${formData.id}`, {
+                await axios.put(`${BaseUrl}/inspecciones/${formData.id}`, {
                     ...formData,
                     imagenesAEliminar,
                     empleados_ids: formData.empleados_ids,
@@ -370,11 +369,11 @@ function InspeccionesEst() {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`${BaseUrl}/inspecciones_est/${id}`, {
+            await axios.delete(`${BaseUrl}/inspecciones/${id}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             fetchInspecciones();
-            addNotification('Inspección eliminada con éxito', 'error');
+            addNotification('Inspección eliminada con éxito', 'success');
         } catch (error) {
             console.error('error eliminando inspecciones', error);
             addNotification('Error al eliminar inspección', 'error');
@@ -479,15 +478,6 @@ function InspeccionesEst() {
     return (
         <div className={styles.inspeccionContainer}>
             {loading && <Spinner text="Procesando..." />}
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             {/* Modal Detalle */}
             {detalleModal.abierto && (
                 <div className='modalOverlay'>
@@ -894,7 +884,7 @@ function InspeccionesEst() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
                             <th>N°</th>
@@ -912,7 +902,7 @@ function InspeccionesEst() {
                                 <td>{item.fecha_inspeccion}</td>
                                 <td>{item.estado}</td>
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                     {item.aplica_programa === 'aplica' && item.programas && item.programas.length > 0 && (
                                         <img
                                             src={icon.ojito}

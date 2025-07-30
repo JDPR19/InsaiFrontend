@@ -5,8 +5,7 @@ import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
@@ -23,8 +22,7 @@ function TipoPermiso() {
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedTipoPermisoId, setSelectedTipoPermisoId] = useState(null);
-
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const itemsPerPage = 8;
 
     // Reiniciar el modal luego de cerrar
@@ -161,7 +159,7 @@ function TipoPermiso() {
 
             setDatosOriginales(datosOriginales.filter((tipo_permiso) => tipo_permiso.id !== id));
             setDatosFiltrados(datosFiltrados.filter((tipo_permiso) => tipo_permiso.id !== id));
-            addNotification('Tipo de Permiso eliminada con éxito', 'error');
+            addNotification('Tipo de Permiso eliminada con éxito', 'success');
         } catch (error) {
             console.error('Error eliminando tipo de permiso:', error);
             addNotification('Error al eliminar tipo de permiso', 'error');
@@ -224,15 +222,6 @@ function TipoPermiso() {
     return (
         <div className={styles.tipopermisoContainer}>
             {loading && <Spinner text="Procesando..." />}
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             {/* modal registro y editar */}
             {currentModal === 'tipo_permiso' && (
                 <div className='modalOverlay'>

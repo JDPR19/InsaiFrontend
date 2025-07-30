@@ -6,8 +6,7 @@ import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import { getCurrentUser } from '../../utils/usernameauth';
 import { usePermiso } from '../../hooks/usePermiso';
@@ -37,8 +36,7 @@ function Usuario() {
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedEmpleadoId, setSelectedEmpleadoId] = useState(null);
     const [detalleModal, setDetalleModal] = useState({ abierto: false, usuario: null });
-
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
 
@@ -249,7 +247,7 @@ function Usuario() {
             });
             setDatosOriginales(datosOriginales.filter((usuario) => usuario.id !== id));
             setDatosFiltrados(datosFiltrados.filter((usuario) => usuario.id !== id));
-            addNotification('Usuario eliminado con éxito', 'error');
+            addNotification('Usuario eliminado con éxito', 'success');
         } catch (error) {
             console.error('error al eliminar el usuario',error);
             addNotification('Error al eliminar usuario', 'error');
@@ -340,15 +338,6 @@ function Usuario() {
         <div className='mainContainer'>
 
             {loading && <Spinner text="Procesando..." />}
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             {/* Modal de detalle */}
             {detalleModal.abierto && detalleModal.usuario && (
                 <div className='modalOverlay'>

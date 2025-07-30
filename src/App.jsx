@@ -1,9 +1,10 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './utils/instanceSession';
-import { useNotification } from './utils/useNotification';
-import Notification from './components/notification/Notification';
+// import { useNotification } from './utils/useNotification';
 import { setGlobalNotification } from './utils/globalNotification';
+import NotificationContainer from './components/notification/NotificationContainer';
+import { NotificationProvider, useNotification } from './utils/NotificationContext';
 import AutoLogout from './components/autoLogout/AutoLogout';
 import MainLayout from './components/Layouts/MainLayout';
 import Error from './pages/Error/Error';
@@ -40,28 +41,36 @@ import MuestraPlaga from './pages/MuestraPlaga/MuestraPlaga';
 import TipoSolicitud from './pages/Solicitud/TipoSolicitud';
 import MiUsuario from './pages/Miusuario/MiUsuario';
 import ProtectedRoute from './ProtectedRoute';
-import SeccionOne from './pages/SeccionOne/SeccionOne';
+import SeccionOne from './pages/Seccion/SeccionOne';
+import SeccionTwo from './pages/Seccion/SeccionTwo';
+import SeccionThree from './pages/Seccion/SeccionThree';
+import SeccionFour from './pages/Seccion/SeccionFour';
+import SeccionFive from './pages/Seccion/SeccionFive';
+import SeccionSix from './pages/Seccion/SeccionSix';
+import SeccionSeven from './pages/Seccion/SeccionSeven';
 
-function App() {
+function AppContent() {
 
-    const { addNotification, notifications, removeNotification } = useNotification();
+    const {notifications, addNotification,  removeNotification } = useNotification();
 
   React.useEffect(() => {
     setGlobalNotification(addNotification);
   }, [addNotification]);
 
+  // Notificación de prueba al cargar la app
+    // React.useEffect(() => {
+    //     addNotification('¡Notificación de prueba!', 'warning');
+    // }, []);
+
   return (
       <>
-      {/* Notificaciones siempre visibles */}
-        {notifications.map((notification) => (
-          <Notification
-            key={notification.id}
-            message={notification.message}
-            type={notification.type}
-            onClose={() => removeNotification(notification.id)}
-          />
-        ))}
+      {/* Notificaciones apiladas y globales */}
+      <NotificationContainer
+        notifications={notifications}
+        removeNotification={removeNotification}
+      />
     <BrowserRouter>
+      {/*AutoLogout cerrar session por tiempo  */}
         <AutoLogout />
       <Routes>
         {/* Ruta pública: Login */}
@@ -81,9 +90,71 @@ function App() {
         <Route 
         path="/SeccionOne" 
         element={
-          <MainLayout> 
-            <SeccionOne />
-          </MainLayout>
+          <ProtectedRoute pantalla= "home">
+            <MainLayout> 
+              <SeccionOne />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route 
+        path="/SeccionTwo" 
+        element={
+          <ProtectedRoute pantalla="home"> 
+            <MainLayout> 
+              <SeccionTwo />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route 
+        path="/SeccionThree" 
+        element={
+          <ProtectedRoute pantalla="home"> 
+            <MainLayout> 
+              <SeccionThree />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route 
+        path="/SeccionFour" 
+        element={
+          <ProtectedRoute pantalla="home"> 
+            <MainLayout> 
+              <SeccionFour />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route 
+        path="/SeccionFive" 
+        element={
+          <ProtectedRoute pantalla="home"> 
+            <MainLayout> 
+              <SeccionFive />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route 
+        path="/SeccionSix" 
+        element={
+          <ProtectedRoute pantalla="home"> 
+            <MainLayout> 
+              <SeccionSix />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route 
+        path="/SeccionSeven" 
+        element={
+          <ProtectedRoute pantalla="home"> 
+            <MainLayout> 
+              <SeccionSeven />
+            </MainLayout>
+          </ProtectedRoute>
         } />
         <Route
           path="/MiUsuario"
@@ -393,4 +464,10 @@ function App() {
   );
 }
 
-export default App;
+export default function App() {
+    return (
+        <NotificationProvider>
+            <AppContent />
+        </NotificationProvider>
+    );
+}

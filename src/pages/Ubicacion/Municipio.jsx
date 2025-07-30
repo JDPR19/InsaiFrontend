@@ -5,8 +5,7 @@ import SingleSelect from '../../components/selectmulti/SingleSelect';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
@@ -25,8 +24,7 @@ function Municipio() {
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedMunicipioId, setSelectedMunicipioId] = useState(null);
-
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
 
@@ -173,7 +171,7 @@ function Municipio() {
             });
 
             fetchMunicipios();
-            addNotification('Municipio eliminado con éxito', 'error');
+            addNotification('Municipio eliminado con éxito', 'success');
         } catch (error) {
             console.error('Error eliminando Municipio:', error);
             addNotification('Error al eliminar municipio', 'error');
@@ -231,15 +229,6 @@ function Municipio() {
     return (
         <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             {currentModal === 'municipio' && (
                 <div className='modalOverlay'>
                     <div className='modal'>

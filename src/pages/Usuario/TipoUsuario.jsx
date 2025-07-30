@@ -5,8 +5,7 @@ import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import { PANTALLAS, ACCIONES } from '../../utils/permisouser';
 import Spinner from '../../components/spinner/Spinner';
@@ -29,8 +28,7 @@ function TipoUsuario() {
 
     const [permisoModalOpen, setPermisoModalOpen] = useState(false);
     const [permisoSeleccionado, setPermisoSeleccionado] = useState(null);
-
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
 
@@ -150,7 +148,7 @@ function TipoUsuario() {
                 }
             });
 
-            addNotification('Tipo de usuario eliminado con éxito', 'error');
+            addNotification('Tipo de usuario eliminado con éxito', 'success');
             fetchTiposUsuario();
         } catch (error) {
             console.error('Error al eliminar tipo de usuario', error);
@@ -249,16 +247,6 @@ function TipoUsuario() {
         <div className='mainContainer'>
 
             {loading && <Spinner text="Procesando..." />}
-
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             {/* Modal registro/edición */}
             {currentModal === 'tipo_usuario' && (
                 <div className={styles.modalOverlay}>

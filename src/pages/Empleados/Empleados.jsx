@@ -5,8 +5,7 @@ import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner'; 
 import { BaseUrl } from '../../utils/constans';
@@ -28,7 +27,7 @@ function Empleado() {
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false); 
     const [selectedEmpleadoId, setSelectedEmpleadoId] = useState(null); 
     const [detalleModal, setDetalleModal] = useState({ abierto: false, empleado: null });
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
 
@@ -184,7 +183,7 @@ function Empleado() {
             });
             setDatosOriginales(datosOriginales.filter((empleado) => empleado.id !== id));
             setDatosFiltrados(datosFiltrados.filter((empleado) => empleado.id !== id));
-            addNotification('Empleado eliminado con éxito', 'error');
+            addNotification('Empleado eliminado con éxito', 'success');
         } catch (error) {
             console.error('Error eliminando empleado:', error);
             addNotification('Error al eliminar empleado', 'error');
@@ -244,15 +243,6 @@ function Empleado() {
     return (
         <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             {/* Modal de detalle */}
             {detalleModal.abierto && detalleModal.empleado && (
                 <div className='modalOverlay'>

@@ -4,8 +4,7 @@ import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
@@ -22,8 +21,7 @@ function Cargo() {
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedCargoId, setSelectedCargoId] = useState(null);
-
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const itemsPerPage = 8;
 
     // Reiniciar el modal luego de cerrar
@@ -67,7 +65,7 @@ function Cargo() {
             setDatosFiltrados(response.data);
         } catch (error) {
             console.error('Error obteniendo cargos:', error);
-            addNotification('Error al obtener cargos', 'error');
+            addNotification('Error al Obtener Cargos No Hay Respuesta con el servidor', 'error');
         }finally{
             setLoading(false);
         }
@@ -80,7 +78,6 @@ function Cargo() {
 
     // Crear cargo
     const handleSave = async () => {
-        setLoading(true);
         for (const field in formData) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -92,7 +89,7 @@ function Cargo() {
                 }
             }
         }
-
+        setLoading(true);
         try {
             const response = await axios.post(`${BaseUrl}/cargo`, {
                 ...formData,
@@ -108,8 +105,8 @@ function Cargo() {
             closeModal();
         } catch (error) {
             console.error('Error creando Cargo:', error);
-            addNotification('Error al registrar cargo', 'error');
-        }finally{
+            addNotification('Error al registrar O Cargo Ya Existente', 'error');
+        } finally{
             setLoading(false);
         }
     };
@@ -161,7 +158,7 @@ function Cargo() {
 
             setDatosOriginales(datosOriginales.filter((cargo) => cargo.id !== id));
             setDatosFiltrados(datosFiltrados.filter((cargo) => cargo.id !== id));
-            addNotification('Cargo eliminado con éxito', 'error');
+            addNotification('Cargo eliminado con éxito', 'success');
         } catch (error) {
             console.error('Error eliminando Cargo:', error);
             addNotification('Error al eliminar Cargo', 'error');
@@ -224,15 +221,6 @@ function Cargo() {
     return (
         <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             {/* modal registro y editar */}
             {currentModal === 'cargo' && (
                 <div className='modalOverlay'>

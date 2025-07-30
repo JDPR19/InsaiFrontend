@@ -3,8 +3,7 @@ import axios from 'axios';
 import styles from '../../pages/Miusuario/miusuario.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import { usePermiso } from '../../hooks/usePermiso';
 import Spinner from '../../components/spinner/Spinner';
@@ -22,7 +21,7 @@ function MiUsuario() {
     const [currentModal, setCurrentModal] = useState(null);
     const [loading, setLoading] = useState(false);
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const tienePermiso = usePermiso();
 
 
@@ -150,15 +149,6 @@ function MiUsuario() {
     return (
         <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             {/* Modal editar usuario */}
             {currentModal === 'usuario' && (
                 <div className='modalOverlay'>

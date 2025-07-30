@@ -6,8 +6,7 @@ import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
 
@@ -44,8 +43,7 @@ function Propiedad() {
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedPropiedadId, setSelectedPropiedadId] = useState(null);
-
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
 
@@ -339,7 +337,7 @@ function Propiedad() {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             fetchPropiedades();
-            addNotification('Propiedad eliminada con éxito', 'error');
+            addNotification('Propiedad eliminada con éxito', 'success');
         } catch (error) {
             console.error('error eliminando la propiedad', error);
             addNotification('Error al eliminar propiedad', 'error');
@@ -416,15 +414,6 @@ function Propiedad() {
     return (
         <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             {/* Modal Detalle */}
             {detalleModal.abierto && detalleModal.propiedad && (
                 <div className='modalOverlay'>

@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from './inspecciones.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
-
 
 function TipoInspeccion() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -24,8 +21,7 @@ function TipoInspeccion() {
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedTipoInspeccionId, setSelectedTipoInspeccionId] = useState(null);
-
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const itemsPerPage = 8;
 
     // Reiniciar el modal luego de cerrar
@@ -162,7 +158,7 @@ function TipoInspeccion() {
 
             setDatosOriginales(datosOriginales.filter((tipo_inspeccion) => tipo_inspeccion.id !== id));
             setDatosFiltrados(datosFiltrados.filter((tipo_inspeccion) => tipo_inspeccion.id !== id));
-            addNotification('Tipo de Inspección eliminado con éxito', 'error');
+            addNotification('Tipo de Inspección eliminado con éxito', 'success');
         } catch (error) {
             console.error('Error eliminando tipo de inspeccion:', error);
             addNotification('Error al eliminar tipo de inspección', 'error');
@@ -223,17 +219,8 @@ function TipoInspeccion() {
 
 
     return (
-        <div className={styles.inspeccionContainer}>
+        <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             {/* modal registro y editar */}
             {currentModal === 'tipo_inspeccion' && (
                 <div className='modalOverlay'>
@@ -241,7 +228,7 @@ function TipoInspeccion() {
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Tipo de Inspección' : 'Registrar Tipo de Inspección'}</h2>
                         <form className='modalForm'>
-                            <div>
+                            <div className='formColumns_mono'>
 
                                 <div className='formGroup'>
                                     <label htmlFor="tipo_inspeccion">Tipo de Inspección:</label>
@@ -295,7 +282,7 @@ function TipoInspeccion() {
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
-                <table className={styles.table}>
+                <table className='table'>
                     <thead>
                         <tr>
                             <th>N°</th>
@@ -309,7 +296,7 @@ function TipoInspeccion() {
                                 <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{tipo_inspeccion.nombre}</td>
                                 <td>
-                                    <div className={styles.iconContainer}>
+                                    <div className='iconContainer'>
                                         <img
                                             onClick={() => openEditModal(tipo_inspeccion)}
                                             src={icon.editar}

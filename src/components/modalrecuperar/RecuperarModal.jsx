@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import '../../main.css';
 import Spinner from '../spinner/Spinner';
-import Notification from '../notification/Notification';
+import { useNotification } from '../../utils/NotificationContext';
 
 function RecuperarModal({ onClose }) {
     const [step, setStep] = useState(1);
@@ -9,12 +9,11 @@ function RecuperarModal({ onClose }) {
     const [code, setCode] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const [notification, setNotification] = useState(null);
+    const { addNotification } = useNotification();
 
     const handleSendCode = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setNotification(null);
         try {
             const res = await fetch('http://localhost:4000/recuperacion/solicitar-codigo', {
                 method: 'POST',
@@ -23,13 +22,13 @@ function RecuperarModal({ onClose }) {
             });
             const data = await res.json();
             if (res.ok) {
-                setNotification({ message: data.message, type: 'success' });
+                addNotification(data.message, 'success');
                 setStep(2);
             } else {
-                setNotification({ message: data.message, type: 'error' });
+                addNotification(data.message, 'error');
             }
         } catch {
-            setNotification({ message: 'Error enviando el código', type: 'error' });
+            addNotification('Error enviando el código', 'error');
         }
         setLoading(false);
     };
@@ -38,7 +37,6 @@ function RecuperarModal({ onClose }) {
     const handleVerifyCode = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setNotification(null);
         try {
             const res = await fetch('http://localhost:4000/recuperacion/verificar-codigo', {
                 method: 'POST',
@@ -47,13 +45,13 @@ function RecuperarModal({ onClose }) {
             });
             const data = await res.json();
             if (res.ok) {
-                setNotification({ message: data.message, type: 'success' });
+                addNotification(data.message, 'success');
                 setStep(3);
             } else {
-                setNotification({ message: data.message, type: 'error' });
+                addNotification(data.message, 'error');
             }
         } catch {
-            setNotification({ message: 'Error verificando el código', type: 'error' });
+            addNotification('Error verificando el código', 'error');
         }
         setLoading(false);
     };
@@ -62,7 +60,6 @@ function RecuperarModal({ onClose }) {
     const handleChangePassword = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setNotification(null);
         try {
             const res = await fetch('http://localhost:4000/recuperacion/cambiar-password', {
                 method: 'POST',
@@ -71,15 +68,15 @@ function RecuperarModal({ onClose }) {
             });
             const data = await res.json();
             if (res.ok) {
-                setNotification({ message: data.message, type: 'success' });
+                addNotification(data.message, 'success');
                 setTimeout(() => {
                     onClose();
                 }, 1500);
             } else {
-                setNotification({ message: data.message, type: 'error' });
+                addNotification(data.message, 'error');
             }
         } catch {
-            setNotification({ message: 'Error cambiando la contraseña', type: 'error' });
+            addNotification('Error cambiando la contraseña', 'error');
         }
         setLoading(false);
     };
@@ -90,13 +87,6 @@ function RecuperarModal({ onClose }) {
                 <button className="closeButton" onClick={onClose}>&times;</button>
                 <h2>Recuperar Contraseña</h2>
                 {loading && <Spinner text="Procesando..." />}
-                {notification && (
-                    <Notification
-                        message={notification.message}
-                        type={notification.type}
-                        onClose={() => setNotification(null)}
-                    />
-                )}
                 {step === 1 && (
                     <form className="modalForm" onSubmit={handleSendCode}>
                         <div className="formGroup">

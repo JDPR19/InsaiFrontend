@@ -4,8 +4,7 @@ import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
@@ -22,8 +21,7 @@ function TipoPropiedad() {
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedTipoPropiedadId, setSelectedTipoPropiedadId] = useState(null);
-
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const itemsPerPage = 8;
 
     // Reiniciar el modal luego de cerrar
@@ -161,7 +159,7 @@ function TipoPropiedad() {
 
             setDatosOriginales(datosOriginales.filter((tipo_propiedad) => tipo_propiedad.id !== id));
             setDatosFiltrados(datosFiltrados.filter((tipo_propiedad) => tipo_propiedad.id !== id));
-            addNotification('Tipo de Propiedad eliminada con éxito', 'error');
+            addNotification('Tipo de Propiedad eliminada con éxito', 'success');
         } catch (error) {
             console.error('Error eliminando tipo de propiedad:', error);
             addNotification('Error al eliminar tipo de propiedad', 'error');
@@ -225,15 +223,6 @@ function TipoPropiedad() {
         <div className='mainContainer'>
 
             {loading && <Spinner text="Procesando..." />}
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             {/* modal registro y editar */}
             {currentModal === 'tipo_propiedad' && (
                 <div className='modalOverlay'>

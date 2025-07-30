@@ -6,8 +6,7 @@ import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import { BaseUrl } from '../../utils/constans';
 
 function Bitacora() {
@@ -15,7 +14,7 @@ function Bitacora() {
     const [datosFiltrados, setDatosFiltrados] = useState([]); // Datos filtrados según la búsqueda
     const [currentPage, setCurrentPage] = useState(1); // Página actual para la paginación
     const [registroSeleccionado, setRegistroSeleccionado] = useState(null); // Registro seleccionado para el modal
-    const { notifications, addNotification, removeNotification } = useNotification(); // Hook para las notificaciones
+    const { addNotification } = useNotification();
     const itemsPerPage = 8; 
 
     // Obtener datos de la bitácora al cargar el componente
@@ -79,15 +78,6 @@ function Bitacora() {
 
     return (
         <div className='mainContainer'>
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             <div className='tableSection'>
                 <div className='filtersContainer'>
                     <h2>Bitácora</h2>

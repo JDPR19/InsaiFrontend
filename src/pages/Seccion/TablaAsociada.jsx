@@ -4,8 +4,7 @@ import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
-import Notification from '../../components/notification/Notification';
-import { useNotification } from '../../utils/useNotification';
+import { useNotification } from '../../utils/NotificationContext';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
 
@@ -15,7 +14,7 @@ function TablaAsociada() {
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(false);
     const [detalleModal, setDetalleModal] = useState({ abierto: false, propiedad: null });
-    const { notifications, addNotification, removeNotification } = useNotification();
+    const { addNotification } = useNotification();
     const itemsPerPage = 8;
 
     // Fetchers
@@ -70,15 +69,6 @@ function TablaAsociada() {
     return (
         <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
-            {notifications.map((notification) => (
-                <Notification
-                    key={notification.id}
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => removeNotification(notification.id)}
-                />
-            ))}
-
             {/* Modal Detalle */}
             {detalleModal.abierto && (
                 <div className='modalOverlay'>
@@ -137,7 +127,7 @@ function TablaAsociada() {
                         Exel
                     </button>
 
-                    <h2>Asociados</h2>
+                    <h2>Gestión de Terreno</h2>
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
