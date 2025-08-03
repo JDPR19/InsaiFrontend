@@ -1056,7 +1056,7 @@
 
 .badge-creada        { background: #cfe1b9ec; color: #444444; border: 1px solid #98c79a;}
 .badge-pendiente     { background: #ffd466bb; color: #444444; border: 1px solid #fbc12d;}
-.badge-enproceso     { background: #ffd466bb; color: #444444; border: 1px solid #fbc12d;}
+.badge-diagnosticada     { background: #67b0fa81; color: #444444; border: 1px solid #67b0fa;}
 .badge-planificada   { background: #67b0fa81; color: #444444; border: 1px solid #67b0fa;}
 .badge-inspeccionando{ background: #67b0fa81; color: #444444; border: 1px solid #67b0fa;}
 .badge-aprobada      { background: #cfe1b9ec; color: #444444; border: 1px solid #98c79a;}

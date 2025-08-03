@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './utils/instanceSession';
-// import { useNotification } from './utils/useNotification';
+import Header from './components/header/Header';
 import { setGlobalNotification } from './utils/globalNotification';
 import NotificationContainer from './components/notification/NotificationContainer';
 import { NotificationProvider, useNotification } from './utils/NotificationContext';
@@ -48,6 +48,7 @@ import SeccionFour from './pages/Seccion/SeccionFour';
 import SeccionFive from './pages/Seccion/SeccionFive';
 import SeccionSix from './pages/Seccion/SeccionSix';
 import SeccionSeven from './pages/Seccion/SeccionSeven';
+import SeguimientoInspeccion from './pages/Inspecciones/SeguimientoInspeccion';
 
 function AppContent() {
 
@@ -263,6 +264,15 @@ function AppContent() {
               <MainLayout>
                 <Inspecciones />
               </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inspecciones/:id/seguimiento"
+          element={
+            <ProtectedRoute pantalla="inspecciones">
+              <Header/>
+                <SeguimientoInspeccion />
             </ProtectedRoute>
           }
         />

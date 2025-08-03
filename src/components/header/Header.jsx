@@ -42,7 +42,7 @@ function Header() {
         }
     };
 
-    const notificacionesNoLeidas = notificaciones.filter(n => !n.leida).length;
+    const notificacionesNoLeidas = Array.isArray(notificaciones) ? notificaciones.filter(n => !n.leida).length : 0;
 
     const marcarLeida = async (id) => {
         await axios.put(`${BaseUrl}/notificaciones/${id}/leida`, {}, {

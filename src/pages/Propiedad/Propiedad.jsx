@@ -63,8 +63,10 @@ function Propiedad() {
             const response = await axios.get(`${BaseUrl}/propiedad`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
-            setDatosOriginales(response.data);
-            setDatosFiltrados(response.data);
+
+            const data = Array.isArray(response.data) ? response.data : [];
+            setDatosOriginales(data);
+            setDatosFiltrados(data);
         } catch (error) {
             console.error('error obteniendo todas las propiedades', error);
             addNotification('Error al obtener propiedades', 'error');
@@ -720,7 +722,7 @@ function Propiedad() {
                         </tr>
                     </thead>
                     <tbody>
-                        {currentData.map((item, idx) => (
+                        {(Array.isArray(currentData) ? currentData : []).map((item, idx) => (
                             <tr key={item.id}>
                                 <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{item.rif}</td>

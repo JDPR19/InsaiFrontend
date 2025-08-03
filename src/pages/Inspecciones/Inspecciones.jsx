@@ -11,14 +11,15 @@ import { validateField, validationRules } from '../../utils/validation';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
 import MultiSelect from '../../components/selectmulti/MultiSelect';
 import { BaseUrl } from '../../utils/constans';
+import { useNavigate } from 'react-router-dom';
+
 
 function InspeccionesEst() {
+    const navigate = useNavigate();
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
-    const [empleados, setEmpleados] = useState([]);
-    const [programas, setProgramas] = useState([]);
     const [tipoInspecciones, setTipoInspecciones] = useState([]);
-    const [propiedades, setPropiedades] = useState([]);
+    const [planificaciones, setPlanificaciones] = useState([]);
     const [imagenes, setImagenes] = useState([]);
     const [previewUrls, setPreviewUrls] = useState([]);
     const [imagenesGuardadas, setImagenesGuardadas] = useState([]); 
@@ -51,12 +52,9 @@ function InspeccionesEst() {
         aspectos: '',
         ordenamientos: '',
         fecha_proxima_inspeccion: '',
-        estado: 'pendiente',
-        aplica_programa: 'no_aplica',
+        estado: 'Pendiente',
         tipo_inspeccion_fito_id: '',
-        propiedad_id: '',
-        empleados_ids: [],
-        programas_ids: [],
+        planificacion_id: '',
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedInspeccionId, setSelectedInspeccionId] = useState(null);
@@ -65,14 +63,8 @@ function InspeccionesEst() {
     const [errors, setErrors] = useState({});
 
     // Opciones para selects
-    const empleadosOptions = empleados.map(e => ({ value: String(e.id), label: `${e.nombre} ${e.apellido}` }));
-    const programasOptions = programas.map(p => ({ value: String(p.id), label: p.nombre }));
     const tipoInspeccionOptions = tipoInspecciones.map(t => ({ value: String(t.id), label: t.nombre }));
-    const propiedadOptions = propiedades.map(p => ({ value: String(p.id), label: p.nombre }));
-
-    const verSeguimiento = (inspeccionId) => {
-        alert(`Ver seguimiento de la inspección ID: ${inspeccionId}`);
-    };
+    const planificacionOptions = planificaciones.map(p => ({ value: String(p.id), label: p.nombre || `Planificación ${p.id}` }));
 
     // Fetchers
     const fetchInspecciones = async () => {
@@ -91,30 +83,6 @@ function InspeccionesEst() {
         }
     };
 
-    const fetchEmpleados = async () => {
-        try {
-            const response = await axios.get(`${BaseUrl}/inspecciones/empleados/all`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            setEmpleados(response.data);
-        } catch (error) {
-            console.error('error obteniendo empleados', error);
-            addNotification('Error al obtener empleados', 'error');
-        }
-    };
-
-    const fetchProgramas = async () => {
-        try {
-            const response = await axios.get(`${BaseUrl}/inspecciones/programas/all`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            setProgramas(response.data);
-        } catch (error) {
-            console.error('error obteniendo programas', error);
-            addNotification('Error al obtener programas', 'error');
-        }
-    };
-
     const fetchTipoInspecciones = async () => {
         try {
             const response = await axios.get(`${BaseUrl}/inspecciones/tipo-inspeccion/all`, {
@@ -127,24 +95,23 @@ function InspeccionesEst() {
         }
     };
 
-    const fetchPropiedades = async () => {
+    const fetchPlanificaciones = async () => {
         try {
-            const response = await axios.get(`${BaseUrl}/inspecciones/propiedades/all`, {
+            const response = await axios.get(`${BaseUrl}/inspecciones/planificaciones/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
-            setPropiedades(response.data);
+            setPlanificaciones(response.data);
         } catch (error) {
-            console.error('error obteniendo propiedades', error);
-            addNotification('Error al obtener propiedades', 'error');
+            console.error('error obteniendo planificaciones', error);
+            addNotification('Error al obtener planificaciones', 'error');
         }
     };
 
+
     useEffect(() => {
         fetchInspecciones();
-        fetchEmpleados();
-        fetchProgramas();
         fetchTipoInspecciones();
-        fetchPropiedades();
+        fetchPlanificaciones();
     }, []);
 
     const resetFormData = () => {
@@ -172,12 +139,9 @@ function InspeccionesEst() {
             aspectos: '',
             ordenamientos: '',
             fecha_proxima_inspeccion: '',
-            estado: 'pendiente',
-            aplica_programa: 'no_aplica',
+            estado: 'Pendiente',
             tipo_inspeccion_fito_id: '',
-            propiedad_id: '',
-            empleados_ids: [],
-            programas_ids: [],
+            planificacion_id: '',
         });
         setImagenes([]);
         setPreviewUrls([]);
@@ -204,20 +168,6 @@ function InspeccionesEst() {
         }));
     };
 
-    const handleMultiSelectChange = (field, selected) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: selected ? selected.map(opt => String(opt.value)) : []
-        }));
-    };
-
-    const clearMultiSelect = (campo) => {
-        setFormData(prev => ({
-            ...prev,
-            [campo]: []
-        }));
-    };
-
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files);
         setImagenes(files);
@@ -240,18 +190,11 @@ function InspeccionesEst() {
         setPreviewUrls([]);
     };
 
-    const handleSearch = (searchTerm) => {
-        const filtered = filterData(datosOriginales, searchTerm, [
-            'codigo_inspeccion', 'n_control', 'area', 'estado'
-        ]);
-        setDatosFiltrados(filtered);
-    };
-
     const validateForm = () => {
         let valid = true;
         let newErrors = {};
         for (const field of [
-            'codigo_inspeccion', 'n_control', 'estado', 'propiedad_id'
+            'codigo_inspeccion', 'n_control', 'estado', 
         ]) {
             if (validationRules[field]) {
                 const { regex, errorMessage } = validationRules[field];
@@ -269,6 +212,10 @@ function InspeccionesEst() {
         return valid;
     };
 
+    const handleSeguimiento = (inspeccionId) => {
+        navigate(`/inspecciones/${inspeccionId}/seguimiento`);
+    };
+
     const handleSave = async () => {
         if (!validateForm()) {
             addNotification('Verifica los campos obligatorios', 'warning');
@@ -279,9 +226,7 @@ function InspeccionesEst() {
         try {
             if (imagenes.length === 0) {
                 await axios.post(`${BaseUrl}/inspecciones`, {
-                    ...formData,
-                    empleados_ids: formData.empleados_ids,
-                    programas_ids: formData.programas_ids
+                    ...formData
                 }, {
                     headers: {
                         'Content-Type': 'application/json',
@@ -291,14 +236,10 @@ function InspeccionesEst() {
             } else {
                 const form = new FormData();
                 Object.entries(formData).forEach(([key, value]) => {
-                    if (Array.isArray(value)) {
-                        value.forEach(v => form.append(key, v));
-                    } else {
-                        form.append(key, value);
-                    }
+                    form.append(key, value);
                 });
                 imagenes.forEach(img => form.append('imagenes', img));
-                await axios.post(`${BaseUrl}/inspecciones_est`, form, {
+                await axios.post(`${BaseUrl}/inspecciones`, form, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                         Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -324,13 +265,10 @@ function InspeccionesEst() {
         setLoading(true);
 
         try {
-
             if (imagenes.length === 0) {
                 await axios.put(`${BaseUrl}/inspecciones/${formData.id}`, {
                     ...formData,
-                    imagenesAEliminar,
-                    empleados_ids: formData.empleados_ids,
-                    programas_ids: formData.programas_ids
+                    imagenesAEliminar
                 }, {
                     headers: {
                         'Content-Type': 'application/json',
@@ -340,15 +278,11 @@ function InspeccionesEst() {
             } else {
                 const form = new FormData();
                 Object.entries(formData).forEach(([key, value]) => {
-                    if (Array.isArray(value)) {
-                        value.forEach(v => form.append(key, v));
-                    } else {
-                        form.append(key, value);
-                    }
+                    form.append(key, value);
                 });
                 imagenes.forEach(img => form.append('imagenes', img));
                 imagenesAEliminar.forEach(imgName => form.append('imagenesAEliminar', imgName));
-                await axios.put(`${BaseUrl}/inspecciones_est/${formData.id}`, form, {
+                await axios.put(`${BaseUrl}/inspecciones/${formData.id}`, form, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                         Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -439,12 +373,9 @@ function InspeccionesEst() {
             finalidad6: inspeccion.finalidad6 || '',
             ordenamientos: inspeccion.ordenamientos || '',
             fecha_proxima_inspeccion: inspeccion.fecha_proxima_inspeccion || '',
-            estado: inspeccion.estado || 'pendiente',
-            aplica_programa: inspeccion.aplica_programa || 'no_aplica',
+            estado: inspeccion.estado || 'Pendiente',
             tipo_inspeccion_fito_id: inspeccion.tipo_inspeccion_fito_id ? String(inspeccion.tipo_inspeccion_fito_id) : '',
-            propiedad_id: inspeccion.propiedad_id ? String(inspeccion.propiedad_id) : '',
-            empleados_ids: (inspeccion.empleados || []).map(e => String(e.id)),
-            programas_ids: (inspeccion.programas || []).map(p => String(p.id)),
+            planificacion_id: inspeccion.planificacion_id ? String(inspeccion.planificacion_id) : '',
         });
         setImagenes([]);
         setPreviewUrls([]);
@@ -484,35 +415,112 @@ function InspeccionesEst() {
                     <div className='modalDetalle'>
                         <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
                         <h2>Detalles de la Inspección</h2>
-                        <table className='detalleTable'>
-                            <tbody>
-                                <tr>
-                                    <th>Código</th>
-                                    <td>{detalleModal.inspeccion.codigo_inspeccion}</td>
-                                </tr>
-                                <tr>
-                                    <th>Fecha Inspección</th>
-                                    <td>{detalleModal.inspeccion.fecha_inspeccion}</td>
-                                </tr>
-                                <tr>
-                                    <th>Estado</th>
-                                    <td>{detalleModal.inspeccion.estado}</td>
-                                </tr>
-                                <tr>
-                                    <th>Propiedad</th>
-                                    <td>{detalleModal.inspeccion.propiedad_nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Empleados</th>
-                                    <td>{(detalleModal.inspeccion.empleados || []).map(e => `${e.nombre} ${e.apellido}`).join(', ')}</td>
-                                </tr>
-                                <tr>
-                                    <th>Programas</th>
-                                    <td>{(detalleModal.inspeccion.programas || []).map(p => p.nombre).join(', ')}</td>
-                                </tr>
-                                <tr>
-                                    <th>Imágenes</th>
-                                    <td>
+                        <form className='modalForm'>
+                            <div className={styles.formColumns}>
+                                {/* Todos los campos igual que en edición, pero deshabilitados */}
+                                <div className='formGroup'>
+                                    <label>Código de Inspección:</label>
+                                    <input type="text" value={detalleModal.inspeccion.codigo_inspeccion} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>N° Control:</label>
+                                    <input type="text" value={detalleModal.inspeccion.n_control} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Fecha notificación:</label>
+                                    <input type="date" value={detalleModal.inspeccion.fecha_notificacion} className='date' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Fecha inspección:</label>
+                                    <input type="date" value={detalleModal.inspeccion.fecha_inspeccion} className='date' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Hora Inspección:</label>
+                                    <input type="time" value={detalleModal.inspeccion.hora_inspeccion} className='time' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Tipo de Inspección:</label>
+                                    <input type="text" value={detalleModal.inspeccion.tipo_inspeccion_nombre} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Propiedad a Inspeccionar:</label>
+                                    <input type="text" value={detalleModal.inspeccion.propiedad_nombre} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Área:</label>
+                                    <input type="text" value={detalleModal.inspeccion.area} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Nombre Responsable:</label>
+                                    <input type="text" value={detalleModal.inspeccion.responsable_e} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Cédula Responsable:</label>
+                                    <input type="text" value={detalleModal.inspeccion.cedula_res} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Teléfono Responsable:</label>
+                                    <input type="text" value={detalleModal.inspeccion.tlf} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Correo Responsable:</label>
+                                    <input type="email" value={detalleModal.inspeccion.correo} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Norte:</label>
+                                    <input type="text" value={detalleModal.inspeccion.norte} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Este:</label>
+                                    <input type="text" value={detalleModal.inspeccion.este} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Zona:</label>
+                                    <input type="text" value={detalleModal.inspeccion.zona} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Aspectos:</label>
+                                    <textarea value={detalleModal.inspeccion.aspectos} className='textarea' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Ordenamientos:</label>
+                                    <textarea value={detalleModal.inspeccion.ordenamientos} className='textarea' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Fecha Próxima Inspección:</label>
+                                    <input type="date" value={detalleModal.inspeccion.fecha_proxima_inspeccion} className='date' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Estado:</label>
+                                    <input type="text" value={detalleModal.inspeccion.estado} className='input' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Finalidad 1:</label>
+                                    <textarea value={detalleModal.inspeccion.finalidad1} className='textarea' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Finalidad 2:</label>
+                                    <textarea value={detalleModal.inspeccion.finalidad2} className='textarea' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Finalidad 3:</label>
+                                    <textarea value={detalleModal.inspeccion.finalidad3} className='textarea' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Finalidad 4:</label>
+                                    <textarea value={detalleModal.inspeccion.finalidad4} className='textarea' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Finalidad 5:</label>
+                                    <textarea value={detalleModal.inspeccion.finalidad5} className='textarea' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Finalidad 6:</label>
+                                    <textarea value={detalleModal.inspeccion.finalidad6} className='textarea' disabled />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Imágenes:</label>
+                                    <div style={{ display: 'flex', gap: 10, margin: '10px 0', alignItems: 'center' }}>
                                         {(detalleModal.inspeccion.imagenes || []).map(img => (
                                             <a
                                                 key={img.id}
@@ -528,10 +536,10 @@ function InspeccionesEst() {
                                                 />
                                             </a>
                                         ))}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
@@ -539,7 +547,7 @@ function InspeccionesEst() {
             {/* Modal registro y editar */}
             {currentModal === 'inspeccion' && (
                 <div className='modalOverlay'>
-                    <div className='modal_i'>
+                    <div className='modal'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         <h2>{formData.id ? 'Editar Inspección' : 'Registrar Inspección'}</h2>
                         <input
@@ -553,7 +561,6 @@ function InspeccionesEst() {
                             <img src={icon.pdf3} alt="Subir" style={{ width: 18, marginRight: 6 }} />
                             Subir Imágenes
                         </label>                          
-                        
                         {!formData.id && previewUrls.length > 0 && (
                             <div style={{ display: 'flex', gap: 10, margin: '10px 0', alignItems: 'center' }}>
                                 {previewUrls.map((url, idx) => (
@@ -570,53 +577,50 @@ function InspeccionesEst() {
                                 <button type="button" onClick={clearImages} className="btn-limpiar" title='Limpiar todas las imágenes seleccionadas'>Limpiar todas</button>
                             </div>
                         )}
-                            {formData.id && (
-                        <>
-                            {/* Si NO hay imágenes nuevas seleccionadas, muestra las guardadas */}
-                            {imagenesGuardadas.length > 0 && previewUrls.length === 0 && (
-                                <div style={{ display: 'flex', gap: 10, margin: '10px 0', alignItems: 'center' }}>
-                                    {imagenesGuardadas.map((img, idx) => (
-                                        <div key={img.id || img.imagen} style={{ position: 'relative' }}>
-                                            <img
-                                                src={`${BaseUrl}/uploads/inspeccion_est/${img.imagen}`}
-                                                alt={`guardada-${idx}`}
-                                                style={{ maxWidth: 80, maxHeight: 80, border: '1px solid #ccc' }}
-                                                onError={e => { e.target.style.display = 'none'; }}
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => removeSavedImage(img.imagen)}
-                                                title="Quitar imagen"
-                                                className='closeButton2'
-                                            >×</button>
-                                        </div>
-                                    ))}
-                                    <button type="button" onClick={clearSavedImages} className="btn-limpiar" title='Limpiar todas las imágenes guardadas'>Limpiar todas</button>
-                                </div>
-                            )}
-                            {/* Si hay imágenes nuevas seleccionadas, muestra solo las nuevas */}
-                            {previewUrls.length > 0 && (
-                                <div style={{ display: 'flex', gap: 10, margin: '10px 0', alignItems: 'center' }}>
-                                    {previewUrls.map((url, idx) => (
-                                        <div key={idx} style={{ position: 'relative' }}>
-                                            <img src={url} alt={`preview-${idx}`} style={{ maxWidth: 80, maxHeight: 80, border: '1px solid #ccc' }} />
-                                            <button
-                                                type="button"
-                                                onClick={() => removeImage(idx)}
-                                                title="Quitar imagen"
-                                                className='closeButton2'
-                                            >×</button>
-                                        </div>
-                                    ))}
-                                    <button type="button" onClick={clearImages} className="btn-limpiar" title='Limpiar todas las imágenes seleccionadas'>Limpiar todas</button>
-                                </div>
-                            )}
-                        </>
-                    )}
+                        {formData.id && (
+                            <>
+                                {imagenesGuardadas.length > 0 && previewUrls.length === 0 && (
+                                    <div style={{ display: 'flex', gap: 10, margin: '10px 0', alignItems: 'center' }}>
+                                        {imagenesGuardadas.map((img, idx) => (
+                                            <div key={img.id || img.imagen} style={{ position: 'relative' }}>
+                                                <img
+                                                    src={`${BaseUrl}/uploads/inspeccion_est/${img.imagen}`}
+                                                    alt={`guardada-${idx}`}
+                                                    style={{ maxWidth: 80, maxHeight: 80, border: '1px solid #ccc' }}
+                                                    onError={e => { e.target.style.display = 'none'; }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeSavedImage(img.imagen)}
+                                                    title="Quitar imagen"
+                                                    className='closeButton2'
+                                                >×</button>
+                                            </div>
+                                        ))}
+                                        <button type="button" onClick={clearSavedImages} className="btn-limpiar" title='Limpiar todas las imágenes guardadas'>Limpiar todas</button>
+                                    </div>
+                                )}
+                                {previewUrls.length > 0 && (
+                                    <div style={{ display: 'flex', gap: 10, margin: '10px 0', alignItems: 'center' }}>
+                                        {previewUrls.map((url, idx) => (
+                                            <div key={idx} style={{ position: 'relative' }}>
+                                                <img src={url} alt={`preview-${idx}`} style={{ maxWidth: 80, maxHeight: 80, border: '1px solid #ccc' }} />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeImage(idx)}
+                                                    title="Quitar imagen"
+                                                    className='closeButton2'
+                                                >×</button>
+                                            </div>
+                                        ))}
+                                        <button type="button" onClick={clearImages} className="btn-limpiar" title='Limpiar todas las imágenes seleccionadas'>Limpiar todas</button>
+                                    </div>
+                                )}
+                            </>
+                        )}
 
                         <form className='modalForm'>
                             <div className={styles.formColumns}>
-                                {/* ...todos los campos igual... */}
                                 <div className='formGroup'>
                                     <label htmlFor="codigo_inspeccion">Código de Inspección:</label>
                                     <input type="text" id="codigo_inspeccion" value={formData.codigo_inspeccion} onChange={handleChange} className='input' placeholder='10-00-M00-P00-F01' />
@@ -652,15 +656,30 @@ function InspeccionesEst() {
                                     {errors.tipo_inspeccion_fito_id && <span className='errorText'>{errors.tipo_inspeccion_fito_id}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="propiedad_id">Propiedad a Inspeccionar:</label>
+                                    <label htmlFor="planificacion_id">Planificación:</label>
                                     <SingleSelect
-                                        options={propiedadOptions}
-                                        value={formData.propiedad_id}
-                                        onChange={val => handleSelectChange('propiedad_id', val)}
-                                        placeholder="Seleccione propiedad"
+                                        options={planificacionOptions}
+                                        value={formData.planificacion_id}
+                                        onChange={val => handleSelectChange('planificacion_id', val)}
+                                        placeholder="Seleccione planificación"
                                     />
-                                    {errors.propiedad_id && <span className='errorText'>{errors.propiedad_id}</span>}
                                 </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="estado">Estatus Inspecciòn:</label>
+                                    <SingleSelect
+                                        options={[
+                                            { value: 'creada', label: 'Creada' },
+                                            { value: 'diagnosticada', label: 'Diagnosticada' },
+                                            { value: 'inspeccionando', label: 'Inspeccionando' },
+                                            { value: 'aprobada', label: 'Aprobada' },
+                                            { value: 'rechazada', label: 'Rechazada' }
+                                        ]}
+                                        value={formData.estado}
+                                        onChange={val => handleSelectChange('estado', val)}
+                                        placeholder="Seleccione un estado"
+                                    />
+                                    {errors.estado && <span className='errorText'>{errors.estado}</span>}
+                                </div> 
                                 <div className='formGroup'>
                                     <label>Área a la Cual Pertenece:</label>
                                     <div className="radio-group">
@@ -684,52 +703,10 @@ function InspeccionesEst() {
                                                 onChange={() => setFormData(prev => ({ ...prev, area: 'animal' }))}
                                             /> Animal
                                         </label>
-                                        <label>
-                                            <input
-                                                type="radio"
-                                                className="radio-input"
-                                                name="area"
-                                                value="agroecologia"
-                                                checked={formData.area === 'agroecologia'}
-                                                onChange={() => setFormData(prev => ({ ...prev, area: 'agroecologia' }))}
-                                            /> Agroecología
-                                        </label>
-                                        <label>
-                                            <input
-                                                type="radio"
-                                                className="radio-input"
-                                                name="area"
-                                                value="movilizacion"
-                                                checked={formData.area === 'movilizacion'}
-                                                onChange={() => setFormData(prev => ({ ...prev, area: 'movilizacion' }))}
-                                            /> Movilización
-                                        </label>
-                                        <label>
-                                            <input
-                                                type="radio"
-                                                className="radio-input"
-                                                name="area"
-                                                value="fiscalizacion"
-                                                checked={formData.area === 'fiscalizacion'}
-                                                onChange={() => setFormData(prev => ({ ...prev, area: 'fiscalizacion' }))}
-                                            /> Fiscalización
-                                        </label>
                                     </div>
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Empleados / Servidores Pùblicos:</label>
-                                    <MultiSelect
-                                        options={empleadosOptions}
-                                        value={empleadosOptions.filter(opt => formData.empleados_ids.includes(opt.value))}
-                                        onChange={selected => handleMultiSelectChange('empleados_ids', selected)}
-                                        placeholder="Seleccione empleados"
-                                    />
-                                    {formData.empleados_ids.length > 0 && (
-                                        <button type="button" onClick={() => clearMultiSelect('empleados_ids')} className='btn-limpiar'>Limpiar</button>
-                                    )}
-                                </div>
-                                <div className='formGroup'>
-                                    <label htmlFor="responsable_e">Nombre y Apellido del Responsable que atiende:</label>
+                                    <label htmlFor="responsable_e">Responsable que atiende:</label>
                                     <input type="text" id="responsable_e" value={formData.responsable_e} onChange={handleChange} className='input' placeholder='Opcional'/>
                                 </div>
                                 <div className='formGroup'>
@@ -769,74 +746,26 @@ function InspeccionesEst() {
                                     <input type="date" id="fecha_proxima_inspeccion" value={formData.fecha_proxima_inspeccion} onChange={handleChange} className='date' />
                                 </div>                               
                                 <div className='formGroup'>
-                                    <label htmlFor="estado">Estatus Inspecciòn:</label>
-                                    <SingleSelect
-                                        options={[
-                                            { value: 'Pendiente', label: 'Pendiente' },
-                                            { value: 'En proceso', label: 'En Proceso' },
-                                            { value: 'Aprobada', label: 'Aprobada' },
-                                            { value: 'Rechazada', label: 'Rechazada' }
-                                        ]}
-                                        value={formData.estado}
-                                        onChange={val => handleSelectChange('estado', val)}
-                                        placeholder="Seleccione un estado"
-                                    />
-                                    {errors.estado && <span className='errorText'>{errors.estado}</span>}
-                                </div> 
-                                <div className='formGroup'>
-                                    <label>¿Aplica Programa?</label>
-                                    <div style={{ display: 'flex', gap: '1em' }}>
-                                        <label>
-                                            <input
-                                                type="radio"
-                                                className="radio-input"
-                                                name="aplica_programa"
-                                                value="aplica"
-                                                checked={formData.aplica_programa === 'aplica'}
-                                                onChange={() => setFormData(prev => ({ ...prev, aplica_programa: 'aplica', programas_ids: [] }))}
-                                            /> Aplica
-                                        </label>
-                                        <label>
-                                            <input
-                                                type="radio"
-                                                className="radio-input"
-                                                name="aplica_programa"
-                                                value="no_aplica"
-                                                checked={formData.aplica_programa === 'no_aplica'}
-                                                onChange={() => setFormData(prev => ({ ...prev, aplica_programa: 'no_aplica', programas_ids: [] }))}
-                                            /> No Aplica
-                                        </label>
-                                    </div>
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Programas:</label>
-                                    <MultiSelect
-                                        options={programasOptions}
-                                        value={programasOptions.filter(opt => formData.programas_ids.includes(opt.value))}
-                                        onChange={selected => handleMultiSelectChange('programas_ids', selected)}
-                                        placeholder="Seleccione programas"
-                                        isDisabled={formData.aplica_programa !== 'aplica'}
-                                    />
-                                    {formData.programas_ids.length > 0 && formData.aplica_programa === 'aplica' && (
-                                        <button type="button" onClick={() => setFormData(prev => ({ ...prev, programas_ids: [] }))} className='btn-limpiar'>Limpiar</button>
-                                    )}
-                                </div>
-                                <div className='formGroup'>
                                     <label htmlFor="finalidad1">Finalidad : Verificar el estado Fitosanitario de:</label>
                                     <textarea id="finalidad1" value={formData.finalidad1} onChange={handleChange} className='textarea'  placeholder='Opcional Fitosanitario'/>
-                                </div><div className='formGroup'>
+                                </div>
+                                <div className='formGroup'>
                                     <label htmlFor="finalidad2">Finalidad : Verificar el Estado Zoosanitario de:</label>
                                     <textarea id="finalidad2" value={formData.finalidad2} onChange={handleChange} className='textarea'  placeholder='Opcional Zoosanitario'/>
-                                </div><div className='formGroup'>
+                                </div>
+                                <div className='formGroup'>
                                     <label htmlFor="finalidad3">Finalidad : Verificar el estado de Procesos :</label>
                                     <textarea id="finalidad3" value={formData.finalidad3} onChange={handleChange} className='textarea'  placeholder='Opcional Agroecológia'/>
-                                </div><div className='formGroup'>
+                                </div>
+                                <div className='formGroup'>
                                     <label htmlFor="finalidad4">Finalidad : Vereificar el origen de movilización:</label>
                                     <textarea id="finalidad4" value={formData.finalidad4} onChange={handleChange} className='textarea'  placeholder='Opcional Movilización'/>
-                                </div><div className='formGroup'>
+                                </div>
+                                <div className='formGroup'>
                                     <label htmlFor="finalidad5">Finalidad : Verificar Buenas Prácticas :</label>
                                     <textarea id="finalidad5" value={formData.finalidad5} onChange={handleChange} className='textarea'  placeholder='Opcional Manofactura'/>
-                                </div><div className='formGroup'>
+                                </div>
+                                <div className='formGroup'>
                                     <label htmlFor="finalidad6">Otra Finalidad:</label>
                                     <textarea id="finalidad6" value={formData.finalidad6} onChange={handleChange} className='textarea'  placeholder='Opcional'/>
                                 </div>
@@ -880,7 +809,12 @@ function InspeccionesEst() {
                     </button>
                     <h2>Inspecciones</h2>
                     <div className='searchContainer'>
-                        <SearchBar onSearch={handleSearch} />
+                        <SearchBar onSearch={searchTerm => {
+                            const filtered = filterData(datosOriginales, searchTerm, [
+                                'codigo_inspeccion', 'n_control', 'area', 'estado'
+                            ]);
+                            setDatosFiltrados(filtered);
+                        }} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
                 </div>
@@ -900,17 +834,21 @@ function InspeccionesEst() {
                                 <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{item.codigo_inspeccion}</td>
                                 <td>{item.fecha_inspeccion}</td>
-                                <td>{item.estado}</td>
+                                <td>
+                                    <span className={`badge-estado badge-${item.estado?.toLowerCase().replace(/\s/g, '')}`}>
+                                        {item.estado.charAt(0).toUpperCase() + item.estado.slice(1)}
+                                    </span>
+                                </td>
                                 <td>
                                     <div className='iconContainer'>
-                                    {item.aplica_programa === 'aplica' && item.programas && item.programas.length > 0 && (
-                                        <img
-                                            src={icon.ojito}
-                                            alt="Ver seguimiento"
-                                            className="iconver"
-                                            title="Ver seguimiento de esta inspección"
-                                            onClick={() => verSeguimiento(item.id)}
-                                        />
+                                        {/* ...dentro del <td> de acciones en la tabla... */}
+                                    {!['aprobada', 'rechazada'].includes(item.estado) && (
+                                            <img src={icon.ojito}
+                                            onClick={() => handleSeguimiento(item.id)} 
+                                            alt="Seguimiento" 
+                                            className='iconver'
+                                            title='Dar Seguimiento a esta Inspección'
+                                            />
                                     )}
                                         <img
                                             onClick={() => openDetalleModal(item)}

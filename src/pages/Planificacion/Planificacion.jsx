@@ -297,6 +297,15 @@ function Planificacion() {
                         <form className='modalForm'>
                             <div className='formColumns'>
                                 <div className='formGroup'>
+                                    <label>Nombre de la planificación:</label>
+                                    <input 
+                                        type="text" 
+                                        value={detalleModal.planificacion.nombre} 
+                                        disabled 
+                                        className='input' 
+                                    />
+                                </div>
+                                <div className='formGroup'>
                                     <label>Solicitudes Activas:</label>
                                     <SingleSelect
                                         options={solicitudOptions}
@@ -342,6 +351,17 @@ function Planificacion() {
                         <h2>{formData.id ? 'Editar Planificación' : 'Registrar Planificación'}</h2>
                         <form className='modalForm'>
                             <div className='formColumns'>
+                                <div className='formGroup'>
+                                    <label htmlFor="nombre">Nombre de la planificación:</label>
+                                    <input
+                                        type="text"
+                                        id="nombre"
+                                        value={formData.nombre}
+                                        onChange={handleChange}
+                                        className='input'
+                                        placeholder="Inspección finca Yaracuy Julio 2025"
+                                    />
+                                </div>
                                 <div className='formGroup'>
                                     <label>Solicitudes Activas:</label>
                                     <SingleSelect
@@ -426,10 +446,10 @@ function Planificacion() {
                     <thead>
                         <tr>
                             <th>N°</th>
+                            <th>Resumen</th>
                             <th>Solicitud</th>
                             <th>Fecha Programada</th>
                             <th>Estado</th>
-                            <th>Empleados</th>
                             <th>Acción</th>
                         </tr>
                     </thead>
@@ -437,6 +457,7 @@ function Planificacion() {
                         {currentData.map((item, idx) => (
                             <tr key={item.id}>
                                 <td>{indexOfFirstItem + idx + 1}</td>
+                                <td>{item.planificacion_nombre || item.nombre || `Planificación ${item.id}`}</td>
                                 <td>{item.solicitud_descripcion}</td>
                                 <td>{item.fecha_programada}</td>
                                 <td>
@@ -444,11 +465,11 @@ function Planificacion() {
                                         {item.estado}
                                     </span>
                                 </td>
-                                <td>
+                                {/* <td>
                                     {(item.empleados || []).map(e => (
                                         <span key={e.id}>{e.nombre} {e.apellido}<br /></span>
                                     ))}
-                                </td>
+                                </td> */}
                                 <td>
                                     <div className='iconContainer'>
                                         <img

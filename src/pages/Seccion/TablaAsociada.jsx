@@ -19,20 +19,24 @@ function TablaAsociada() {
 
     // Fetchers
     const fetchPropiedadesAsociadas = async () => {
-        setLoading(true);
-        try {
-            const response = await axios.get(`${BaseUrl}/propiedad/asociadas`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            setDatosOriginales(response.data);
-            setDatosFiltrados(response.data);
-        } catch (error) {
-            console.error('error obteniendo todas las propiedades asociadas', error);
-            addNotification('Error al obtener propiedades asociadas', 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
+    setLoading(true);
+    try {
+        const response = await axios.get(`${BaseUrl}/propiedad/asociadas`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        // Asegura que siempre sea un array
+        const data = Array.isArray(response.data) ? response.data : [];
+        setDatosOriginales(data);
+        setDatosFiltrados(data);
+    } catch (error) {
+        console.error('error obteniendo todas las propiedades asociadas', error);
+        addNotification('Error al obtener propiedades asociadas', 'error');
+        setDatosOriginales([]); // <-- importante
+        setDatosFiltrados([]);  // <-- importante
+    } finally {
+        setLoading(false);
+    }
+};
 
     useEffect(() => {
         fetchPropiedadesAsociadas();
