@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import TabsFiltro from '../../components/TabsFiltro/TabsFiltro';
+import TabsFiltro from '../../components/tabsFiltro/TabsFiltro';
 import { usePermiso } from '../../hooks/usePermiso';
 import '../../main.css';
 import Solicitud from '../Solicitud/Solicitud';

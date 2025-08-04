@@ -1,2 +1,3 @@
 
-export const BaseUrl = 'https://fdc684122c64.ngrok-free.app';
+export const BaseUrl = 'https://insaibackend.onrender.com';
+// export const BaseUrl = 'http://localhost:4000';
