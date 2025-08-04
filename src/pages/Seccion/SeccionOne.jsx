@@ -3,7 +3,7 @@ import Productor from '../Productor/Productor';
 import Propiedad from '../Propiedad/Propiedad';
 import TablaProductorPropiedad from './TablaAsociada'; 
 import TipoPropiedad from '../Propiedad/TipoPropiedad';
-import TabsFiltro from '../../components/TabsFiltro/TabsFiltro';
+import TabsFiltro from '../../components/tabsFiltro/TabsFiltro';
 import { usePermiso } from '../../hooks/usePermiso';
 import '../../main.css';
 
