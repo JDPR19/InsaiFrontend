@@ -3,6 +3,10 @@ import { jwtDecode } from "jwt-decode";
 import { notifyGlobal } from '../../utils/globalNotification';
 import { useNavigate } from 'react-router-dom';
 
+const API_URL =
+    import.meta.env.VITE_API_URL ||
+    'http://localhost:4000';
+
 const AutoLogout = () => {
     const navigate = useNavigate();
 
@@ -16,8 +20,23 @@ const AutoLogout = () => {
             const now = Date.now();
             const timeout = exp - now;
 
-            const logout = () => {
+            const logout = async () => {
                 notifyGlobal('Tu sesión ha expirado. Serás redirigido al login.', 'warning');
+                // Intenta cerrar sesión en el backend antes de limpiar localStorage
+                if (token) {
+                    try {
+                        await fetch(`${API_URL}/auth/logout`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${token}`,
+                            },
+                        });
+                    } catch (e) {
+                        // Si el backend no responde, igual limpia el localStorage
+                        console.error('Error cerrando sesión en backend:', e);
+                    }
+                }
                 setTimeout(() => {
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');

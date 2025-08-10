@@ -10,8 +10,8 @@ export const validateField = (value, regex, errorMessage) => {
 
 export const validationRules = {
     cedula: {
-        regex: /^[V|E]-\d{7,8}$/, // Ejemplo: V-12345678
-        errorMessage: 'La cédula debe tener el formato V-12345678 o E-12345678'
+        regex: /^\d{7,8}$/, // Ejemplo: V-12345678
+        errorMessage: 'La cédula debe tener el formato V-12345678 o E-12345678 de ser necesario'
     },
     nombre: {
         regex: /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s-]+$/, // Solo letras y espacios

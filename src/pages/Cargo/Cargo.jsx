@@ -112,7 +112,6 @@ function Cargo() {
     };
 
     const handleEdit = async () => {
-        setLoading(true);
         const camposObligatorios = ['nombre'];
         for (const field of camposObligatorios) {
             const { regex, errorMessage } = validationRules[field];
@@ -122,7 +121,8 @@ function Cargo() {
                 return;
             }
         }
-
+        
+        setLoading(true);
         try {
             const response = await axios.put(`${BaseUrl}/cargo/${formData.id}`, {
                 ...formData,

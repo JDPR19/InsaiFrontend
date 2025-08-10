@@ -1,17 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 import styles from './header.module.css';
 import icon from '../../components/iconos/iconos';
 import insai from '../../../public/assets/image.png';
 import NotificationDropdown from './NotificationDropdown';
 import { BaseUrl } from '../../utils/constans';
 
+const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const socket = io(SOCKET_URL);
+
 function Header() {
     const [user, setUser] = useState({ name: '', roles_nombre: '', id: null });
     const [notificaciones, setNotificaciones] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
-    const [tabActivo, setTabActivo] = useState('todas'); // <-- Estado global para el tab
+    const [tabActivo, setTabActivo] = useState('todas');
     const [darkLight, setDarkLight] = useState(false);
+    const audioRef = useRef(null);
 
     useEffect(() => {
         const storedUser = JSON.parse(localStorage.getItem('user'));
@@ -22,6 +27,7 @@ function Header() {
 
     useEffect(() => {
         if (user.id) {
+            socket.emit('join', user.id);
             axios.get(`${BaseUrl}/notificaciones?usuario_id=${user.id}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             })
@@ -29,6 +35,18 @@ function Header() {
             .catch(() => setNotificaciones([]));
         }
     }, [user.id]);
+
+    useEffect(() => {
+        socket.on('nueva_notificacion', (notificacion) => {
+            setNotificaciones(prev => [notificacion, ...prev]);
+            if (audioRef.current) {
+                audioRef.current.play();
+            }
+        });
+        return () => {
+            socket.off('nueva_notificacion');
+        };
+    }, []);
 
     const getPanelTitle = () => {
         const rol = (user.roles_nombre || '').toLowerCase().trim();
@@ -62,17 +80,15 @@ function Header() {
                 <h1 className={styles.title}>{getPanelTitle()}</h1>
             </div>
             <div className={styles.userMenu}>
-
                 <div className={styles.campanaWrapper}>
                     <img 
                     src={darkLight ? icon.sun : icon.moon} 
                     alt='Light and Dark'
                     title='Modo Oscuro'
-                    className={styles.campanaIcon}
+                    className={styles.iconoEstandar}
                     onClick={() => setDarkLight(!darkLight)}
                     />
                 </div>
-
                 <div className={styles.campanaWrapper}>
                     <img 
                     src={icon.lupa2} 
@@ -81,7 +97,6 @@ function Header() {
                     className={styles.lupaIcon}
                     />
                 </div>
-
                 <div className={styles.campanaWrapper} >
                     <img
                         src={icon.campana}
@@ -102,8 +117,7 @@ function Header() {
                         />
                     )}
                 </div>
-
-                
+                <audio ref={audioRef} src="/assets/notification.mp3" preload="auto" />
                 <hr />
                 <span className={styles.username}>Hola, {user.name}</span>
             </div>

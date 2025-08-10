@@ -3,98 +3,235 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { BaseUrl } from '../../utils/constans';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
-import MultiSelect from '../../components/selectmulti/MultiSelect';
-import ChartComponent from '../../components/chart/chart4';
+import Spinner from '../../components/spinner/Spinner';
 import icon from '../../components/iconos/iconos';
+import { useNotification } from '../../utils/NotificationContext';
 import '../../main.css';
 
 function SeguimientoInspeccion() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
     const [inspeccion, setInspeccion] = useState(null);
     const [programas, setProgramas] = useState([]);
-    const [todosProgramas, setTodosProgramas] = useState([]);
+    const [asociados, setAsociados] = useState([]);
     const [modalOpen, setModalOpen] = useState(false);
-    const [programaSeleccionado, setProgramaSeleccionado] = useState('');
-    const [descripcion, setDescripcion] = useState('');
-    const [estatus, setEstatus] = useState('');
-    const [filtros, setFiltros] = useState({ programa: '', estatus: '' });
-
-    // Para la gráfica (puedes adaptar según tu librería)
-    // const [datosGrafica, setDatosGrafica] = useState([]);
+    const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
+    const [selectedAsociadoId, setSelectedAsociadoId] = useState(null);
+    const { addNotification } = useNotification();
+    const [todasInspecciones, setTodasInspecciones] = useState([]);
+    const numeroOrden = todasInspecciones.findIndex(i => String(i.id) === String(id)) + 1;
+    // Estado del formulario
+    const [formData, setFormData] = useState({
+        id: '',
+        programa_fito_id: '',
+        observacion: ''
+    });
+    // Opciones para el select de programas 
+    const programaOptions = programas.map(p => ({value: String(p.id),label: p.nombre}));
 
     useEffect(() => {
-        axios.get(`${BaseUrl}/inspecciones/${id}`, {
+        axios.get(`${BaseUrl}/inspecciones`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        }).then(res => setInspeccion(res.data));
-        axios.get(`${BaseUrl}/seguimiento/${id}`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        }).then(res => setProgramas(res.data));
-        axios.get(`${BaseUrl}/seguimiento`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        }).then(res => setTodosProgramas(res.data));
-        // Aquí podrías cargar los datos de la gráfica
-    }, [id, modalOpen]);
+        })
+        .then(res => setTodasInspecciones(res.data))
+        .catch(() => setTodasInspecciones([]));
+    }, []);
 
-    const handleAgregarPrograma = async () => {
-        if (!programaSeleccionado || !estatus) return;
+    // Obtener datos de inspección
+    const fetchInspeccion = async () => {
+        setLoading(true);
+        try {
+            const res = await axios.get(`${BaseUrl}/inspecciones/${id}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            setInspeccion(res.data);
+        } catch (error) {
+            console.error('Error solicitando todos los datos de la inspección', error);
+            setInspeccion(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Obtener todos los programas fito
+    const fetchProgramas = async () => {
+        try {
+            const res = await axios.get(`${BaseUrl}/seguimiento/programas`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            setProgramas(Array.isArray(res.data) ? res.data : []);
+        } catch (error) {
+            console.error('Error solicitando todos los programas', error);
+            setProgramas([]);
+        }
+    };
+
+    // Obtener programas asociados a la inspección
+    const fetchAsociados = async () => {
+        try {
+            const res = await axios.get(`${BaseUrl}/seguimiento/${id}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            setAsociados(Array.isArray(res.data) ? res.data : []);
+        } catch (error) {
+            console.error('Error solicitando los programas asociados', error);
+            setAsociados([]);
+        }
+    };
+
+    useEffect(() => {
+        fetchInspeccion();
+        fetchProgramas();
+        fetchAsociados();
+        // eslint-disable-next-line
+    }, [id]);
+
+    // Abrir modal de registro
+    const openModal = () => {
+        setFormData({
+            id: '',
+            programa_fito_id: '',
+            observacion: ''
+        });
+        setModalOpen(true);
+    };
+
+    // Abrir modal de edición
+    const openEditModal = (asociado) => {
+        setFormData({
+            id: asociado.id,
+            programa_fito_id: String(asociado.programa_id),
+            observacion: asociado.observacion || ''
+        });
+        setModalOpen(true);
+    };
+
+    // Cerrar modal
+    const closeModal = () => {
+        setModalOpen(false);
+        setFormData({
+            id: '',
+            programa_fito_id: '',
+            observacion: ''
+        });
+    };
+
+    // Abrir modal de confirmación para eliminar
+    const openConfirmDeleteModal = (id) => {
+        setSelectedAsociadoId(id);
+        setConfirmDeleteModal(true);
+    };
+    const closeConfirmDeleteModal = () => {
+        setSelectedAsociadoId(null);
+        setConfirmDeleteModal(false);
+    };
+
+    const handleSave = async () => {
+    if (!formData.programa_fito_id) {
+        addNotification('Debe seleccionar un programa', 'error');
+        return;
+    }
+    setLoading(true);
+    try {
         await axios.post(`${BaseUrl}/seguimiento`, {
             inspeccion_est_id: id,
-            programa_fito_id: programaSeleccionado,
-            observacion: descripcion,
-            estatus
+            programa_fito_id: formData.programa_fito_id,
+            observacion: formData.observacion
         }, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
-        setModalOpen(false);
-        setProgramaSeleccionado('');
-        setDescripcion('');
-        setEstatus('');
+        addNotification('Programa asociado con éxito', 'success');
+        fetchAsociados();
+        closeModal();
+    } catch (error) {
+        console.error('Error registrando programa asociado', error);
+        addNotification('Error al guardar', 'error');
+    } finally {
+        setLoading(false);
+    }
+};
+
+
+    const handleEdit = async () => {
+        setLoading(true);
+        try {
+            await axios.put(`${BaseUrl}/seguimiento/${formData.id}`, {
+                observacion: formData.observacion
+            }, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            addNotification('Programa actualizado con éxito', 'success');
+            fetchAsociados();
+            closeModal();
+        } catch (error) {
+            console.error('Error actualizando programa asociado', error);
+            addNotification('Error al actualizar', 'error');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    // Opciones para selects
-    const programaOptions = todosProgramas.map(p => ({ value: p.id, label: p.nombre }));
-    const estatusOptions = [
-        { value: 'pendiente', label: 'Pendiente' },
-        { value: 'en_proceso', label: 'En Proceso' },
-        { value: 'finalizado', label: 'Finalizado' }
-    ];
-
-    // Filtrado de programas asociados (puedes adaptar la lógica)
-    const programasFiltrados = programas.filter(p => {
-        let match = true;
-        if (filtros.programa) match = match && String(p.programa_id) === String(filtros.programa);
-        if (filtros.estatus) match = match && String(p.estatus) === String(filtros.estatus);
-        return match;
-    });
+    const handleDelete = async () => {
+        setLoading(true);
+        try {
+            await axios.delete(`${BaseUrl}/seguimiento/${selectedAsociadoId}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            addNotification('Programa eliminado con éxito', 'success');
+            fetchAsociados();
+        } catch (error) {
+            console.error('Error Eliminando el programa', error);
+            addNotification('Error al eliminar el programa', 'error');
+        } finally {
+            setLoading(false);
+            closeConfirmDeleteModal();
+        }
+    };
 
     return (
-        <div className="mainContainer" >
-            {/* Sección superior */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: 18 ,}}>
-                {/* Lateral izquierdo con botón y iconos */}
-                <div style={{ minWidth: 120, marginRight: 24 }}>
-                    <button
-                        className="saveButton"
-                        style={{ width: '100%', marginBottom: 18, background: 'var(--grey4)' }}
-                        onClick={() => navigate('/SeccionFour')}
-                    >
-                        <img src={icon.flecha3} alt="Regresar" style={{ width: 18, marginRight: 6 }} />
-                        Regresar
-                    </button>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 18, alignItems: 'center' }}>
-                        <img src={icon.ver} alt="Ver" style={{ width: 28 }} />
-                        <img src={icon.editar} alt="Editar" style={{ width: 28 }} />
-                        {/* Agrega más iconos aquí */}
+        <div className="mainContainer">
+            {loading && <Spinner text="Procesando..." />}
+
+            {/* Modal de confirmación para eliminar */}
+            {confirmDeleteModal && (
+                <div className='modalOverlay'>
+                    <div className='modal'>
+                        <h2>Confirmar Eliminación</h2>
+                        <p>¿Estás seguro de que deseas eliminar este Programa para esta Inspección?</p>
+                        <div className='modalActions'>
+                            <button className='cancelButton' onClick={closeConfirmDeleteModal}>Cancelar</button>
+                            <button className='confirmButton' onClick={handleDelete}>Confirmar</button>
+                        </div>
                     </div>
                 </div>
-                {/* Títulos */}
-                <div style={{ flex: 1 }}>
-                    <h2 style={{ color: 'var(--green5)', fontWeight: 700, fontSize: '2rem', margin: 0 }}>
-                        Seguimiento de Inspección #{id}
+            )}
+
+            {/* Sección superior */}
+            <div className='SectionSeguimiento'>
+                <div className='ss-left'>
+                    <button
+                        className="create"
+                        onClick={() => navigate('/SeccionThree')}
+                    >
+                        <img src={icon.flecha} alt="Regresar" title='Regresar a la pagina anterior' className='iconTwo' />
+                        Regresar
+                    </button>
+                </div>
+
+                <div className="ss-center">
+                    <img src={icon.homeIcon} alt="Exportar" title='Exportar' className='btn-icon-Estandar' />
+                    <img src={icon.excel} alt="Imprimir" title='Imprimir' className='btn-icon-Estandar'/>
+                    <img src={icon.pdf4} alt="Ayuda" title='Ayuda' className='btn-icon-Estandar'/>
+                    <img src={icon.cubo} alt="Ayuda" title='Ayuda' className='btn-icon-Estandar'/>
+                </div>
+
+                <div className='ss-right'>
+                    <h2  className='titleOne'>
+                        Seguimiento de Inspección #{numeroOrden > 0 ? numeroOrden : id}
                     </h2>
-                    <h3 style={{ color: 'var(--green6)', fontWeight: 600, fontSize: '1.2rem', margin: '8px 0 0 0' }}>
-                        {inspeccion?.propiedad_nombre || 'Propiedad'}
+                    <h3 className='titleTwo'>
+                        Propiedad: {inspeccion?.propiedad_nombre || 'Sin Nombre'}
                     </h3>
                 </div>
             </div>
@@ -109,10 +246,8 @@ function SeguimientoInspeccion() {
                                 <th>Estado</th>
                                 <th>Fecha Inspección</th>
                                 <th>Responsable</th>
-                                <th>Área</th>
                                 <th>Tipo</th>
                                 <th>Propiedad</th>
-                                {/* Agrega más columnas si lo necesitas */}
                             </tr>
                         </thead>
                         <tbody>
@@ -124,8 +259,11 @@ function SeguimientoInspeccion() {
                                     </span>
                                 </td>
                                 <td>{inspeccion.fecha_inspeccion}</td>
-                                <td>{inspeccion.responsable_e}</td>
-                                <td>{inspeccion.area}</td>
+                                <td>
+                                    {inspeccion.empleados_responsables && inspeccion.empleados_responsables.length > 0
+                                        ? inspeccion.empleados_responsables.map(e => `${e.nombre} ${e.apellido}`).join(', ')
+                                        : 'Sin responsable'}
+                                </td>
                                 <td>{inspeccion.tipo_inspeccion_nombre}</td>
                                 <td>{inspeccion.propiedad_nombre}</td>
                             </tr>
@@ -136,112 +274,102 @@ function SeguimientoInspeccion() {
 
             {/* Tabla de programas asociados */}
             <div className="tableSection" style={{ marginBottom: 30 }}>
-                <div className="filtersContainer" style={{ justifyContent: 'space-between' }}>
-                    <h3 style={{ color: 'var(--green6)', fontSize: '1.2rem', fontWeight: 600, margin: 0 }}>
-                        Programas Asociados
-                    </h3>
-                    <button className="saveButton" onClick={() => setModalOpen(true)}>
-                        <img src={icon.plus} alt="Agregar" style={{ width: 18, marginRight: 6 }} />
-                        Agregar Programa
+                <div className="filtersContainer">
+                    <button className="create" onClick={openModal} title='Asociar Programa'>
+                        <img src={icon.plus} alt="Agregar" className='icon' />
+                        Agregar
                     </button>
+                    <h2>Programas Asociados</h2>
+                    <div className='searchContainer'></div>
                 </div>
                 <table className="table">
                     <thead>
                         <tr>
                             <th>Programa</th>
                             <th>Descripción</th>
-                            <th>Estatus</th>
                             <th>Fecha Asociación</th>
-                            {/* <th>Acción</th> */}
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {programasFiltrados.length === 0 && (
+                        {asociados.length === 0 && (
                             <tr>
                                 <td colSpan={4} style={{ color: 'var(--grey4)' }}>No hay programas asociados.</td>
                             </tr>
                         )}
-                        {programasFiltrados.map(p => (
+                        {asociados.map(p => (
                             <tr key={p.id}>
                                 <td>{p.nombre}</td>
                                 <td>{p.observacion}</td>
-                                <td>
-                                    <span className={`badge-estado badge-${(p.estatus || 'pendiente').toLowerCase()}`}>
-                                        {p.estatus || 'Pendiente'}
-                                    </span>
-                                </td>
                                 <td>{p.created_at?.slice(0, 10)}</td>
-                                {/* <td>
-                                    <img src={icon.eliminar} className="iconeliminar" title="Eliminar" />
-                                </td> */}
+                                <td>
+                                    <div className='iconContainer'>
+                                        <img
+                                            onClick={() => openEditModal(p)}
+                                            src={icon.editar}
+                                            className='iconeditar'
+                                            title='Editar'
+                                        />
+                                        <img
+                                            onClick={() => openConfirmDeleteModal(p.id)}
+                                            src={icon.eliminar}
+                                            className='iconeliminar'
+                                            title='Eliminar'
+                                        />
+                                    </div>
+                                </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
 
-            {/* Modal para agregar programa */}
+            {/* Modal registro/edición */}
             {modalOpen && (
                 <div className="modalOverlay">
-                    <div className="modal">
-                        <button className="closeButton" onClick={() => setModalOpen(false)}>&times;</button>
-                        <h2>Agregar Programa</h2>
-                        <form className="modalForm" onSubmit={e => { e.preventDefault(); handleAgregarPrograma(); }}>
-                            <div className="formGroup">
-                                <label>Programa:</label>
-                                <SingleSelect
-                                    options={programaOptions}
-                                    value={programaSeleccionado}
-                                    onChange={val => setProgramaSeleccionado(val)}
-                                    placeholder="Seleccione un programa"
-                                />
+                    <div className="modal_mono">
+                        <button className="closeButton" onClick={closeModal}>&times;</button>
+                        <h2>{formData.id ? 'Editar Asociación' : 'Asociar Programa'}</h2>
+                        <form className="modalForm">
+                            <div className='formColumns_mono'>
+                                <div className="formGroup">
+                                    <label>Programas:</label>
+                                    <SingleSelect
+                                        options={programaOptions}
+                                        value={formData.programa_fito_id}
+                                        onChange={val => setFormData(prev => ({
+                                            ...prev,
+                                            programa_fito_id: val
+                                        }))}
+                                        placeholder="Seleccione un programa"
+                                        isDisabled={!!formData.id}
+                                    />
+                                </div>
+                                <div className="formGroup">
+                                    <label>Descripción:</label>
+                                    <textarea
+                                        className="textarea"
+                                        value={formData.observacion}
+                                        onChange={e => setFormData(prev => ({
+                                            ...prev,
+                                            observacion: e.target.value
+                                        }))}
+                                        placeholder="Descripción del programa"
+                                    />
+                                </div>
                             </div>
-                            <div className="formGroup">
-                                <label>Descripción:</label>
-                                <textarea
-                                    className="textarea"
-                                    value={descripcion}
-                                    onChange={e => setDescripcion(e.target.value)}
-                                    placeholder="Descripción del programa"
-                                />
-                            </div>
-                            <div className="formGroup">
-                                <label>Estatus:</label>
-                                <SingleSelect
-                                    options={estatusOptions}
-                                    value={estatus}
-                                    onChange={val => setEstatus(val)}
-                                    placeholder="Seleccione estatus"
-                                />
-                            </div>
-                            <button className="saveButton" type="submit">Agregar</button>
+                            <button 
+                                className="saveButton" 
+                                type="button"
+                                onClick={formData.id ? handleEdit : handleSave}
+                                title={formData.id ? 'Actualizar Asociación' : 'Asociar Programa'} 
+                            >
+                                Guardar
+                            </button>
                         </form>
                     </div>
                 </div>
             )}
-
-            {/* Filtros y gráfica */}
-            <div className="tableSection" style={{ marginBottom: 30 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 18 }}>
-                    <SingleSelect
-                        options={programaOptions}
-                        value={filtros.programa}
-                        onChange={val => setFiltros(f => ({ ...f, programa: val }))}
-                        placeholder="Filtrar por programa"
-                    />
-                    <SingleSelect
-                        options={estatusOptions}
-                        value={filtros.estatus}
-                        onChange={val => setFiltros(f => ({ ...f, estatus: val }))}
-                        placeholder="Filtrar por estatus"
-                    />
-                    {/* Puedes agregar más filtros aquí */}
-                </div>
-                {/* Aquí va la gráfica */}
-                <div style={{ background: '#f8f9fa', borderRadius: 8, padding: 24, minHeight: 220 }}>
-                    <ChartComponent type="Bar" filter="avales" />
-                </div> 
-            </div>
         </div>
     );
 }

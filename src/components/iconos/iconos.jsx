@@ -4,7 +4,7 @@ import eliminar from '../../../public/eliminar.svg';
 import mas from '../../../public/mas.svg';
 import menos from '../../../public/menos.svg';
 import homeIcon from '../../../public/home2.svg';
-import flecha from '../../../public/flecha2.svg';
+import flecha from '../../../public/flecha.svg';
 import admin from '../../../public/admin.svg';
 import hormiga from '../../../public/hormiga.svg';
 import mundo from '../../../public/mundo.svg';
@@ -32,11 +32,8 @@ import escudomalo from '../../../public/escudomalo.svg';
 import cubo from '../../../public/cubo.svg';
 import user2 from '../../../public/user2.svg';
 import folder from '../../../public/folder.svg';
-import maiz from '../../../public/maiz.svg';
 import farmer from '../../../public/farmer.svg';
 import farmer2 from '../../../public/farmer2.svg';
-import cultivo from '../../../public/cultivo.svg';
-import zanahoria from '../../../public/zana.svg';
 import calendario from '../../../public/calendario.svg';
 import deshabilitar from '../../../public/deshabilitar.svg';
 import habilitar from '../../../public/habilitar.svg';
@@ -48,6 +45,10 @@ import pdf3 from '../../../public/pdf3.svg';
 import lupa2 from '../../../public/lupa2.svg';
 import sun from '../../../public/sun.svg';
 import moon from '../../../public/moon.svg';
+import pdf4 from '../../../public/pdf4.svg';
+import pdf5 from '../../../public/pdf5.svg';
+import excel from '../../../public/excel.svg';
+import excel2 from '../../../public/excel2.svg';
 
 
 const Iconos = {
@@ -87,17 +88,18 @@ const Iconos = {
     cubo,
     user2,
     folder,
-    maiz,
     farmer,
     farmer2,
-    cultivo,
-    zanahoria,
     calendario,
     deshabilitar,
     habilitar,
     plus,
     planta,
     pdf3,
+    pdf4,
+    pdf5,
+    excel,
+    excel2,
     lupa2,
     sun,
     moon,

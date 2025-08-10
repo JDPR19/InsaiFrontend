@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid'; // Importa uuid para ids únicos
 
 export const useNotification = () => {
     const [notifications, setNotifications] = useState([]);
 
     const addNotification = (message, type, duration = 8000) => {
-        const id = Date.now();
+        const id = uuidv4(); 
         setNotifications((prev) => [
             ...prev,
             { id, message, type, progress: 100 }

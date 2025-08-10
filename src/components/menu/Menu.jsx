@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import styles from './menu.module.css';
 import icon from '../../components/iconos/iconos';
-import { registrarCierreSesion } from '../../utils/bitacoraService';
 import { usePermiso } from '../../hooks/usePermiso';
 import { BaseUrl } from '../../utils/constans';
 import { useNotification } from '../../utils/NotificationContext';
 import Spinner from '../spinner/Spinner';
 
-function NavItem({ id, openSubmenus, setOpenSubmenus, selectedItem, setSelectedItem, iconSrc, label, linkTo, children }) {
+// Si tienes muchos NavItem, puedes generar una key única combinando el id y el índice
+function NavItem({ id, openSubmenus, setOpenSubmenus, selectedItem, setSelectedItem, iconSrc, label, linkTo, children, idx }) {
     const isOpen = openSubmenus[id];
     const isSelected = selectedItem === id;
 
@@ -21,6 +21,7 @@ function NavItem({ id, openSubmenus, setOpenSubmenus, selectedItem, setSelectedI
 
     return (
         <li
+            key={`${id}-${idx}`} // Corrección: key única combinando id e índice
             className={`${styles.navItem} ${isOpen ? styles.open : ''} ${isSelected ? styles.selected : ''}`}
             onClick={handleClick}
         >
@@ -62,45 +63,96 @@ function Menu() {
     const user = JSON.parse(localStorage.getItem('user'));
     const rol = user?.roles_nombre; 
 
+    const navItems = [
+        tienePermiso('home', 'ver') && {
+            id: "panel",
+            iconSrc: icon.homeIcon,
+            label: "Panel Principal",
+            linkTo: "/Home"
+        },
+        ['Administrador', 'Moderador'].includes(rol) && {
+            id: "seccionOne",
+            iconSrc: icon.farmer2,
+            label: "Productores y Propiedades",
+            linkTo: "/SeccionOne"
+        },
+        ['Administrador', 'Moderador', 'User'].includes(rol) && {
+            id: "SeccionTwo",
+            iconSrc: icon.altavoz,
+            label: "Solicitudes y Planificaciones",
+            linkTo: "/SeccionTwo"
+        },
+        ['Administrador', 'Moderador', 'User'].includes(rol) && {
+            id: "SeccionThree",
+            iconSrc: icon.escudobien,
+            label: "Protección Fitosanitaria",
+            linkTo: "/SeccionThree"
+        },
+        ['Administrador', 'Moderador'].includes(rol) && {
+            id: "SeccionFour",
+            iconSrc: icon.hormiga,
+            label: "Datos Epidemiologicos",
+            linkTo: "/SeccionFour"
+        },
+        ['Administrador', 'Moderador'].includes(rol) && {
+            id: "SeccionFive",
+            iconSrc: icon.grafica,
+            label: "Permisos y Reportes",
+            linkTo: "/SeccionFive"
+        },
+        rol === 'Administrador' && {
+            id: "SeccionSix",
+            iconSrc: icon.mundo,
+            label: "Áreas de Ubicación",
+            linkTo: "/SeccionSix"
+        },
+        rol === 'Administrador' && {
+            id: "SeccionSeven",
+            iconSrc: icon.admin,
+            label: "Administrador",
+            linkTo: "/SeccionSeven"
+        },
+        tienePermiso('bitacora', 'ver') && {
+            id: "bitacora",
+            iconSrc: icon.bitacora,
+            label: "Bitacora del Sistema",
+            linkTo: "/Bitacora"
+        },
+        tienePermiso('miusuario','ver') && {
+            id: "Miusuario",
+            iconSrc: icon.user,
+            label: "Mi Usuario",
+            linkTo: "/MiUsuario"
+        }
+    ].filter(Boolean);
+
     const handleLogout = async () => {
         setLoading(true);
         try {
-            const user = JSON.parse(localStorage.getItem('user'));
-            const userId = user?.id;
-            const username = user?.username;
+            const token = localStorage.getItem('token');
+            let logoutSuccess = false;
 
-            if (userId && username) {
-                registrarCierreSesion(userId, username);
+            if (token) {
+                const response = await fetch(`${BaseUrl}/auth/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                if (response.ok) {
+                    logoutSuccess = true;
+                } else {
+                    addNotification('No se pudo cerrar la sesión correctamente en el servidor.', 'error');
+                }
             }
 
-            const response = await fetch(`${BaseUrl}/auth/logout`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                },
-            });
-
-            if (response.ok) {
-                localStorage.removeItem('user');
+            // Solo elimina el token si el logout fue exitoso
+            if (logoutSuccess) {
                 localStorage.removeItem('token');
-                localStorage.removeItem('permisos');
-                localStorage.removeItem('seccionOneTab');
-                localStorage.removeItem('seccionTwoTab');
-                localStorage.removeItem('seccionThreeTab');
-                localStorage.removeItem('seccionFourTab');
-                localStorage.removeItem('seccionFiveTab');
-                localStorage.removeItem('seccionSixTab');
-                localStorage.removeItem('seccionSevenTab');
-                window.history.replaceState(null, '', '/');
-                navigate('/', { replace: true });
             }
-        } catch (error) {
-            console.error('Error al cerrar sesión:', error);
-            addNotification('Error al cerrar la sesión el servidor tardo en responder', 'error');
-        } finally {
             localStorage.removeItem('user');
-            localStorage.removeItem('token');
             localStorage.removeItem('permisos');
             localStorage.removeItem('seccionOneTab');
             localStorage.removeItem('seccionTwoTab');
@@ -111,6 +163,10 @@ function Menu() {
             localStorage.removeItem('seccionSevenTab');
             window.history.replaceState(null, '', '/');
             navigate('/', { replace: true });
+        } catch (error) {
+            console.error('Error al cerrar sesión:', error);
+            addNotification('Error al cerrar la sesión. El servidor tardo en responder.', 'error');
+        } finally {
             setLoading(false);
         }
     };
@@ -125,149 +181,21 @@ function Menu() {
 
             <nav className={styles.sidebar}>
                 <ul className={styles.navList}>
-
-                    {/* Panel Principal */}
-                    {tienePermiso('home', 'ver') && (
+                    {navItems.map((item, idx) => (
                         <NavItem
-                            id="panel"
+                            key={`${item.id}-${idx}`} // Corrección: key única combinando id e índice
+                            id={item.id}
                             openSubmenus={openSubmenus}
                             setOpenSubmenus={setOpenSubmenus}
                             selectedItem={selectedItem}
                             setSelectedItem={setSelectedItem}
-                            iconSrc={icon.homeIcon}
-                            label="Panel Principal"
-                            linkTo="/Home"
+                            iconSrc={item.iconSrc}
+                            label={item.label}
+                            linkTo={item.linkTo}
+                            idx={idx}
                         />
-                    )}
-
-                    {/* Seccion Uno Productores y Propiedades */}
-                    {['Administrador', 'Moderador'].includes(rol) && ( 
-                        <NavItem
-                        id="seccionOne"
-                        openSubmenus={openSubmenus}
-                        setOpenSubmenus={setOpenSubmenus}
-                        selectedItem={selectedItem}
-                        setSelectedItem={setSelectedItem}
-                        iconSrc={icon.farmer2}
-                        label="Productores y Propiedades"
-                        linkTo="/SeccionOne"
-                        />
-                    )}
-
-                    {/* Seccion Dos Solicitudes y Planificaciones */}
-                        {['Administrador', 'Moderador', 'User'].includes(rol) && (
-                            <NavItem
-                            id="SeccionTwo"
-                            openSubmenus={openSubmenus}
-                            setOpenSubmenus={setOpenSubmenus}
-                            selectedItem={selectedItem}
-                            setSelectedItem={setSelectedItem}
-                            iconSrc={icon.altavoz}
-                            label="Solicitudes y Planificaciones"
-                            linkTo="/SeccionTwo"
-                            />
-                        )}
-
-                    {/* Seccion Tres Inspecciones y Programas */}
-                        {['Administrador', 'Moderador', 'User'].includes(rol) && (
-                            <NavItem
-                            id="SeccionThree"
-                            openSubmenus={openSubmenus}
-                            setOpenSubmenus={setOpenSubmenus}
-                            selectedItem={selectedItem}
-                            setSelectedItem={setSelectedItem}
-                            iconSrc={icon.escudobien}
-                            label="Protección Fitosanitaria"
-                            linkTo="/SeccionThree"
-                            />
-                        )}
-
-                    {/* Seccion Cuatro Cultivos y Plagas */}
-                        {['Administrador', 'Moderador'].includes(rol) && (
-                            <NavItem
-                            id="SeccionFour"
-                            openSubmenus={openSubmenus}
-                            setOpenSubmenus={setOpenSubmenus}
-                            selectedItem={selectedItem}
-                            setSelectedItem={setSelectedItem}
-                            iconSrc={icon.hormiga}
-                            label="Datos Epidemiologicos"
-                            linkTo="/SeccionFour"
-                            />
-                        )}
-
-                    {/* Seccion Cinco Permisos y Resumen de Reportes */}
-                        {['Administrador', 'Moderador'].includes(rol) && (
-                            <NavItem
-                            id="SeccionFive"
-                            openSubmenus={openSubmenus}
-                            setOpenSubmenus={setOpenSubmenus}
-                            selectedItem={selectedItem}
-                            setSelectedItem={setSelectedItem}
-                            iconSrc={icon.grafica}
-                            label="Permisos y Reportes"
-                            linkTo="/SeccionFive"
-                            />
-                        )}
-                    
-                    {/* Seccion Seis Ubicaciones */}
-                        {rol === 'Administrador' && (
-                            <NavItem
-                            id="SeccionSix"
-                            openSubmenus={openSubmenus}
-                            setOpenSubmenus={setOpenSubmenus}
-                            selectedItem={selectedItem}
-                            setSelectedItem={setSelectedItem}
-                            iconSrc={icon.mundo}
-                            label="Áreas de Ubicación"
-                            linkTo="/SeccionSix"
-                            />
-                        )}
-
-                    {/* Seccion Siete Usuarios y Empleados (Administrador) */}
-                        {rol === 'Administrador' && (
-                            <NavItem
-                            id="SeccionSeven"
-                            openSubmenus={openSubmenus}
-                            setOpenSubmenus={setOpenSubmenus}
-                            selectedItem={selectedItem}
-                            setSelectedItem={setSelectedItem}
-                            iconSrc={icon.admin}
-                            label="Administrador"
-                            linkTo="/SeccionSeven"
-                            />
-                        )}
-
-                    {/* Bitacora del Sistema (Administrador) */}
-                    {tienePermiso('bitacora', 'ver') && (
-                        <NavItem
-                            id="bitacora"
-                            openSubmenus={openSubmenus}
-                            setOpenSubmenus={setOpenSubmenus}
-                            selectedItem={selectedItem}
-                            setSelectedItem={setSelectedItem}
-                            iconSrc={icon.bitacora}
-                            label="Bitacora del Sistema"
-                            linkTo="/Bitacora"
-                        />
-                    )}
-
-                    {/* Mi Usuario */}
-                    {tienePermiso('miusuario','ver') && (
-                        <NavItem
-                        id="Miusuario"
-                        openSubmenus={openSubmenus}
-                        setOpenSubmenus={setOpenSubmenus}
-                        selectedItem={selectedItem}
-                        setSelectedItem={setSelectedItem}
-                        iconSrc={icon.user}
-                        label="Mi Usuario"
-                        linkTo="/MiUsuario"
-                        />
-                    )}
-
+                    ))}
                 </ul>
-
 
                 <footer className={styles.footer}>
                     <button

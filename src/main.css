@@ -180,7 +180,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
+  background-color: rgba(0, 0, 0, 0.5); 
   display: flex;
   align-items: center;
   justify-content: center;
@@ -193,7 +193,7 @@
     border-radius: 10px;
     width: 100%;
     min-width: 0vh;
-    max-width: 60vh;
+    max-width: 70vh;
     min-height: 0vh;
     max-height: 90vh;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
@@ -290,7 +290,7 @@
 
 .modalActions {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-evenly;
   margin-top: 20px;
 }
 
@@ -299,16 +299,15 @@
   color: white;
   border: none;
   padding: 10px 20px;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: transform 0.3s ease-in-out;
+  transition: background 0.3s ease-in-out;
   font-family: 'Poppins', sans-serif;
   font-weight: 500;
 }
 
 .confirmButton:hover {
   background: #b10b0b;
-  transform: scale(0.98);
 }
 
 .cancelButton {
@@ -316,16 +315,15 @@
   color: white;
   border: none;
   padding: 10px 20px;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: transform 0.3s ease-in-out;
+  transition: background 0.3s ease-in-out;
   font-family: 'Poppins', sans-serif;
   font-weight: 500;
 }
 
 .cancelButton:hover {
   background: #539252d0;
-  transform: scale(0.98);
 }
 
 .modalForm {
@@ -520,10 +518,21 @@
   font-size: 14px;
   color: var(--grey3);
 }
-
+/* para botones y tabla */
 .icon{
   width: 15px;
   height: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  right: 5px;
+}
+/* para botones */
+.iconTwo{
+  width: 20px;
+  height: 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -535,6 +544,31 @@
 .searchInput:focus {
   border-color: #98c79a;
   box-shadow: 0 0 5px rgba(152, 199, 154, 0.5);
+}
+/* boton estandar */
+.btn-estandar {
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  background-color: var(--lithg-green);
+  width: fit-content; 
+  padding: 8px 8px; 
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--white); 
+  border: none; 
+  transition: background 0.4s ease-in-out;
+}
+
+.btn-estandar:hover {
+  background: #539252d0;
+}
+
+.btn-estandar:active {
+  transform: scale(0.95); 
 }
 
 /* Botón de crear */
@@ -552,95 +586,17 @@
   font-weight: 400;
   color: var(--white); 
   border: none; 
-  transition: all 0.4s ease-in-out , transform 0.4 ease-in-out;
+  transition: background 0.4s ease-in-out;
 }
 
 .create:hover {
-  background-color: #539252d0;
-  transform: scale(1);
+  background: #539252d0;
 }
 
 .create:active {
   transform: scale(0.95); 
 }
-/* Botón de crearusuario */
-.createuser {
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  background-color: var(--grey7);
-  width: 100px; 
-  padding: 8px 0; 
-  border-radius: 10px;
-  cursor: pointer;
-  font-family: 'Poppins', sans-serif;
-  font-size: 0.8rem;
-  font-weight: 400;
-  color: var(--white); 
-  border: none; 
-  transition: all 0.4s ease-in-out , transform 0.4 ease-in-out;
-}
 
-.createuser:hover {
-  background-color: var(--grey4);
-  transform: scale(1);
-}
-
-.createuser:active {
-  transform: scale(0.95); 
-}
-/* boton pdf general */
-.export {
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  background-color: var(--vino-red);
-  width: 100px; 
-  padding: 8px 0px; 
-  border-radius: 10px;
-  cursor: pointer;
-  font-family: 'Poppins', sans-serif;
-  font-size: 0.8rem;
-  font-weight: 400;
-  color: var(--white); 
-  border: none;
-  transition: all 0.4s ease-in-out , transform 0.4 ease-in-out;
-}
-
-.export:hover {
-  background-color: #931616e0;
-  transform: scale(1);
-}
-
-.export:active {
-  transform: scale(0.95); 
-}
-
-.seguir {
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  background-color: var(--lithg-green);
-  width: 100px; 
-  padding: 7px 10px; 
-  border-radius: 10px;
-  cursor: pointer;
-  font-family: 'Poppins', sans-serif;
-  font-size: 1rem;
-  font-weight: 400;
-  color: var(--white); 
-  border: none;
-  transition: all 0.4s ease-in-out , transform 0.4 ease-in-out;
-}
-
-.seguir:hover {
-  background-color: var(--grey4);
-  transform: scale(1);
-}
-
-.seguir:active {
-  transform: scale(0.95); 
-}
 /* Tabla */
 .tableSection {
   background-color: #ffffff;
@@ -695,7 +651,8 @@
 }
 
 
-/* Estilo general para los íconos */
+/* Estilo general para los íconos tablas */
+.icon-estandar,
 .iconver,
 .iconeditar,
 .iconpdf,
@@ -715,8 +672,9 @@
 .iconpdf:hover,
 .iconeliminar:hover,
 .icondeshabilitar:hover {
-  transform: scale(1.1); /* Aumenta ligeramente el tamaño al pasar el mouse */
+  transform: scale(1.1); 
 }
+
 
 
 .usuarioDeshabilitado {
@@ -749,6 +707,28 @@
 
 .iconBack:hover, .iconNext:hover {
   transform: scale(1.1);
+}
+
+.btn-icon-Estandar{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 35px; 
+    width: auto;
+    padding: 4px 4px;
+    background: #a7d199dc;
+    border: 1px solid #709c73fa;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    border-radius: 30%;
+    outline: none;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.438);
+}
+
+.btn-icon-Estandar:hover,
+.btn-icon-Estandar:focus {
+    background: var(--lithg-green);
+    box-shadow: 0 0 8px var(--lithg-green);
 }
 /* Estilos para inputs */
 
@@ -1061,3 +1041,115 @@
 .badge-inspeccionando{ background: #67b0fa81; color: #444444; border: 1px solid #67b0fa;}
 .badge-aprobada      { background: #cfe1b9ec; color: #444444; border: 1px solid #98c79a;}
 .badge-rechazada     { background: #f5afaee1; color: #545454; border: 1px solid #fd5250;} 
+
+/* Graficas ///////////////777*/
+
+.chartSection {
+    margin-bottom: 30px;
+}
+
+.chartFilter {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    margin-bottom: 20px;
+    /* gap: 20px; */
+}
+
+.chartFilter label {
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.chartContainer {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px ;
+    width: 100%; /* Reduce el ancho de la gráfica */
+    max-width: 800px; /* Establece un ancho máximo */
+    height: 400px; /* Ajusta la altura de la gráfica */
+    margin: 0 auto; /* Centra la gráfica horizontalmente */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+ /* Titulos */
+.titleOne {
+    color: var(--green5);
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin: 0 0 2px 0;
+    letter-spacing: 0.5px;
+}
+
+.titleTwo {
+    color: var(--grey4);
+    font-weight: 500;
+    font-size: 1.3rem;
+    margin: 0;
+}
+/* seccion en seguimiento */
+.SectionSeguimiento {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.ss-left, .ss-center, .ss-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.ss-left {
+    flex: 0 0 auto;
+    align-items: flex-start;
+    min-width: 120px;
+}
+
+.ss-center {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    background: #ffffff;
+    border-radius: 12px;
+    border-right: 2px solid var(--lithg-green);
+    border-left: 2px solid var(--lithg-green);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.431);
+    padding: 15px 15px;
+    justify-items: center;
+    align-items: center;
+    min-width: 0px;
+    max-width: 320px;
+    min-height: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.ss-right {
+    flex: 0 0 auto;
+    align-items: flex-end;
+    justify-content: center;
+    text-align: right;
+    background: #ffffff;
+    border-radius: 12px;
+    border-right: 2px solid var(--lithg-green);
+    border-left: 2px solid var(--lithg-green);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.431);
+    padding: 15px 15px;
+    width: fit-content;
+    min-width: 180px;
+    max-width: 420px;
+    word-break: break-word;
+}
+
+
+@media (max-width: 700px) {
+    .ss-center {
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 180px;
+    }
+}

@@ -7,7 +7,7 @@ import Importancia from '../../../public/assets/impor.png';
 import inspecciones from '../../../public/assets/export.png';
 import icon from '../../components/iconos/iconos';
 import { useNotification } from '../../utils/NotificationContext';
-import { registrarInicioSesion } from '../../utils/bitacoraService';
+// import { registrarInicioSesion } from '../../utils/bitacoraService';
 import Spinner from '../../components/spinner/Spinner';
 import RecuperarModal from '../../components/modalrecuperar/RecuperarModal';
 import { BaseUrl } from '../../utils/constans';
@@ -107,7 +107,7 @@ function Login() {
         if (isHovered) return;
         const slideInterval = setInterval(() => {
             setCurrentSlide((prevSlide) => (prevSlide + 1) % slides.length);
-        }, 6000);
+        }, 5000);
         return () => clearInterval(slideInterval);
     }, [isHovered, slides.length]);
 
@@ -135,8 +135,6 @@ function Login() {
             return;
         }
 
-        
-
         try {
             const response = await fetch(`${BaseUrl}/auth/login`, {
                 method: 'POST',
@@ -161,7 +159,8 @@ function Login() {
                 localStorage.setItem('permisos', JSON.stringify(data.user.permisos));
 
                 addNotification('Inicio de sesión exitoso', 'success');
-                registrarInicioSesion(data.user.id, data.user.username);
+                addNotification('Bienvenido al Sistema SIGENSAI', 'success');
+                // registrarInicioSesion(data.user.id, data.user.username);
                 setTimeout(() => {
                     navigate('/Home');
                 }, 500);

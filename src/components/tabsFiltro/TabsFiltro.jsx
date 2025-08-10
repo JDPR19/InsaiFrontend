@@ -6,9 +6,9 @@ function TabsFiltro({ tabs, activeTab, onTabClick, showTitle = true }) {
         <div className={styles.tabsGeneralContainer}>
             {showTitle && <h3 className={styles.tabsTitle}>Secciones Principales</h3>}
             <div className={styles.tabsContainer}>
-                {tabs.map(tab => (
+                {tabs.map((tab, idx) => (
                     <button
-                        key={tab.key}
+                        key={`${tab.key}-${idx}`} 
                         className={`${styles.tabButton} ${activeTab === tab.key ? styles.active : ''}`}
                         onClick={() => onTabClick(tab)}
                         type="button"

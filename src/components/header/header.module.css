@@ -56,6 +56,25 @@
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.438);
 }
 
+.iconoEstandar{
+    height: 35px; 
+    width: auto;
+    padding: 3px 3px;
+    background: #a7d199dc;
+    border: 1px solid #709c73fa;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    border-radius: 50%;
+    outline: none;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.438);
+}
+
+.iconoEstandar:hover,
+.iconoEstandar:focus {
+    background: var(--lithg-green);
+    box-shadow: 0 0 8px var(--lithg-green);
+}
+
 .lupaIcon {
     height: 35px; 
     width: auto;

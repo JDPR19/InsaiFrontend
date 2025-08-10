@@ -436,7 +436,7 @@ function Planificacion() {
                         <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
-                    <h2>Planificación de Próximas Inspecciones</h2>
+                    <h2>Planificaciones</h2>
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
@@ -465,11 +465,6 @@ function Planificacion() {
                                         {item.estado}
                                     </span>
                                 </td>
-                                {/* <td>
-                                    {(item.empleados || []).map(e => (
-                                        <span key={e.id}>{e.nombre} {e.apellido}<br /></span>
-                                    ))}
-                                </td> */}
                                 <td>
                                     <div className='iconContainer'>
                                         <img

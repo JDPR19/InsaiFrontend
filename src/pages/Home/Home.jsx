@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState} from 'react';
 import styles from './home.module.css';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
 import Chart from '../../components/chart/chart4';
 import SearchBar from "../../components/searchbart/SearchBar";
-import { useNotification } from '../../utils/NotificationContext';
+// import { useNotification } from '../../utils/NotificationContext';
 
 function Home() {
     
     
-        // Datos iniciales
+        
         const datosIniciales = [
             {
                 id: "1",
@@ -43,24 +43,18 @@ function Home() {
                 hacienda: "Refineria La Esmeralda",
                 estado: "En Lista",
             },
-            // Agrega más datos si es necesario
+            
             ];  
 
-    const {  addNotification } = useNotification();
-    const [notificationShown, setNotificationShown] = useState(false); // Estado para controlar la notificación
+
     const [chartType, setChartType] = useState('Bar'); // Estado para el tipo de gráfica
     const [chartFilter, setChartFilter] = useState('avales'); // Estado para el filtro
     const [dateRange, setDateRange] = useState({ from: '', to: '' }); // Estado para el rango de fechas
     const [datosFiltrados, setDatosFiltrados] = useState(datosIniciales);
     const [currentPage, setCurrentPage] = useState(1); // Página actual
-    const itemsPerPage = 2; // Número de elementos por página
+    const itemsPerPage = 2; 
     
-    useEffect(() => {
-        if (!notificationShown) {
-            addNotification('Bienvenido al sistema SIGENSAI', 'success');
-            setNotificationShown(true); // Marcar la notificación como mostrada
-        }
-    }, [notificationShown, addNotification]);
+   
 
 
         // Calcular los datos para la página actual
@@ -191,7 +185,7 @@ function Home() {
                         onChange={handleChartTypeChange}
                         className={styles.chartSelect}
                     >
-                        <option value="Bar">Barras</option>
+                        <option value="bar">Barras</option>
                         <option value="line">Líneas</option>
                         <option value="pie">Pastel</option>
                     </select>

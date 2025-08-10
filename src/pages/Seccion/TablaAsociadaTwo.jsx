@@ -130,7 +130,7 @@ function TablaAsociada() {
                         Exportar
                     </button>
 
-                    <h2>Catalago De Productores</h2>
+                    <h2>Catalago de Solicitudes</h2>
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />

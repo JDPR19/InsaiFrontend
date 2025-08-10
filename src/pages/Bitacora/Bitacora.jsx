@@ -10,10 +10,10 @@ import { useNotification } from '../../utils/NotificationContext';
 import { BaseUrl } from '../../utils/constans';
 
 function Bitacora() {
-    const [datosOriginales, setDatosOriginales] = useState([]); // Datos originales de la bitácora
-    const [datosFiltrados, setDatosFiltrados] = useState([]); // Datos filtrados según la búsqueda
-    const [currentPage, setCurrentPage] = useState(1); // Página actual para la paginación
-    const [registroSeleccionado, setRegistroSeleccionado] = useState(null); // Registro seleccionado para el modal
+    const [datosOriginales, setDatosOriginales] = useState([]); 
+    const [datosFiltrados, setDatosFiltrados] = useState([]); 
+    const [currentPage, setCurrentPage] = useState(1); 
+    const [registroSeleccionado, setRegistroSeleccionado] = useState(null); 
     const { addNotification } = useNotification();
     const itemsPerPage = 8; 
 
@@ -98,8 +98,8 @@ function Bitacora() {
                         </tr>
                     </thead>
                     <tbody>
-                        {currentData.map((bitacora) => (
-                            <tr key={bitacora.id}>
+                        {currentData.map((bitacora, idx) => (
+                            <tr key={`${bitacora.id}-${idx}`}> 
                                 <td>{bitacora.fecha}</td>
                                 <td>{bitacora.accion}</td>
                                 <td>{bitacora.tabla}</td>

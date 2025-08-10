@@ -5,9 +5,9 @@ import styles from './notification.module.css';
 function NotificationContainer({ notifications, removeNotification }) {
     return (
         <div className={styles.notificationContainer}>
-            {notifications.map((notification) => (
+            {notifications.map((notification, idx) => (
                 <Notification
-                    key={notification.id}
+                    key={`${notification.id}-${idx}`} 
                     message={notification.message}
                     type={notification.type}
                     onClose={() => removeNotification(notification.id)}

@@ -5,13 +5,14 @@ import '../../main.css';
 import Solicitud from '../Solicitud/Solicitud';
 import Planificacion from '../Planificacion/Planificacion';
 import TipoSolicitud from '../Solicitud/TipoSolicitud';
-
+import TablaAsociadaTwo from '../Seccion/TablaAsociadaTwo';
 
 function SeccionTwo () {
     const tienePermiso = usePermiso();
     
     // Tabs principales
     const tabs = [
+        { key: 'asociados', label: 'Catalago' },
         tienePermiso('solicitud', 'ver') && { key: 'solicitud', label: 'Solicitudes' },
         tienePermiso('planificacion', 'ver') && { key: 'planificacion', label: 'Planificaciones' },
         tienePermiso('tipo_solicitud', 'ver') && { key: 'tipo_solicitud', label: 'Tipos de Solicitud' }
@@ -32,7 +33,9 @@ function SeccionTwo () {
         };
 
     let tablaRenderizada;
-    if (activeTab === 'solicitud') {
+    if (activeTab === 'asociados') {
+        tablaRenderizada = <TablaAsociadaTwo />;
+    } else if (activeTab === 'solicitud') {
         tablaRenderizada = <Solicitud />;
     } else if (activeTab === 'planificacion') {
         tablaRenderizada = <Planificacion />;

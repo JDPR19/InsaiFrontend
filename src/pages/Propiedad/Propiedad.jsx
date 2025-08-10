@@ -289,12 +289,11 @@ function Propiedad() {
     };
 
     const handleSave = async () => {
-        setLoading(true);
         if (!formData.rif || !formData.nombre) {
             addNotification('RIF y Nombre son obligatorios', 'warning');
-            setLoading(false);
             return;
         }
+        setLoading(true);
         try {
             await axios.post(`${BaseUrl}/propiedad`, formData, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -311,12 +310,11 @@ function Propiedad() {
     };
 
     const handleEdit = async () => {
-        setLoading(true);
         if (!formData.rif || !formData.nombre) {
             addNotification('RIF y Nombre son obligatorios', 'warning');
-            setLoading(false);
             return;
         }
+        setLoading(true);
         try {
             await axios.put(`${BaseUrl}/propiedad/${formData.id}`, formData, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }

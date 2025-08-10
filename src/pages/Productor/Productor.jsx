@@ -80,7 +80,7 @@ function Productor() {
         const filtered = filterData(
             datosOriginales,
             searchTerm,
-            ['codigo', 'cedula', 'nombre', 'apellido', 'contacto', 'tipo_productor_nombre', 'email']
+            ['codigo', 'cedula', 'nombre', 'apellido', 'contacto', 'email']
         );
         setDatosFiltrados(filtered);
     };
@@ -114,8 +114,7 @@ function Productor() {
     };
 
     const handleEdit = async () => {
-        setLoading(true);
-        for (const field of ['codigo', 'cedula', 'nombre', 'apellido', 'tipo_productor_id']) {
+        for (const field of ['codigo', 'cedula', 'nombre', 'apellido']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
             const { valid, message } = validateField(formData[field], regex, errorMessage);
@@ -125,6 +124,7 @@ function Productor() {
                 setLoading(false);
                 return;
             }
+            setLoading(true);
         }
         try {
             await axios.put(`${BaseUrl}/productor/${formData.id}`, formData, {
