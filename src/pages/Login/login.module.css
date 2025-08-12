@@ -244,3 +244,69 @@
     opacity: 1;
 }
 
+/* ...existing code arriba... */
+
+/* RESPONSIVE: solo muestra el formulario en pantallas pequeñas */
+@media (max-width: 900px) {
+    .loginContainer {
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        height: 100vh;
+        min-height: 100vh;
+        padding: 0;
+    }
+
+    .loginCard {
+        width: 100vw;
+        max-width: 100vw;
+        height: auto;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        order: 1;
+        padding: 30px 10px 10px 10px;
+    }
+
+    .slider,
+    .sliderImage,
+    .sliderText,
+    .frases,
+    .phraseContainer {
+        display: none !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .loginCard {
+        padding: 20px 5px 5px 5px;
+        font-size: 0.95rem;
+    }
+    .loginTitle {
+        font-size: 1.3rem;
+    }
+    .inputField {
+        font-size: 0.8rem;
+        padding: 8px 8px;
+    }
+    .submitButton {
+        font-size: 1rem;
+        padding: 5px 0;
+    }
+    .footer {
+        font-size: 0.8rem;
+        padding: 2px 0;
+    }
+}
+
+@media (max-width: 400px) {
+    .loginCard {
+        padding: 10px 2px 2px 2px;
+    }
+    .loginTitle {
+        font-size: 1rem;
+    }
+    .footer {
+        font-size: 0.7rem;
+    }
+}
