@@ -5,6 +5,7 @@ import Header from './components/header/Header';
 import { setGlobalNotification } from './utils/globalNotification';
 import NotificationContainer from './components/notification/NotificationContainer';
 import { NotificationProvider, useNotification } from './utils/NotificationContext';
+import { ThemeProvider } from 'next-themes';
 import AutoLogout from './components/autoLogout/AutoLogout';
 import MainLayout from './components/Layouts/MainLayout';
 import Error from './pages/Error/Error';
@@ -57,11 +58,6 @@ function AppContent() {
   React.useEffect(() => {
     setGlobalNotification(addNotification);
   }, [addNotification]);
-
-  // Notificación de prueba al cargar la app
-    // React.useEffect(() => {
-    //     addNotification('¡Notificación de prueba!', 'warning');
-    // }, []);
 
   return (
       <>
@@ -476,8 +472,10 @@ function AppContent() {
 
 export default function App() {
     return (
-        <NotificationProvider>
-            <AppContent />
-        </NotificationProvider>
+        <ThemeProvider attribute="class"> 
+            <NotificationProvider>
+                <AppContent />
+            </NotificationProvider>
+        </ThemeProvider>
     );
 }

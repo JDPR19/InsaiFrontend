@@ -7,7 +7,7 @@ import { BaseUrl } from '../../utils/constans';
 import { useNotification } from '../../utils/NotificationContext';
 import Spinner from '../spinner/Spinner';
 
-// Si tienes muchos NavItem, puedes generar una key única combinando el id y el índice
+
 function NavItem({ id, openSubmenus, setOpenSubmenus, selectedItem, setSelectedItem, iconSrc, label, linkTo, children, idx }) {
     const isOpen = openSubmenus[id];
     const isSelected = selectedItem === id;
@@ -21,7 +21,7 @@ function NavItem({ id, openSubmenus, setOpenSubmenus, selectedItem, setSelectedI
 
     return (
         <li
-            key={`${id}-${idx}`} // Corrección: key única combinando id e índice
+            key={`${id}-${idx}`} // key única combinando id e índice
             className={`${styles.navItem} ${isOpen ? styles.open : ''} ${isSelected ? styles.selected : ''}`}
             onClick={handleClick}
         >
@@ -70,10 +70,10 @@ function Menu() {
             label: "Panel Principal",
             linkTo: "/Home"
         },
-        ['Administrador', 'Moderador'].includes(rol) && {
+        ['Administrador', 'Moderador', 'User'].includes(rol) && {
             id: "seccionOne",
             iconSrc: icon.farmer2,
-            label: "Productores y Propiedades",
+            label: "Productores",
             linkTo: "/SeccionOne"
         },
         ['Administrador', 'Moderador', 'User'].includes(rol) && {
@@ -97,8 +97,14 @@ function Menu() {
         ['Administrador', 'Moderador'].includes(rol) && {
             id: "SeccionFive",
             iconSrc: icon.grafica,
-            label: "Permisos y Reportes",
+            label: "Permisos",
             linkTo: "/SeccionFive"
+        },
+        ['Administrador', 'Moderador'].includes(rol) && {
+            id: "SeccionFive",
+            iconSrc: icon.folder,
+            label: "Reportes",
+            linkTo: ""
         },
         rol === 'Administrador' && {
             id: "SeccionSix",

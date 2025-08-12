@@ -219,12 +219,12 @@ function SeguimientoInspeccion() {
                     </button>
                 </div>
 
-                <div className="ss-center">
+                {/* <div className="ss-center">
                     <img src={icon.homeIcon} alt="Exportar" title='Exportar' className='btn-icon-Estandar' />
                     <img src={icon.excel} alt="Imprimir" title='Imprimir' className='btn-icon-Estandar'/>
                     <img src={icon.pdf4} alt="Ayuda" title='Ayuda' className='btn-icon-Estandar'/>
                     <img src={icon.cubo} alt="Ayuda" title='Ayuda' className='btn-icon-Estandar'/>
-                </div>
+                </div> */}
 
                 <div className='ss-right'>
                     <h2  className='titleOne'>

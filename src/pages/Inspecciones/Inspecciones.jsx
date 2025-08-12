@@ -12,10 +12,11 @@ import SingleSelect from '../../components/selectmulti/SingleSelect';
 import MultiSelect from '../../components/selectmulti/MultiSelect';
 import { BaseUrl } from '../../utils/constans';
 import { useNavigate } from 'react-router-dom';
-
+import { usePermiso } from '../../hooks/usePermiso';
 
 function InspeccionesEst() {
     const navigate = useNavigate();
+    const tienePermiso = usePermiso();
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [tipoInspecciones, setTipoInspecciones] = useState([]);
@@ -217,6 +218,12 @@ function InspeccionesEst() {
     };
 
     const handleSave = async () => {
+
+        if (!tienePermiso('inspecciones', 'Crear')) {
+            addNotification('No tienes permiso para crear inspecciones', 'error');
+            return;
+        }
+
         if (!validateForm()) {
             addNotification('Verifica los campos obligatorios', 'warning');
             return;
@@ -258,6 +265,12 @@ function InspeccionesEst() {
     };
 
     const handleEdit = async () => {
+
+        if (!tienePermiso('inspecciones', 'editar')) {
+            addNotification('No tienes permiso para editar inspecciones', 'error');
+            return;
+        }
+
         if (!validateForm()) {
             addNotification('Verifica los campos obligatorios', 'warning');
             return;
@@ -407,7 +420,7 @@ function InspeccionesEst() {
     const closeDetalleModal = () => setDetalleModal({ abierto: false, inspeccion: null });
 
     return (
-        <div className={styles.inspeccionContainer}>
+        <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
             {/* Modal Detalle */}
             {detalleModal.abierto && (
@@ -841,7 +854,7 @@ function InspeccionesEst() {
                                 </td>
                                 <td>
                                     <div className='iconContainer'>
-                                        {/* ...dentro del <td> de acciones en la tabla... */}
+                                        
                                     {!['aprobada', 'rechazada'].includes(item.estado) && (
                                             <img src={icon.ojito}
                                             onClick={() => handleSeguimiento(item.id)} 
@@ -856,18 +869,22 @@ function InspeccionesEst() {
                                             className='iconver'
                                             title='Ver más'
                                         />
+                                    {tienePermiso('inspecciones', 'editar') && (
                                         <img
                                             onClick={() => openEditModal(item)}
                                             src={icon.editar}
                                             className='iconeditar'
                                             title='Editar'
                                         />
+                                    )}
+                                    {tienePermiso('inspecciones', 'eliminar') && (
                                         <img
                                             onClick={() => openConfirmDeleteModal(item.id)}
                                             src={icon.eliminar}
                                             className='iconeliminar'
-                                            title='eliminar'
+                                            title='Eliminar'
                                         />
+                                    )}
                                     </div>
                                 </td>
                             </tr>

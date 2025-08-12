@@ -11,7 +11,7 @@ function SeccionOne() {
     const tienePermiso = usePermiso();
 
     const tabs = [
-        { key: 'asociados', label: 'Catalago' },
+        // { key: 'asociados', label: 'Catalago' },
         tienePermiso('productor', 'ver') && { key: 'productores', label: 'Productores' },
         tienePermiso('propiedad', 'ver') && { key: 'propiedades', label: 'Propiedades' },
         tienePermiso('tipo_propiedad', 'ver') && { key: 'tipo_propiedad', label: 'Tipos de Propiedad' }

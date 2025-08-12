@@ -1,15 +1,22 @@
 /* Header Principal */
 .header {
-    width: 100%;
+    width: 100% !important;
     display: flex;
     align-items: center;
     justify-content: space-between; 
     padding: 5px 25px 3px 25px; 
     background-color: var(--grey2); 
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.253); 
-    position: sticky; 
+    position: fixed; 
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 1000;
+}
+
+.dark .header {
+    background-color: var(--grey2);
+    color: #fff;
 }
 
 .logoContainer {
@@ -34,6 +41,10 @@
     text-overflow: ellipsis; 
 }
 
+.dark .title {
+    color: #fff;
+}
+
 .userMenu {
     flex: 0 0 auto; 
     display: flex;
@@ -43,85 +54,59 @@
     gap: 10px; 
 }
 
-.campanaIcon {
+.campanaIcon,
+.iconoEstandar,
+.lupaIcon,
+.menuIcon {
     height: 35px; 
     width: auto;
     padding: 3px 3px;
     background: #a7d199dc;
     border: 1px solid #709c73fa;
     cursor: pointer;
-    transition: background 0.2s, box-shadow 0.2s;
+    transition: background 0.2s, box-shadow 0.2s, filter 0.3s;
     border-radius: 50%;
     outline: none;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.438);
+    filter: invert(0);
 }
 
-.iconoEstandar{
-    height: 35px; 
-    width: auto;
-    padding: 3px 3px;
-    background: #a7d199dc;
-    border: 1px solid #709c73fa;
-    cursor: pointer;
-    transition: background 0.2s, box-shadow 0.2s;
-    border-radius: 50%;
-    outline: none;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.438);
+.dark .campanaIcon,
+.dark .iconoEstandar,
+.dark .lupaIcon,
+.dark .menuIcon {
+    filter: invert(1) brightness(1.2);
+    background: var(--grey2);
+    border-color: var(--grey4);
 }
 
 .iconoEstandar:hover,
-.iconoEstandar:focus {
-    background: var(--lithg-green);
-    box-shadow: 0 0 8px var(--lithg-green);
-}
-
-.lupaIcon {
-    height: 35px; 
-    width: auto;
-    padding: 3px 3px;
-    background: #a7d199dc;
-    border: 1px solid #709c73fa;
-    cursor: pointer;
-    transition: transform 0.4s ease-in-out, background 0.2s, box-shadow 0.2s;
-    border-radius: 50%;
-    outline: none;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.438);
-}
-
-
+.iconoEstandar:focus,
 .campanaIcon:hover,
-.campanaIcon:focus {
-    background: var(--lithg-green);
-    box-shadow: 0 0 8px var(--lithg-green);
-    animation: campanaShake 0.5s;
-}
-
-.campanaIcon:active {
-    background: var(--green8);
-    box-shadow: 0 0 8px var(--lithg-green);
-}
-
+.campanaIcon:focus,
 .lupaIcon:hover,
 .lupaIcon:focus {
     background: var(--lithg-green);
     box-shadow: 0 0 8px var(--lithg-green);
-    transform: rotate(360deg);
 }
 
+.campanaIcon:active,
 .lupaIcon:active {
     background: var(--green8);
     box-shadow: 0 0 8px var(--lithg-green);
 }
 
-@keyframes campanaShake {
-    0% { transform: rotate(0deg); }
-    20% { transform: rotate(-15deg); }
-    40% { transform: rotate(15deg); }
-    60% { transform: rotate(-10deg); }
-    80% { transform: rotate(10deg); }
-    100% { transform: rotate(0deg); }
+.lupaIcon:focus {
+    transform: rotate(360deg);
 }
 
+
+
+.campanaIcon:hover,
+.campanaIcon:focus,
+.lupaIcon:hover {
+    animation: campanaShake 0.5s;
+}
 
 .username {
     font-size: 1rem;
@@ -130,6 +115,11 @@
     text-align: right;
     border-bottom: 1px solid #a7d199dc;
     padding: 10px 8px 10px 8px;
+}
+
+.dark .username {
+    color: #fff;
+    border-bottom: 1px solid var(--grey4);
 }
 
 /* Dropdown de notificaciones */
@@ -144,7 +134,7 @@
     top: -7px;
     right: -7px;
     background: var(--vino-red);
-    color: var(--white);
+    color: #fff;
     border-radius: 50%;
     min-width: 20px;
     height: 20px;
@@ -155,7 +145,11 @@
     justify-content: center;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     z-index: 2;
-    border: 2px solid var(--white);
+    border: 2px solid #fff;
+}
+
+.dark .badge {
+    color: #fff;
 }
 
 .dropdown {
@@ -177,6 +171,12 @@
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: #a5cfa7 #e8ece6;
+}
+
+.dark .dropdown {
+    background: var(--grey2);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
 }
 
 .dropdown::-webkit-scrollbar {
@@ -207,11 +207,20 @@
     padding-bottom: 6px;
 }
 
+.dark .dropdown h4 {
+    color: #fff;
+    border-bottom: 1px solid var(--grey4);
+}
+
 .empty {
     color: var(--grey4);
     text-align: center;
     padding: 18px 0;
     font-size: 1rem;
+}
+
+.dark .empty {
+    color: #fff;
 }
 
 .notificacionItem {
@@ -234,14 +243,29 @@
     box-sizing: border-box;
 }
 
+.dark .notificacionItem {
+    background: var(--grey3);
+    color: #fff;
+}
+
 .notificacionItem:hover {
     background: var(--lithg-green);
     color: var(--white);
 }
 
+.dark .notificacionItem:hover {
+    background: var(--grey4);
+    color: #fff;
+}
+
 .leida {
     background: var(--grey2);
     color: #888;
+}
+
+.dark .leida {
+    background: var(--grey4);
+    color: #b0b3b8;
 }
 
 .fecha {
@@ -255,12 +279,51 @@
     max-width: 100%;
 }
 
+.dark .fecha {
+    color: #fff;
+}
+
 .nueva {
     color: var(--vino-red);
     font-size: 1.1em;
     font-weight: bold;
     margin-left: 6px;
     vertical-align: middle;
+}
+
+.dark .nueva {
+    color: #fff;
+}
+
+@keyframes campanaShake {
+    0% { transform: rotate(0deg); }
+    20% { transform: rotate(-15deg); }
+    40% { transform: rotate(15deg); }
+    60% { transform: rotate(-10deg); }
+    80% { transform: rotate(10deg); }
+    100% { transform: rotate(0deg); }
+}
+
+:global(.dark) .header,
+:global(.dark) .title,
+:global(.dark) .username,
+:global(.dark) .dropdown,
+:global(.dark) .notificacionItem,
+:global(.dark) .empty,
+:global(.dark) .dropdown h4,
+:global(.dark) .fecha {
+    color: #fff !important;
+    border-color: var(--grey4) !important;
+}
+
+:global(.dark) .iconoEstandar,
+:global(.dark) .campanaIcon,
+:global(.dark) .lupaIcon,
+:global(.dark) .menuIcon {
+    color: #fff !important; /* SVG con fill="currentColor" será blanco */
+    filter: invert(0.1) brightness(2.8) !important;
+    background: var(--grey1) !important; 
+    border-color: var(--grey4) !important;
 }
 
 /* Responsividad */

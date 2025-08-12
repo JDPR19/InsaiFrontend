@@ -6,10 +6,10 @@ export const PANTALLAS = [
     { key: 'permiso', label: 'Permisos' },
     { key: 'programa', label: 'Programas' },
     { key: 'inspecciones', label: 'Inspecciones' },
-    { key: 'planificacion', label: 'Planificación' },
-    { key: 'solicitud', label: 'Solicitud' },
-    { key: 'propiedad', label: 'Propiedad' },
-    { key: 'productor', label: 'Productor' },
+    { key: 'planificacion', label: 'Planificaciones' },
+    { key: 'solicitud', label: 'Solicitudes' },
+    { key: 'propiedad', label: 'Propiedades' },
+    { key: 'productor', label: 'Productores' },
     { key: 'laboratorio', label: 'Laboratorios' },
     { key: 'plaga', label: 'Plagas' },
     { key: 'cultivo', label: 'Cultivos' },
@@ -30,7 +30,7 @@ export const PANTALLAS = [
     { key: 'usuarios', label: 'Usuarios' },
     { key: 'empleados', label: 'Empleados' },
     { key: 'cargos', label: 'Cargos' },
-    { key: 'tipo_usuario', label: 'Roles & Permisos' },
+    { key: 'tipo_usuario', label: 'Roles' },
     { key: 'bitacora', label: 'Bitacora' },
     ];
 

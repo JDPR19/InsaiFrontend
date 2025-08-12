@@ -180,6 +180,67 @@
     text-decoration: underline;
 }
 
+/* MODO OSCURO */
+:global(.dark) .loginContainer {
+    background: var(--white2) !important;
+}
 
+:global(.dark) .loginCard {
+    background: var(--white1) !important;
+    color: #fff !important;
+}
 
+:global(.dark) .loginTitle {
+    color: #fff !important;
+}
+
+:global(.dark) .inputField {
+    background: var(--input-bg) !important;
+    color: #fff !important;
+    border: 1px solid var(--grey4) !important;
+}
+
+:global(.dark) .inputField:focus {
+    border-color: var(--lithg-green) !important;
+    box-shadow: 0 0 5px var(--lithg-green) !important;
+}
+
+:global(.dark) .submitButton {
+    background-color: var(--grey4) !important;
+    color: #fff !important;
+}
+:global(.dark) .submitButton:hover {
+    background-color: var(--lithg-green) !important; /* Verde clarito en hover modo oscuro */
+    color: #fff !important;
+}
+
+:global(.dark) .slider {
+    background: var(--white1) !important;
+}
+
+:global(.dark) .sliderText {
+    color: #fff !important;
+}
+
+:global(.dark) .icon,
+:global(.dark) .iconbtn {
+    filter: invert(1) brightness(1.2) !important;
+}
+
+:global(.dark) .footer {
+    color: #fff !important;
+}
+
+:global(.dark) .footer a {
+    color: var(--lithg-green) !important;
+}
+
+:global(.dark) .oldpass button {
+    color: var(--lithg-green) !important;
+}
+
+:global(.dark) ::placeholder {
+    color: #b0b3b8 !important;
+    opacity: 1;
+}
 

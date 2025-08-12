@@ -6,6 +6,7 @@ import icon from '../../components/iconos/iconos';
 import insai from '../../../public/assets/image.png';
 import NotificationDropdown from './NotificationDropdown';
 import { BaseUrl } from '../../utils/constans';
+import { useTheme } from 'next-themes'; 
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 const socket = io(SOCKET_URL);
@@ -15,8 +16,10 @@ function Header() {
     const [notificaciones, setNotificaciones] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
     const [tabActivo, setTabActivo] = useState('todas');
-    const [darkLight, setDarkLight] = useState(false);
+    // const [darkLight, setDarkLight] = useState(false);
     const audioRef = useRef(null);
+    const { theme, setTheme } = useTheme(); 
+
 
     useEffect(() => {
         const storedUser = JSON.parse(localStorage.getItem('user'));
@@ -71,6 +74,8 @@ function Header() {
         );
     };
 
+    const isDark = theme === 'dark';
+
     return (
         <header className={styles.header}>
             <div className={styles.logoContainer}>
@@ -82,21 +87,13 @@ function Header() {
             <div className={styles.userMenu}>
                 <div className={styles.campanaWrapper}>
                     <img 
-                    src={darkLight ? icon.sun : icon.moon} 
-                    alt='Light and Dark'
-                    title='Modo Oscuro'
-                    className={styles.iconoEstandar}
-                    onClick={() => setDarkLight(!darkLight)}
-                    />
-                </div>
-                <div className={styles.campanaWrapper}>
-                    <img 
                     src={icon.lupa2} 
                     alt='Buscador Universal'
                     title='Buscador Universal'
                     className={styles.lupaIcon}
                     />
                 </div>
+
                 <div className={styles.campanaWrapper} >
                     <img
                         src={icon.campana}
@@ -118,6 +115,17 @@ function Header() {
                     )}
                 </div>
                 <audio ref={audioRef} src="/assets/notification.mp3" preload="auto" />
+                
+                <div className={styles.campanaWrapper}>
+                    <img 
+                        src={isDark ? icon.sun : icon.moon}
+                        alt='Light and Dark'
+                        title='Modo Oscuro'
+                        className={styles.campanaIcon}
+                        onClick={() => setTheme(isDark ? 'light' : 'dark')}
+                    />
+                </div>
+                
                 <hr />
                 <span className={styles.username}>Hola, {user.name}</span>
             </div>

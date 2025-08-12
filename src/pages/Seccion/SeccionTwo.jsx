@@ -12,7 +12,7 @@ function SeccionTwo () {
     
     // Tabs principales
     const tabs = [
-        { key: 'asociados', label: 'Catalago' },
+        // { key: 'asociados', label: 'Catalago' },
         tienePermiso('solicitud', 'ver') && { key: 'solicitud', label: 'Solicitudes' },
         tienePermiso('planificacion', 'ver') && { key: 'planificacion', label: 'Planificaciones' },
         tienePermiso('tipo_solicitud', 'ver') && { key: 'tipo_solicitud', label: 'Tipos de Solicitud' }

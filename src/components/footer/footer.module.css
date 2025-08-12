@@ -18,6 +18,15 @@
     font-size: 0.9rem;
 }
 
+:global(.dark) .footer {
+    background-color: var(--white) !important;
+    color: #fff !important;
+}
+
+:global(.dark) .footer a {
+    color: var(--lithg-green) !important;
+}
+
 /* Asegura que el footer sea visible en pantallas pequeñas */
 @media (max-width: 770px) {
     .footer {

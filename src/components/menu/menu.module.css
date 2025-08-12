@@ -9,6 +9,7 @@
     z-index: 1;
 }
 
+
 .sidebar {
     position: fixed; 
     top: 5px; 
@@ -102,6 +103,16 @@
 
 .container.collapsed .icon {
     margin-right: 0; /* Elimina el margen en el menú colapsado */
+}
+
+.icon, .menuIcon {
+    filter: invert(0);
+    transition: filter 0.3s;
+}
+
+:global(.dark) .icon,
+:global(.dark) .menuIcon {
+    filter: invert(1) brightness(1.2);
 }
 
 .navLabel {

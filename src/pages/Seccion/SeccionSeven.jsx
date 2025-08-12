@@ -14,7 +14,7 @@ function SeccionSeven () {
         const tabs = [
         tienePermiso('usuarios', 'ver') && { key: 'usuarios', label: 'Usuarios' },
         tienePermiso('empleados', 'ver') && { key: 'empleados', label: 'Empleados' },
-        tienePermiso('tipo_usuario', 'ver') && { key: 'tipo_usuario', label: 'Roles & Permisos' },
+        tienePermiso('tipo_usuario', 'ver') && { key: 'tipo_usuario', label: 'Roles' },
         tienePermiso('cargos', 'ver') && { key: 'cargo', label: 'Cargos' }
     ].filter(Boolean);
 

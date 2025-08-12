@@ -351,7 +351,7 @@ function TipoUsuario() {
                         <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
-                    <h2>Roles & Permisos</h2>
+                    <h2>Roles</h2>
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
