@@ -7,7 +7,7 @@ const API_URL =
     import.meta.env.VITE_API_URL ||
     'http://localhost:4000';
 
-const INACTIVITY_LIMIT = 5* 60 * 1000; // 5 minutos en ms
+const INACTIVITY_LIMIT = 35* 60 * 1000; // 15 minutos en ms
 
 const AutoLogout = () => {
     const navigate = useNavigate();
