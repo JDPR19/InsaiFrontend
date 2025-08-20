@@ -472,7 +472,7 @@ function AppContent() {
 
 export default function App() {
     return (
-        <ThemeProvider attribute="class"> 
+        <ThemeProvider attribute="class" defaultTheme="light"> 
             <NotificationProvider>
                 <AppContent />
             </NotificationProvider>

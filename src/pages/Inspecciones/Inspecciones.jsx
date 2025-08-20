@@ -219,7 +219,7 @@ function InspeccionesEst() {
 
     const handleSave = async () => {
 
-        if (!tienePermiso('inspecciones', 'Crear')) {
+        if (!tienePermiso('inspecciones', 'crear')) {
             addNotification('No tienes permiso para crear inspecciones', 'error');
             return;
         }
