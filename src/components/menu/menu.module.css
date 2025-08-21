@@ -43,33 +43,33 @@
 }
 
 .navList {
-    scroll-behavior: smooth; /* Desplazamiento suave */
+    scroll-behavior: smooth; 
 }
 
 /* Estilo para navegadores basados en WebKit (Chrome, Edge, Safari) */
 .navList::-webkit-scrollbar {
-    width: 8px; /* Ancho del scroll */
+    width: 8px; 
 }
 
 .navList::-webkit-scrollbar-track {
-    background: #e0e0e0; /* Color del fondo del scroll */
-    border-radius: 10px; /* Bordes redondeados */
+    background: #e0e0e0; 
+    border-radius: 10px; 
 }
 
 .navList::-webkit-scrollbar-thumb {
-    background-color: #555; /* Color del scroll */
-    border-radius: 10px; /* Bordes redondeados */
-    border: 2px solid #e0e0e0; /* Espaciado entre el scroll y el fondo */
+    background-color: #555; 
+    border-radius: 10px; 
+    border: 2px solid #e0e0e0; 
 }
 
 .navList::-webkit-scrollbar-thumb:hover {
-    background-color: #333; /* Color del scroll al pasar el mouse */
+    background-color: #333; 
 }
 
 .navItem {
     display: flex;
-    flex-direction: column; /* Ajusta para sublistas */
-    align-items: flex-start; /* Alinea el contenido de forma adecuada */
+    flex-direction: column; 
+    align-items: flex-start; 
     padding: 15px;
     cursor: pointer;
     transition: background-color 0.3s ease, color 0.3s ease-in-out;
@@ -80,9 +80,19 @@
     color: #343434;
 }
 
+:global(.dark) .navItem:hover {
+    background-color: var(--grey3);
+    color: #fff !important;
+}
+
 .navItem.selected {
     background-color: #5554548d; 
     color: var(--white); 
+}
+
+:global(.dark) .navItem.selected {
+    background-color: var(--grey3);
+    color: #fff !important;
 }
 
 .navLink {
@@ -123,25 +133,25 @@
 }
 
 .container.collapsed .navLabel {
-    opacity: 0; /* Oculta el texto en el menú colapsado */
+    opacity: 0; 
 }
 
 .submenuContainer {
-    max-height: 0; /* Oculta el submenú inicialmente */
-    overflow: hidden; /* Oculta el contenido que exceda el contenedor */
-    opacity: 0; /* Submenú invisible por defecto */
-    width: 100%; /* Para mantener alineado con el contenedor principal */
-    transition: max-height 0.4s ease, opacity 0.4s ease; /* Transición suave para el despliegue */
+    max-height: 0; 
+    overflow: hidden; 
+    opacity: 0; 
+    width: 100%; 
+    transition: max-height 0.4s ease, opacity 0.4s ease; 
 }
 
 .submenuOpen {
-    max-height: 1400px; /* Altura máxima para mostrar el submenú */
-    opacity: 1; /* Hace visible el submenú */
+    max-height: 1400px; 
+    opacity: 1; 
 }
 
 .submenu {
     list-style: none;
-    padding-left: 18px; /* Desplaza las sublistas a la derecha */
+    padding-left: 18px; 
     margin: 0;
 }
 
@@ -157,32 +167,32 @@
 
 .submenuItem:hover {
     color: #fff;
-    padding-left: 20px; /* Añade un efecto de desplazamiento al pasar el mouse */
+    padding-left: 20px; 
     border-bottom: 1px solid var(--vino-red);
 }
 
 .content {
     flex: 1;
-    margin-left: 200px; /* Deja espacio para el menú expandido */
+    margin-left: 200px; 
     padding: 20px;
     background-color: #ecf0f1;
     transition: margin-left 0.3s ease-in-out;
 }
 
 .container.collapsed .content {
-    margin-left: 60px; /* Ajusta el margen cuando el menú está colapsado */
+    margin-left: 60px; 
 }
 
 /* Estilos para el ícono de flecha */
 .iconFlecha {
     width: 16px;
     height: 16px;
-    margin-left: auto; /* Alinea la flecha al lado derecho */
-    transition: transform 0.4s ease; /* Transición suave para la rotación */
+    margin-left: auto; 
+    transition: transform 0.4s ease; 
 }
 
 .iconRotated {
-    transform: rotate(90deg); /* Rota la flecha 90 grados */
+    transform: rotate(90deg); 
 }
 /* footer menu */
 .footer {
@@ -197,16 +207,16 @@
     /* z-index: 1000; */
 }
 .container.collapsed .footer {
-    opacity: 0; /* Oculta el footer cuando el menú está colapsado */
-    transform: translateY(20px); /* Desplaza el footer hacia abajo */
-    pointer-events: none; /* Evita que sea interactivo cuando está oculto */
+    opacity: 0; 
+    transform: translateY(20px); 
+    pointer-events: none; 
 }
 
 
 .iconsalida {
     width: 20px; 
     height: 20px;
-    flex-shrink: 0; /* Evita que el ícono cambie de tamaño */
+    flex-shrink: 0; 
 }
 
 .logoutButton {

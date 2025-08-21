@@ -608,6 +608,11 @@ html, body {
   box-shadow: 0 0 5px rgba(152, 199, 154, 0.5);
 }
 
+.dark .search {
+    color: #fff !important; /* Letras blancas en modo oscuro */
+    background-color: var(--input-bg) !important;
+}
+
 /* Ícono de lupa */
 .iconlupa {
   position: absolute; 
@@ -619,6 +624,12 @@ html, body {
   cursor: pointer;
   opacity: 0.7; 
   transition: opacity 0.3s ease;
+  filter: invert(0);
+}
+
+.dark .iconlupa {
+    filter: invert(1) brightness(1.2) !important;
+    opacity: 0.9;
 }
 
 .iconlupa:hover {
@@ -921,8 +932,14 @@ html, body {
 .date::-webkit-calendar-picker-indicator,
 .time::-webkit-calendar-picker-indicator {
     cursor: pointer; 
-    filter: invert(100%); 
     opacity: 0.8; 
+    filter: none !important; 
+}
+
+:global(.dark) .date::-webkit-calendar-picker-indicator,
+:global(.dark) .time::-webkit-calendar-picker-indicator {
+    filter: invert(100%) !important;
+    opacity: 0.8;
 }
 
 .select {
@@ -1035,6 +1052,19 @@ html, body {
     background-color: #98c79a;
 }
 
+.label-imagen .icon,
+.label-imagen .iconTwo {
+    filter: invert(0);
+}
+
+.iconSubir {
+    filter: invert(0);
+}
+
+.dark .iconSubir {
+    filter: invert(1) brightness(1.2) !important;
+}
+
 /* Estilo para el scroll del menú de react-select */
 .react-select__menu-list {
   scrollbar-width: thin;
@@ -1093,6 +1123,49 @@ html, body {
     color: var(--black2);
 }
 
+.dark .react-select__option:hover,
+.dark .react-select__option--is-focused {
+    background-color: var(--grey4) !important;
+    color: #fff !important;
+}
+
+.dark .react-select__single-value {
+    color: #fff !important;
+}
+
+.dark .react-select__multi-value__label {
+    color: #fff !important;
+}
+
+:global(.dark) .react-select__input input {
+    color: #fff !important;
+}
+.dark .react-select__clear-indicator {
+    color: #fff !important;
+    fill: #fff !important;
+}
+
+/* React Select múltiple: modo oscuro */
+.dark .react-select__multi-value {
+    background-color: var(--input) !important; 
+    color: #fff !important;
+    border: 1px solid var(--grey5) !important;
+}
+
+.dark .react-select__multi-value__label {
+    color: #fff !important;
+}
+
+.dark .react-select__multi-value__remove {
+    color: #fff !important;
+    fill: #fff !important;
+}
+.dark .react-select__multi-value__remove:hover {
+    background-color: var(--grey4) !important;
+    color: #fff !important;
+    fill: #fff !important;
+}
+
 .btn-limpiar {
   background: #c8d8c07a;
   color: #242424;
@@ -1110,6 +1183,19 @@ html, body {
 .btn-limpiar:hover {
   background: #98c79a;
   color: #fff;
+}
+
+.dark .btn-limpiar,
+.dark .label-imagen {
+    background: var(--input) !important;
+    color: #fff !important;
+    border: 1px solid var(--grey5) !important;
+}
+
+.dark .btn-limpiar:hover,
+.dark .label-imagen:hover {
+    background: var(--grey3) !important;
+    color: #fff !important;
 }
 
 .date::-webkit-calendar-picker-indicator {

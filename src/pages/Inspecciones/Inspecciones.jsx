@@ -571,7 +571,7 @@ function InspeccionesEst() {
                             onChange={handleFileChange}
                         />
                         <label htmlFor="imagenes" className="label-imagen">
-                            <img src={icon.pdf3} alt="Subir" style={{ width: 18, marginRight: 6 }} />
+                            <img src={icon.pdf3} alt="Subir" className="iconSubir" style={{ width: 18, marginRight: 6 }} />
                             Subir Imágenes
                         </label>                          
                         {!formData.id && previewUrls.length > 0 && (
