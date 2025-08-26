@@ -16,6 +16,7 @@ function Planificacion() {
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [solicitudes, setSolicitudes] = useState([]);
     const [empleados, setEmpleados] = useState([]);
+    const [tipoInspecciones, setTipoInspecciones] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -24,6 +25,13 @@ function Planificacion() {
         id: '',
         solicitud_id: '',
         fecha_programada: '',
+        actividad: '',
+        objetivo: '',
+        hora: '',
+        convocatoria: '',
+        ubicacion: '',
+        aseguramiento: '',
+        tipo_inspeccion_fito_id: '',
         estado: '',
         empleados_ids: []
     });
@@ -36,11 +44,15 @@ function Planificacion() {
     // Opciones para selects
     const solicitudOptions = solicitudes.map(s => ({
         value: String(s.id),
-        label: `${s.descripcion} (${s.propiedad_nombre || ''})`
+        label: `${s.codigo || s.id} - (${s.propiedad_nombre || ''})`
     }));
     const empleadosOptions = empleados.map(e => ({
         value: String(e.id),
         label: `${e.cedula} - ${e.nombre} ${e.apellido}`
+    }));
+    const tipoInspeccionOptions = tipoInspecciones.map(t => ({
+        value: String(t.id),
+        label: t.nombre
     }));
 
     // Fetchers
@@ -53,7 +65,7 @@ function Planificacion() {
             setDatosOriginales(response.data);
             setDatosFiltrados(response.data);
         } catch (error) {
-            console.error('Error solicitando todas las planificaciones', error);
+            console.error('Error al obtener planificaciones', error);
             addNotification('Error al obtener planificaciones', 'error');
         } finally {
             setLoading(false);
@@ -67,7 +79,7 @@ function Planificacion() {
             });
             setSolicitudes(response.data);
         } catch (error) {
-            console.error('Error solicitando solicitudes', error);
+            console.error('Error al obtener solicitudes', error);
             addNotification('Error al obtener solicitudes', 'error');
         }
     };
@@ -79,8 +91,20 @@ function Planificacion() {
             });
             setEmpleados(response.data);
         } catch (error) {
-            console.error('Error solicitando empleados', error);
+            console.error('Error al obtener empleados', error);
             addNotification('Error al obtener empleados', 'error');
+        }
+    };
+
+    const fetchTipoInspecciones = async () => {
+        try {
+            const response = await axios.get(`${BaseUrl}/inspecciones/tipo-inspeccion/all`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            setTipoInspecciones(response.data);
+        } catch (error) {
+            console.error('Error al obtener tipos de inspección', error);
+            addNotification('Error al obtener tipos de inspección', 'error');
         }
     };
 
@@ -88,6 +112,7 @@ function Planificacion() {
         fetchPlanificaciones();
         fetchSolicitudes();
         fetchEmpleados();
+        fetchTipoInspecciones();
     }, []);
 
     const resetFormData = () => {
@@ -95,6 +120,13 @@ function Planificacion() {
             id: '',
             solicitud_id: '',
             fecha_programada: '',
+            actividad: '',
+            objetivo: '',
+            hora: '',
+            convocatoria: '',
+            ubicacion: '',
+            aseguramiento: '',
+            tipo_inspeccion_fito_id: '',
             estado: '',
             empleados_ids: []
         });
@@ -117,6 +149,13 @@ function Planificacion() {
             id: item.id,
             solicitud_id: item.solicitud_id ? String(item.solicitud_id) : '',
             fecha_programada: item.fecha_programada || '',
+            actividad: item.actividad || '',
+            objetivo: item.objetivo || '',
+            hora: item.hora || '',
+            convocatoria: item.convocatoria || '',
+            ubicacion: item.ubicacion || '',
+            aseguramiento: item.aseguramiento || '',
+            tipo_inspeccion_fito_id: item.tipo_inspeccion_fito_id ? String(item.tipo_inspeccion_fito_id) : '',
             estado: item.estado || 'pendiente',
             empleados_ids: (item.empleados || []).map(e => String(e.id))
         });
@@ -146,6 +185,9 @@ function Planificacion() {
             empleados_ids: selected ? selected.map(opt => opt.value) : []
         }));
     };
+    const handleTipoInspeccionChange = (val) => {
+        setFormData(prev => ({ ...prev, tipo_inspeccion_fito_id: val }));
+    };
     const clearMultiSelect = () => {
         setFormData(prev => ({
             ...prev,
@@ -167,7 +209,7 @@ function Planificacion() {
 
     const handleSave = async () => {
         let newErrors = {};
-        for (const field of ['solicitud_id', 'fecha_programada']) {
+        for (const field of ['solicitud_id', 'fecha_programada', 'tipo_inspeccion_fito_id']) {
             if (validationRules[field]) {
                 const error = validateField(field, formData[field], validationRules);
                 if (error) newErrors[field] = error;
@@ -185,18 +227,16 @@ function Planificacion() {
             const cleanFormData = {
                 ...formData,
                 fecha_programada: formData.fecha_programada || null,
+                estado: formData.estado || 'pendiente'
             };
-        await axios.post(`${BaseUrl}/planificacion`, {
-                ...cleanFormData,
-                estado: cleanFormData.estado || 'pendiente'
-            }, {
+            await axios.post(`${BaseUrl}/planificacion`, cleanFormData, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Planificación registrada con éxito', 'success');
             fetchPlanificaciones();
             closeModal();
         } catch (error) {
-            console.error('Error registrando planificación', error);
+            console.error('Error registrando la Planificación', error);
             addNotification('Error al registrar planificación', 'error');
         } finally {
             setLoading(false);
@@ -205,7 +245,7 @@ function Planificacion() {
 
     const handleEdit = async () => {
         let newErrors = {};
-        for (const field of ['solicitud_id', 'fecha_programada']) {
+        for (const field of ['solicitud_id', 'fecha_programada', 'tipo_inspeccion_fito_id']) {
             if (validationRules[field]) {
                 const error = validateField(field, formData[field], validationRules);
                 if (error) newErrors[field] = error;
@@ -223,18 +263,16 @@ function Planificacion() {
             const cleanFormData = {
                 ...formData,
                 fecha_programada: formData.fecha_programada || null,
+                estado: formData.estado || 'pendiente'
             };
-        await axios.put(`${BaseUrl}/planificacion/${formData.id}`, {
-            ...cleanFormData,
-            estado: cleanFormData.estado || 'pendiente'
-        }, {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
+            await axios.put(`${BaseUrl}/planificacion/${formData.id}`, cleanFormData, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
             addNotification('Planificación actualizada con éxito', 'success');
             fetchPlanificaciones();
             closeModal();
         } catch (error) {
-            console.error('Error actualizando planificación', error);
+            console.error('Error actualizando la Planificación', error);
             addNotification('Error al actualizar planificación', 'error');
         } finally {
             setLoading(false);
@@ -250,7 +288,7 @@ function Planificacion() {
             fetchPlanificaciones();
             addNotification('Planificación eliminada con éxito', 'success');
         } catch (error) {
-            console.error('Error eliminando planificación', error);
+            console.error('Error eliminando la Planificación', error);
             addNotification('Error al eliminar planificación', 'error');
         } finally {
             setLoading(false);
@@ -279,7 +317,7 @@ function Planificacion() {
     // Buscar y filtrar
     const handleSearch = (searchTerm) => {
         const filtered = filterData(datosOriginales, searchTerm, [
-            'id', 'solicitud_descripcion', 'estado', 'fecha_programada', 'usuario_username', 'cargo_nombre', 'empleado_nombre', 'solicitud_propiedad', 'ubicacion_propiedad', 'hectareas_propiedad', 'propiedad_rif'
+            'id', 'actividad', 'objetivo', 'convocatoria', 'ubicacion', 'aseguramiento', 'estado', 'fecha_programada'
         ]);
         setDatosFiltrados(filtered);
         setCurrentPage(1);
@@ -297,16 +335,7 @@ function Planificacion() {
                         <form className='modalForm'>
                             <div className='formColumns'>
                                 <div className='formGroup'>
-                                    <label>Nombre de la planificación:</label>
-                                    <input 
-                                        type="text" 
-                                        value={detalleModal.planificacion.nombre} 
-                                        disabled 
-                                        className='input' 
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Solicitudes Activas:</label>
+                                    <label>Solicitud:</label>
                                     <SingleSelect
                                         options={solicitudOptions}
                                         value={detalleModal.planificacion.solicitud_id}
@@ -326,6 +355,70 @@ function Planificacion() {
                                     />
                                 </div>
                                 <div className='formGroup'>
+                                    <label>Actividad:</label>
+                                    <input
+                                        type="text"
+                                        value={detalleModal.planificacion.actividad || ''}
+                                        disabled
+                                        className='input'
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Objetivo:</label>
+                                    <input
+                                        type="text"
+                                        value={detalleModal.planificacion.objetivo || ''}
+                                        disabled
+                                        className='input'
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Hora:</label>
+                                    <input
+                                        type="time"
+                                        value={detalleModal.planificacion.hora || ''}
+                                        disabled
+                                        className='input'
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Convocatoria:</label>
+                                    <input
+                                        type="text"
+                                        value={detalleModal.planificacion.convocatoria || ''}
+                                        disabled
+                                        className='input'
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Ubicación:</label>
+                                    <input
+                                        type="text"
+                                        value={detalleModal.planificacion.ubicacion || ''}
+                                        disabled
+                                        className='input'
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Aseguramiento:</label>
+                                    <input
+                                        type="text"
+                                        value={detalleModal.planificacion.aseguramiento || ''}
+                                        disabled
+                                        className='input'
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Tipo de Inspección:</label>
+                                    <SingleSelect
+                                        options={tipoInspeccionOptions}
+                                        value={detalleModal.planificacion.tipo_inspeccion_fito_id}
+                                        onChange={() => {}}
+                                        placeholder="Tipo de inspección"
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
                                     <label>Empleados Responsables:</label>
                                     <MultiSelect
                                         options={empleadosOptions}
@@ -336,6 +429,12 @@ function Planificacion() {
                                         isDisabled={true}
                                         placeholder="Selecciona empleados..."
                                     />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Estado:</label>
+                                    <span className={`badge-estado badge-${detalleModal.planificacion.estado}`}>
+                                        {detalleModal.planificacion.estado}
+                                    </span>
                                 </div>
                             </div>
                         </form>
@@ -352,24 +451,12 @@ function Planificacion() {
                         <form className='modalForm'>
                             <div className='formColumns'>
                                 <div className='formGroup'>
-                                    <label htmlFor="nombre">Nombre de la planificación:</label>
-                                    <input
-                                        type="text"
-                                        id="nombre"
-                                        value={formData.nombre}
-                                        onChange={handleChange}
-                                        className='input'
-                                        placeholder="Inspección finca Yaracuy Julio 2025"
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Solicitudes Activas:</label>
+                                    <label>Solicitud:</label>
                                     <SingleSelect
                                         options={solicitudOptions}
                                         value={formData.solicitud_id}
                                         onChange={handleSolicitudChange}
                                         placeholder="Seleccione solicitud"
-                                        // isDisabled={!!formData.id}
                                     />
                                     {errors.solicitud_id && <span className='errorText'>{errors.solicitud_id}</span>}
                                 </div>
@@ -385,6 +472,16 @@ function Planificacion() {
                                     {errors.fecha_programada && <span className='errorText'>{errors.fecha_programada}</span>}
                                 </div>
                                 <div className='formGroup'>
+                                    <label>Tipo de Inspección:</label>
+                                    <SingleSelect
+                                        options={tipoInspeccionOptions}
+                                        value={formData.tipo_inspeccion_fito_id}
+                                        onChange={handleTipoInspeccionChange}
+                                        placeholder="Tipo de inspección"
+                                    />
+                                    {errors.tipo_inspeccion_fito_id && <span className='errorText'>{errors.tipo_inspeccion_fito_id}</span>}
+                                </div>
+                                <div className='formGroup'>
                                     <label>Empleados Responsables:</label>
                                     <MultiSelect
                                         options={empleadosOptions}
@@ -396,6 +493,71 @@ function Planificacion() {
                                         <button type="button" onClick={clearMultiSelect} className='btn-limpiar'>Limpiar</button>
                                     )}
                                     {errors.empleados_ids && <span className='errorText'>{errors.empleados_ids}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Actividad:</label>
+                                    <input
+                                        type="text"
+                                        id="actividad"
+                                        value={formData.actividad}
+                                        onChange={handleChange}
+                                        className='input'
+                                        placeholder="Actividad programada"
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Objetivo:</label>
+                                    <input
+                                        type="text"
+                                        id="objetivo"
+                                        value={formData.objetivo}
+                                        onChange={handleChange}
+                                        className='input'
+                                        placeholder="Objetivo de la planificación"
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Hora:</label>
+                                    <input
+                                        type="time"
+                                        id="hora"
+                                        value={formData.hora}
+                                        onChange={handleChange}
+                                        className='input'
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Convocatoria:</label>
+                                    <input
+                                        type="text"
+                                        id="convocatoria"
+                                        value={formData.convocatoria}
+                                        onChange={handleChange}
+                                        className='input'
+                                        placeholder="Convocatoria"
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Ubicación:</label>
+                                    <input
+                                        type="text"
+                                        id="ubicacion"
+                                        value={formData.ubicacion}
+                                        onChange={handleChange}
+                                        className='input'
+                                        placeholder="Ubicación"
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Aseguramiento:</label>
+                                    <input
+                                        type="text"
+                                        id="aseguramiento"
+                                        value={formData.aseguramiento}
+                                        onChange={handleChange}
+                                        className='input'
+                                        placeholder="Aseguramiento"
+                                    />
                                 </div>
                             </div>
                             <button
@@ -446,9 +608,9 @@ function Planificacion() {
                     <thead>
                         <tr>
                             <th>N°</th>
-                            <th>Resumen</th>
                             <th>Solicitud</th>
                             <th>Fecha Programada</th>
+                            <th>Actividad</th>
                             <th>Estado</th>
                             <th>Acción</th>
                         </tr>
@@ -457,9 +619,9 @@ function Planificacion() {
                         {currentData.map((item, idx) => (
                             <tr key={item.id}>
                                 <td>{indexOfFirstItem + idx + 1}</td>
-                                <td>{item.planificacion_nombre || item.nombre || `Planificación ${item.id}`}</td>
-                                <td>{item.solicitud_descripcion}</td>
+                                <td>{solicitudOptions.find(opt => opt.value === String(item.solicitud_id))?.label || item.solicitud_id}</td>
                                 <td>{item.fecha_programada}</td>
+                                <td>{item.actividad}</td>
                                 <td>
                                     <span className={`badge-estado badge-${item.estado}`}>
                                         {item.estado}

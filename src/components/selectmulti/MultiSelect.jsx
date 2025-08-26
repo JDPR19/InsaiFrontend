@@ -38,12 +38,21 @@ import Select from 'react-select';
         color: '#242424',
         fontFamily: "'Poppins', sans-serif",
         fontSize: 14,
+        maxWidth: 140, 
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
     }),
     multiValueLabel: (provided) => ({
         ...provided,
         color: '#242424',
         fontFamily: "'Poppins', sans-serif",
         fontSize: 14,
+        maxWidth: 110, // Limita el ancho del texto
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        display: 'inline-block',
     }),
     multiValueRemove: (provided) => ({
         ...provided,

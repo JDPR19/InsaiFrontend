@@ -9,6 +9,8 @@ const customSelectStyles = {
         borderColor: '#ccc',
         borderRadius: 8,
         minHeight: 38,
+        maxWidth: '100%',
+        boxSizing: 'border-box',
         boxShadow: state.isFocused ? '0 0 5px rgba(152, 199, 154, 0.5)' : 'none',
         transition: 'all 0.3s ease',
         fontFamily: "'Poppins', sans-serif",
@@ -59,6 +61,14 @@ const customSelectStyles = {
         color: '#242424',
         fontFamily: "'Poppins', sans-serif",
         fontSize: 15,
+    }),
+    singleValue: (provided) => ({
+        ...provided,
+        maxWidth: 180, 
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        display: 'block',
     }),
     };
 

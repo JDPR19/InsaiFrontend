@@ -282,6 +282,15 @@ function Solicitud() {
                         <form className='modalForm'>
                             <div className='formColumns'>
                                 <div className='formGroup'>
+                                    <label>Código:</label>
+                                    <input
+                                        type="inpu"
+                                        value={detalleModal.solicitud.codigo|| ''}
+                                        className='input'
+                                        disabled
+                                    />
+                                </div>
+                                <div className='formGroup'>
                                     <label>Fecha Solicitada:</label>
                                     <input
                                         type="date"
@@ -307,6 +316,12 @@ function Solicitud() {
                                         className='select'
                                         disabled
                                     />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Estado:</label>
+                                    <span className={`badge-estado badge-${detalleModal.solicitud.estado}`}>
+                                        {detalleModal.solicitud.estado}
+                                    </span>
                                 </div>
                                 <div className='formGroup'>
                                     <label>Descripción:</label>
@@ -398,7 +413,7 @@ function Solicitud() {
                         title='Registrar Solicitud'
                     >
                         <img src={icon.plus} alt="Crear" className='icon' />
-                        Solicitud
+                        Agregar
                     </button>
                     <h2>Solicitudes</h2>
                     <div className='searchContainer'>
@@ -410,6 +425,7 @@ function Solicitud() {
                     <thead>
                         <tr>
                             <th>N°</th>
+                            <th>Código</th>
                             <th>Descripción</th>
                             <th>Fecha Solicitada</th>
                             <th>Estado</th>
@@ -420,6 +436,7 @@ function Solicitud() {
                         {currentData.map((item, idx) => (
                             <tr key={item.id}>
                                 <td>{indexOfFirstItem + idx + 1}</td>
+                                <td>{item.codigo}</td>
                                 <td>{item.descripcion}</td>
                                 <td>{item.fecha_solicitada}</td>
                                 <td>
