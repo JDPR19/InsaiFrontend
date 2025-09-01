@@ -244,8 +244,10 @@ function TipoPropiedad() {
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Tipo de Propiedad' : 'Registrar Tipo de Propiedad'}>
-                                    Guardar
+                                title={formData.id ? 'Actualizar Tipo de Propiedad' : 'Registrar Tipo de Propiedad'}
+                                disabled={loading}    
+                            >
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>

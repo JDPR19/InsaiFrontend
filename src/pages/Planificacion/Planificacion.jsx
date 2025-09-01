@@ -564,8 +564,10 @@ function Planificacion() {
                                 type="button"
                                 className='saveButton'
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Planificación' : 'Registrar Planificación'}>
-                                Guardar
+                                title={formData.id ? 'Actualizar Planificación' : 'Registrar Planificación'}
+                                disabled={loading}
+                            >
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>

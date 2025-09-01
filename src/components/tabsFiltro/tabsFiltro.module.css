@@ -21,10 +21,10 @@
     width: max-content;
     gap: 5px;
     border-radius: 10px;
-    border-bottom: 1px solid #98c79ab2;
+    /* border-bottom: 1px solid #98c79ab2; */
     overflow-x: auto;
-    background: var(--white);
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.431);
+    /* background: var(--white); */
+    /* box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.431); */
     scrollbar-width: thin;
     scrollbar-color: var(--lithg-green) #e9ecef;
 }
@@ -112,6 +112,32 @@
     color: #444444;
     border: 1.5px solid #99cc5e;
     box-shadow: 0 2px 8px #98c79a3a;
+}
+
+.toggleTabsButton{
+    margin-bottom: 10px;
+    background: var(--lithg-green);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    align-self: flex;
+}
+
+.tabsContent {
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+    max-height: 1000px; /* suficiente para el contenido */
+    opacity: 1;
+}
+
+.tabsContentHidden {
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
 }
 
 :global(.dark) .tabsContainer {

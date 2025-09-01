@@ -108,7 +108,6 @@ function Empleado() {
 
     
     const handleSave = async () => {
-        setLoading(true);
         for (const field in formData) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -116,10 +115,10 @@ function Empleado() {
             if (!valid) {
                 addNotification(message, 'warning');
                 setErrors(prev => ({ ...prev, [field]: message }));
-                setLoading(false);
                 return;
             }
         }
+        setLoading(true);
         try {
             const response = await axios.post(`${BaseUrl}/empleados`, formData, {
                 headers: {
@@ -140,7 +139,6 @@ function Empleado() {
     };
 
     const handleEdit = async () => {
-        setLoading(true);
         const camposObligatorios = ['cedula', 'nombre', 'apellido'];
         for (const field of camposObligatorios) {
             const { regex, errorMessage } = validationRules[field];
@@ -148,10 +146,10 @@ function Empleado() {
             if (!valid) {
                 addNotification(message, 'info');
                 setErrors(prev => ({ ...prev, [field]: message }));
-                setLoading(false);
                 return;
             }
         }
+        setLoading(true);
         try {
             const response = await axios.put(`${BaseUrl}/empleados/${formData.id}`, formData, {
                 headers: {
@@ -236,7 +234,7 @@ function Empleado() {
         setSelectedEmpleadoId(null);
         setConfirmDeleteModal(false);
     };
- 
+
     const openDetalleModal = (empleado) => setDetalleModal({ abierto: true, empleado: empleado });
     const closeDetalleModal = () => setDetalleModal({ abierto: false, empleado: null });
 
@@ -347,8 +345,10 @@ function Empleado() {
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Empleado' : 'Registrar Empleado'}>
-                                    Guardar
+                                title={formData.id ? 'Actualizar Empleados' : 'Registrar Empleados'}
+                                disabled={loading} 
+                            >
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>

@@ -123,10 +123,10 @@ function InspeccionesEst() {
             fecha_notificacion: '',
             fecha_inspeccion: '',
             hora_inspeccion: '',
-            responsable_e: '',
-            cedula_res: '',
-            tlf: '',
-            correo: '',
+            responsable_e: 'No Especificado',
+            cedula_res: 'No Especificado',
+            tlf: 'No Especificado',
+            correo: 'No Especificado',
             norte: '',
             este: '',
             zona: '',
@@ -729,11 +729,13 @@ function InspeccionesEst() {
                             </div>
                             </div>
                             <button
-                            type="button"
-                            className='saveButton'
-                            onClick={formData.id ? handleEdit : handleSave}
-                            title={formData.id ? 'Actualizar Inspección' : 'Registrar Inspección'}>
-                            Guardar
+                                type="button"
+                                className='saveButton'
+                                onClick={formData.id ? handleEdit : handleSave}
+                                title={formData.id ? 'Actualizar Inspección' : 'Registrar Inspección'}
+                                disabled={loading}
+                            >
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                         </div>

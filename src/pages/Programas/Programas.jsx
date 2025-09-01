@@ -493,8 +493,10 @@ function Programas() {
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Programa' : 'Registrar Programa'}>
-                                    Guardar
+                                title={formData.id ? 'Actualizar Programa' : 'Registrar Programa'}
+                                disabled={loading}
+                            >
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>

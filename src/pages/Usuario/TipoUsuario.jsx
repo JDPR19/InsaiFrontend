@@ -290,8 +290,10 @@ function TipoUsuario() {
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Tipo de Usuario' : 'Registrar Tipo de Usuario'}>
-                                    Guardar
+                                title={formData.id ? 'Actualizar Tipo de Usuario' : 'Registrar Tipo de Usuario'}
+                                disabled={loading}
+                            >
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>

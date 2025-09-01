@@ -78,7 +78,6 @@ function TipoPermiso() {
 
 
     const handleSave = async () => {
-        setLoading(true);
         for (const field in formData) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -90,6 +89,7 @@ function TipoPermiso() {
                 }
             }
         }
+        setLoading(true);
 
         try {
             const response = await axios.post(`${BaseUrl}/tipo_permiso`, {
@@ -113,7 +113,6 @@ function TipoPermiso() {
     };
 
     const handleEdit = async () => {
-        setLoading(true);
         const camposObligatorios = ['nombre'];
         for (const field of camposObligatorios) {
             const { regex, errorMessage } = validationRules[field];
@@ -123,7 +122,8 @@ function TipoPermiso() {
                 return;
             }
         }
-
+        setLoading(true);
+        
         try {
             const response = await axios.put(`${BaseUrl}/tipo_permiso/${formData.id}`, {
                 ...formData,
@@ -243,8 +243,10 @@ function TipoPermiso() {
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Tipo de Permiso' : 'Registrar Tipo de Permiso'}>
-                                    Guardar
+                                title={formData.id ? 'Actualizar Tipo de Permiso' : 'Registrar Tipo de Permiso'}
+                                disabled={loading}    
+                            >
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>

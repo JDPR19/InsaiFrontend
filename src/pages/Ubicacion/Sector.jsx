@@ -387,8 +387,10 @@ function Sector() {
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Sector' : 'Registrar Sector'}>
-                                    Guardar
+                                title={formData.id ? 'Actualizar Sector' : 'Registrar Sector'}
+                                disabled={loading}    
+                            >
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>

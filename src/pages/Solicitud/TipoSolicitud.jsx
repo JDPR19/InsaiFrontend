@@ -243,8 +243,10 @@ function TipoSolicitud() {
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Tipo de Solicitud' : 'Registrar Tipo de Solicitud'}>
-                                    Guardar
+                                title={formData.id ? 'Actualizar Tipo de Solicitud' : 'Registrar Tipo de Solicitud'}
+                                disabled={loading}    
+                            >
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>

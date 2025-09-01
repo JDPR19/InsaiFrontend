@@ -113,7 +113,6 @@ function Cultivo() {
     };
 
     const handleSave = async () => {
-        setLoading(true);
         for (const field of ['nombre', 'tipo_cultivo_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -121,11 +120,11 @@ function Cultivo() {
                 const { valid, message } = validateField(formData[field], regex, errorMessage);
                 if (!valid) {
                     addNotification(message, 'warning');
-                    setLoading(false);
                     return;
                 }
             }
         }
+        setLoading(true);
 
         try {
             await axios.post(`${BaseUrl}/cultivo`, {
@@ -150,17 +149,16 @@ function Cultivo() {
     };
 
     const handleEdit = async () => {
-        setLoading(true);
         for (const field of ['nombre', 'tipo_cultivo_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
             const { valid, message } = validateField(formData[field], regex, errorMessage);
             if (!valid) {
                 addNotification(message, 'warning');
-                setLoading(false);
                 return;
             }
         }
+        setLoading(true);
 
         try {
             await axios.put(`${BaseUrl}/cultivo/${formData.id}`, {
@@ -346,8 +344,10 @@ function Cultivo() {
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Cultivo' : 'Registrar Cultivo'}>
-                                    Guardar
+                                title={formData.id ? 'Actualizar Cultivo' : 'Registrar Cultivo'}
+                                disabled={loading}    
+                            >
+                                {loading ? 'Procesando...' : 'guardar'}
                             </button>
                         </form>
                     </div>

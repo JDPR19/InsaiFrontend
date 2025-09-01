@@ -328,8 +328,10 @@ function Parroquia() {
                                 type="button"
                                 className='saveButton'
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Parroquia' : 'Registrar Parroquia'}>
-                                    Guardar
+                                title={formData.id ? 'Actualizar Parroquia' : 'Registrar Parroquia'}
+                                disabled={loading}    
+                            >
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>

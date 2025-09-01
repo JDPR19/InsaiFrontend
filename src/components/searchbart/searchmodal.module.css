@@ -1,0 +1,226 @@
+.searchModalOverlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2500;
+}
+
+.searchModal {
+  background-color: var(--white1);
+  color: var(--black);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px var(--modal-shadow-dark);
+  padding: 30px 30px 20px 30px;
+  min-width: 400px;
+  max-width: 90vw;
+  min-height: 300px;
+  max-height: 100vh;
+  overflow: hidden;
+  position: relative;
+  display: flex; 
+  flex-direction: column;
+  align-items: center; 
+  justify-content: center;
+}
+
+.searchModalTableWrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  max-height: 100vh;
+}
+
+.searchModal h2 {
+  margin-bottom: 20px;
+}
+
+.searchModalInput {
+  width: 100%;
+  margin-bottom: auto;
+
+}
+
+.searchModalTable {
+  min-width: 600px;
+  width: max-content;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  table-layout: auto;
+}
+.searchModalTable th,
+.searchModalTable td {
+  text-align: left;
+  padding: 10px 20px;
+  font-size: 1rem;
+  vertical-align: top;
+  max-width: 220px;
+  min-width: 80px;
+  word-break: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-bottom: 2px solid #cecece6c;
+}
+
+.searchModalTable th {
+  background-color: var(--table-header-bg); 
+  color: var(--table-header-text);          
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 20px;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  border-bottom: 2px solid #cecece6c;
+}
+.searchModalTable td {
+  text-align: left;
+  padding: 10px 20px;
+  font-size: 1rem;
+  vertical-align: top;
+  max-width: 300px;
+  word-break: break-word;
+  white-space: pre-line;
+  overflow-wrap: break-word;
+  background-color: var(--table-row-bg); /* igual que las tablas normales */
+  color: var(--input-text);
+  border-bottom: 2px solid #cecece6c;
+}
+
+
+/* Hover igual que las tablas normales */
+.searchModalTable tr:hover td {
+  background-color: var(--table-hover1) !important;
+}
+
+:global(.dark) .searchModalTable th {
+    background-color: var(--grey3) !important;
+  }
+
+.searchModalClose {
+  position: absolute;
+  top: 8px;
+  right: 18px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--modal-close);
+  cursor: pointer;
+  z-index: 10;
+}
+
+:global(.dark) .searchModalClose {
+  color: var(--modal-close-dark);
+}
+
+.searchModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.searchModalAyuda {
+  width: 100%;
+  margin: 12px 0 18px 0;
+  font-size: 0.95em;
+  color: #888;
+  text-align: left;
+}
+
+.searchModal::-webkit-scrollbar,
+.searchModalTableWrapper::-webkit-scrollbar,
+.searchModalTable::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    background: #545454;
+    border-radius: 12px;
+}
+.searchModal::-webkit-scrollbar-thumb,
+.searchModalTableWrapper::-webkit-scrollbar-thumb,
+.searchModalTable::-webkit-scrollbar-thumb {
+    background: var(--lithg-green);
+    border-radius: 12px;
+}
+.searchModal::-webkit-scrollbar-thumb:hover,
+.searchModalTableWrapper::-webkit-scrollbar-thumb:hover,
+.searchModalTable::-webkit-scrollbar-thumb:hover {
+    background: var(--green-hover1);
+}
+
+/* Modal de detalle del buscador universal */
+.modalDetalle {
+  background: var(--white1);
+  color: var(--black);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px var(--modal-shadow-dark);
+  padding: 32px 32px 40px 32px;
+  max-width: 70vw;              
+  max-height: 85vh;             
+  position: relative;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  box-sizing: border-box;      
+}
+
+.modalDetalle::-webkit-scrollbar {
+  width: 8px;
+  height: 10px;
+  background: #545454;
+  border-radius: 15px;
+}
+.modalDetalle::-webkit-scrollbar-thumb {
+  background: var(--lithg-green);
+  border-radius: 4px;
+}
+.modalDetalle::-webkit-scrollbar-thumb:hover {
+  background: var(--green-hover1);
+}
+
+
+/* Tabla de detalle */
+.detalleTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  table-layout: fixed;
+}
+.detalleTable th,
+.detalleTable td {
+  text-align: left;
+  padding: 10px 20px;
+  border-bottom: 2px solid #cecece6c;
+  font-size: 1rem;
+  vertical-align: top;
+  max-width: 300px;
+  word-break: break-word;
+  white-space: pre-line;
+  overflow-wrap: break-word;
+}
+.detalleTable th {
+  background: var(--lithg-green);
+  color: #444;
+  font-weight: 600;
+}
+.detalleTable tr:last-child td {
+  border-bottom: #b4b4b4c2;
+}
+
+/* Modo oscuro para el modal de detalle */
+:global(.dark) .modalDetalle {
+  background: var(--white1);
+  color: var(--black);
+}
+:global(.dark) .modalDetalle .detalleTable th {
+  background-color: var(--grey3) !important;
+  color: #fff !important;
+}

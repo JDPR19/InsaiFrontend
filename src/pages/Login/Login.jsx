@@ -7,12 +7,11 @@ import Importancia from '../../../public/assets/impor.png';
 import inspecciones from '../../../public/assets/export.png';
 import icon from '../../components/iconos/iconos';
 import { useNotification } from '../../utils/NotificationContext';
-// import { registrarInicioSesion } from '../../utils/bitacoraService';
 import Spinner from '../../components/spinner/Spinner';
 import RecuperarModal from '../../components/modalrecuperar/RecuperarModal';
 import { BaseUrl } from '../../utils/constans';
+import axios from 'axios';
 
-// --- Slider ---
 function Slider({ slides, currentSlide, onMouseEnter, onMouseLeave }) {
     return (
         <div
@@ -29,7 +28,6 @@ function Slider({ slides, currentSlide, onMouseEnter, onMouseLeave }) {
         </div>
     );
 }
-
 
 function InputGroup({ iconSrc, type, placeholder, value, onChange, onClick, error }) {
     return (
@@ -51,7 +49,6 @@ function InputGroup({ iconSrc, type, placeholder, value, onChange, onClick, erro
         </div>
     );
 }
-
 
 function PhraseContainer({ randomPhrase }) {
     return (
@@ -158,9 +155,35 @@ function Login() {
 
                 localStorage.setItem('permisos', JSON.stringify(data.user.permisos));
 
+                // Reproducir sonido de bienvenida
+                try {
+                    const audio = new Audio('/assets/notification.mp3');
+                    audio.play();
+                } catch (err) {
+                    // Si el navegador bloquea el audio, no detiene el flujo
+                    console.warn('No se pudo reproducir el sonido de bienvenida:', err);
+                }
+
+                // Consultar notificaciones pendientes del usuario
+                try {
+                    const token = data.token;
+                    const res = await axios.get(`${BaseUrl}/auth/pendientes?usuario_id=${data.user.id}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    const pendientes = res.data;
+                    if (pendientes.length > 0) {
+                        addNotification(`Revisa tus notificaciones son de importancia`, 'info');
+                        addNotification(`Tienes ${pendientes.length} notificaciones pendiente`, 'info');
+                    } else {
+                        addNotification('No tienes notificaciones pendientes', 'info');
+                    }
+                } catch (error) {
+                    console.error('no se pudo consultar las notificaciones pendientes', error);
+                    addNotification('No se pudo consultar tus notificaciones pendientes', 'error');
+                }
+
                 addNotification('Inicio de sesión exitoso', 'success');
                 addNotification('Bienvenido al Sistema SIGENSAI', 'success');
-                // registrarInicioSesion(data.user.id, data.user.username);
                 setTimeout(() => {
                     navigate('/Home');
                 }, 500);
@@ -177,9 +200,7 @@ function Login() {
 
     return (
         <div className={styles.loginContainer}>
-            
             {loading && <Spinner text="Procesando..." />}
-            
             {showRecuperar && <RecuperarModal onClose={() => setShowRecuperar(false)} />}
 
             {/* Formulario */}
@@ -207,7 +228,7 @@ function Login() {
                     />
 
                     <button type="submit" title="Entrar" className={styles.submitButton} disabled={loading}>
-                        Entrar
+                        {loading ? 'Procesando...' : 'Entrar'}
                         <img src={icon.llave} alt="Cerrar sesión" className={styles.iconbtn} />
                     </button>
                 </form>
@@ -232,7 +253,6 @@ function Login() {
                 <footer className={styles.footer}>
                     <p> Gobierno Bolivariano de Venezuela &#x1F1FB;&#x1F1EA;</p>
                     <p>© 2025  Instituto Nacional de Salud Agrícola Integral, INSAI</p>
-                    
                 </footer>
             </div>
 

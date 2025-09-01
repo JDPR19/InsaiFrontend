@@ -242,8 +242,10 @@ function Estados() {
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Estado' : 'Registrar Estado'}>
-                                    Guardar
+                                title={formData.id ? 'Actualizar Estado' : 'Registrar Estado'}
+                                disabled={loading}    
+                            >
+                                    {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>

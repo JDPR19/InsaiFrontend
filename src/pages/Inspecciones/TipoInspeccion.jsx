@@ -77,7 +77,6 @@ function TipoInspeccion() {
 
 
     const handleSave = async () => {
-        setLoading(true);
         for (const field in formData) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -89,6 +88,7 @@ function TipoInspeccion() {
                 }
             }
         }
+        setLoading(true);
 
         try {
             const response = await axios.post(`${BaseUrl}/tipo_inspeccion`, {
@@ -112,7 +112,6 @@ function TipoInspeccion() {
     };
 
     const handleEdit = async () => {
-        setLoading(true);
         const camposObligatorios = ['nombre'];
         for (const field of camposObligatorios) {
             const { regex, errorMessage } = validationRules[field];
@@ -122,7 +121,8 @@ function TipoInspeccion() {
                 return;
             }
         }
-
+        
+        setLoading(true);
         try {
             const response = await axios.put(`${BaseUrl}/tipo_inspeccion/${formData.id}`, {
                 ...formData,
@@ -242,8 +242,10 @@ function TipoInspeccion() {
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Tipo de Inspección' : 'Registrar Tipo de Inspección'}>
-                                    Guardar
+                                title={formData.id ? 'Actualizar Tipo de Inspección' : 'Registrar Tipo de Inspección'}
+                                disabled={loading}    
+                            >
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>

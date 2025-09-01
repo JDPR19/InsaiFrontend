@@ -7,12 +7,14 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import { BaseUrl } from '../../utils/constans';
+import Spinner from '../../components/spinner/Spinner';
 
 function TipoPrograma() {
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         id: '',
         nombre: '',
@@ -52,6 +54,7 @@ function TipoPrograma() {
 
     // obterner o listar los cargos
     const fetchTipoPrograma = async () => {
+        setLoading(true)
         try {
             const response = await axios.get(`${BaseUrl}/tipo_programa`, {
                 headers: {
@@ -63,6 +66,8 @@ function TipoPrograma() {
         } catch (error) {
             console.error('Error obteniendo el tipo de programa:', error);
             addNotification('Error al obtener el tipo de programa', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -85,7 +90,7 @@ function TipoPrograma() {
                 }
             }
         }
-
+            setLoading(true);
         try {
             const response = await axios.post(`${BaseUrl}/tipo_programa`, {
                 ...formData,
@@ -102,6 +107,8 @@ function TipoPrograma() {
         } catch (error) {
             console.error('Error creando tipo de programa:', error);
             addNotification('Error al registrar tipo de programa', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -115,7 +122,7 @@ function TipoPrograma() {
                 return;
             }
         }
-
+            setLoading(true);
         try {
             const response = await axios.put(`${BaseUrl}/tipo_programa/${formData.id}`, {
                 ...formData,
@@ -134,11 +141,14 @@ function TipoPrograma() {
         } catch (error) {
             console.error('Error editando tipo de programa:', error);
             addNotification('Error al actualizar tipo de programa', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
     
     const handleDelete = async (id) => {
+        setLoading(true);
         try {
             await axios.delete(`${BaseUrl}/tipo_programa/${id}`, {
                 headers: {
@@ -152,6 +162,8 @@ function TipoPrograma() {
         } catch (error) {
             console.error('Error eliminando tipo de programa:', error);
             addNotification('Error al eliminar tipo de programa', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -208,6 +220,7 @@ function TipoPrograma() {
 
     return (
         <div className='mainContainer'>
+            {loading && <Spinner text="Procesando..." />}
             {/* modal registro y editar */}
             {currentModal === 'tipo_programa' && (
                 <div className='modalOverlay'>
@@ -229,8 +242,10 @@ function TipoPrograma() {
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Tipo de Programa' : 'Registrar Tipo de Programa'}>
-                                    Guardar
+                                title={formData.id ? 'Actualizar Tipo de Programa' : 'Registrar Tipo de Programa'}
+                                disabled={loading}    
+                            >
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>

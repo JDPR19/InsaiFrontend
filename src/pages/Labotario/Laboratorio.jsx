@@ -260,7 +260,6 @@ function Laboratorio() {
     };
 
     const handleSave = async () => {
-        setLoading(true);
         for (const field of ['nombre', 'tipo_laboratorio_id', 'sector_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -273,6 +272,7 @@ function Laboratorio() {
                 }
             }
         }
+        setLoading(true);
 
         try {
             await axios.post(`${BaseUrl}/laboratorio`, {
@@ -298,7 +298,6 @@ function Laboratorio() {
     };
 
     const handleEdit = async () => {
-        setLoading(true);
         for (const field of ['nombre', 'tipo_laboratorio_id', 'sector_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -309,6 +308,7 @@ function Laboratorio() {
                 return;
             }
         }
+        setLoading(true);
 
         try {
             await axios.put(`${BaseUrl}/laboratorio/${formData.id}`, {
@@ -575,8 +575,10 @@ function Laboratorio() {
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Laboratorio' : 'Registrar Laboratorio'}>
-                                    Guardar
+                                title={formData.id ? 'Actualizar Laboratorio' : 'Registrar Laboratorio'}
+                                disabled={loading}    
+                            >
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>

@@ -482,8 +482,10 @@ function Usuario() {
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Usuario' : 'Registrar Usuario'}>
-                                    Guardar
+                                title={formData.id ? 'Actualizar Usuario' : 'Registrar Usuario'}
+                                disabled={loading}    
+                            >
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>

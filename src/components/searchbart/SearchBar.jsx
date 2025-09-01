@@ -1,22 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-function SearchBar({ onSearch }) {
-    const [query, setQuery] = useState('');
-
-    const handleSearch = (event) => {
-        const value = event.target.value;
-        setQuery(value);
-        onSearch(value); // Notificar al componente padre sobre el término de búsqueda
+function SearchBar({ value, onSearch, placeholder = "Buscar...", disabled = false }) {
+    const handleChange = (event) => {
+        if (!disabled) onSearch(event.target.value);
     };
 
     return (
         <input
             type="search"
             className="search"
-            placeholder="Buscar..."
-            value={query}
-            onChange={handleSearch}
+            placeholder={placeholder}
+            value={value}
+            onChange={handleChange}
             title="Buscar"
+            disabled={disabled}
         />
     );
 }

@@ -33,6 +33,7 @@ html, body {
   --mostaza: #cca011;
 /* escala de blanco,grises,negro */
 --white: #ffffff;
+--white1: #ffffff;
 --white2: #E9ECEF;
 --grey: #DEE2E6;
 --grey2: #CED4DA;
@@ -123,6 +124,7 @@ html, body {
   --input-text: #fff;
   --input-text-dark: #fff;
   --table-hover: #242526;
+  --table-hover1: #444950;
   --table-header-bg: #23272f;
   --table-header-text: #fff;
   --table-row-bg: #18191a;
@@ -386,6 +388,7 @@ html, body {
   font-size: 1.9rem;
   cursor: pointer;
   color: #e70d0d;
+  z-index: 120000;
 }
 
 .modalActions {
@@ -505,11 +508,15 @@ html, body {
     padding: 30px 30px 20px 30px;
     border-radius: 10px;
     width: 100%;
-    max-width: 60vw;
+    max-width: 70vw;
+    min-width: 320px;
     max-height: 80vh;
     box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
     position: relative;
     overflow: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     scrollbar-width: thin;
     scrollbar-color: var(--lithg-green) #e9ecef;
 }
@@ -517,6 +524,7 @@ html, body {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
+    table-layout: fixed;
 }
 
 .detalleTable th,
@@ -528,7 +536,8 @@ html, body {
     vertical-align: top;
     max-width: 300px;
     word-break: break-word;
-    white-space: normal;
+    white-space: pre-line; 
+    overflow-wrap: break-word;
 }
 
 .detalleTable th {
@@ -562,6 +571,11 @@ html, body {
 
 .modalDetalle::-webkit-scrollbar-thumb:hover {
     background: var(--green-hover1);
+}
+
+.dark .modalDetalle .detalleTable th {
+  background-color: var(--grey3) !important;
+  color: #fff !important;
 }
 
 .modal,

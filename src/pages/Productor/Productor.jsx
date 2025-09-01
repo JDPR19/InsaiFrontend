@@ -329,8 +329,10 @@ function Productor() {
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Productor' : 'Registrar Productor'}>
-                                    Guardar
+                                title={formData.id ? 'Actualizar Productor' : 'Registrar Productor'}
+                                disabled={loading}    
+                            >
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>

@@ -242,8 +242,10 @@ function Cargo() {
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Cargo' : 'Registrar Cargo'}>
-                                    Guardar
+                                title={formData.id ? 'Actualizar Cargo' : 'Registrar Cargo'}
+                                disabled={loading}    
+                            >
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>

@@ -112,7 +112,6 @@ function Plagas() {
     };
 
     const handleSave = async () => {
-        setLoading(true);
         for (const field of ['nombre', 'tipo_plaga_fito_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -125,7 +124,8 @@ function Plagas() {
                 }
             }
         }
-
+        setLoading(true);
+        
         try {
             await axios.post(`${BaseUrl}/plagas`, {
                 nombre: formData.nombre,
@@ -149,7 +149,6 @@ function Plagas() {
     };
 
     const handleEdit = async () => {
-        setLoading(true);
         for (const field of ['nombre', 'tipo_plaga_fito_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -160,7 +159,8 @@ function Plagas() {
                 return;
             }
         }
-
+        setLoading(true);
+        
         try {
             await axios.put(`${BaseUrl}/plagas/${formData.id}`, {
                 nombre: formData.nombre,
@@ -347,8 +347,10 @@ function Plagas() {
                                 type="button" 
                                 className='saveButton' 
                                 onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Plaga' : 'Registrar Plaga'}>
-                                    Guardar
+                                title={formData.id ? 'Actualizar Plaga' : 'Registrar Plaga'}
+                                diasabled={loading}    
+                            >
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>
