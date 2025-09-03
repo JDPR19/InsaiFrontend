@@ -1,28 +1,19 @@
 import React from "react";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-import { Doughnut } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend } from "chart.js";
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
-const COLORS = [
-    "rgba(255, 99, 132, 0.2)",
-    "rgba(54, 162, 235, 0.2)",
-    "rgba(255, 206, 86, 0.2)",
-    "rgba(75, 192, 192, 0.2)",
-    "rgba(153, 102, 255, 0.2)",
-    "rgba(255, 159, 64, 0.2)",
-];
-
-const DoughnutChart = ({ labels = [], data = [], title = "Gráfica Doughnut", label = "Datos" }) => {
+const AreaChart = ({ labels = [], data = [], title = "Gráfica de Área", label = "Datos" }) => {
     const chartData = {
         labels,
         datasets: [
             {
                 label,
                 data,
-                backgroundColor: COLORS.slice(0, labels.length),
-                borderColor: COLORS.slice(0, labels.length).map(c => c.replace('0.2', '1')),
-                borderWidth: 1,
+                fill: true,
+                backgroundColor: "rgba(75,192,192,0.2)",
+                borderColor: "rgba(75,192,192,1)",
             },
         ],
     };
@@ -45,9 +36,9 @@ const DoughnutChart = ({ labels = [], data = [], title = "Gráfica Doughnut", la
 
     return (
         <div style={{ width: "100%", maxWidth: 800, margin: "0 auto" }}>
-            <Doughnut data={chartData} options={options} />
+            <Line data={chartData} options={options} />
         </div>
     );
 };
 
-export default DoughnutChart;
+export default AreaChart;

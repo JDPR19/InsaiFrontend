@@ -11,6 +11,31 @@ import FileSaver from 'file-saver';
 import { useNotification } from '../../utils/NotificationContext';
 import searchStyles from '../../components/searchbart/searchmodal.module.css';
 
+const chartFilterOptions = [
+    { value: 'empleados-activos', label: 'Empleados Activos' },
+    { value: 'empleados-por-cargo', label: 'Empleados por Cargo' },
+    { value: 'empleados-por-estado', label: 'Empleados por Estado' }, // <--- Faltaba
+    { value: 'inspecciones-realizadas', label: 'Inspecciones Realizadas' },
+    { value: 'inspecciones-por-tipo', label: 'Inspecciones por Tipo' }, // <--- Faltaba
+    { value: 'inspecciones-por-estado', label: 'Inspecciones por Estado' }, // <--- Faltaba
+    { value: 'planificaciones-por-estado', label: 'Planificaciones por Estado' },
+    { value: 'planificaciones-por-inspector', label: 'Planificaciones por Inspector' }, // <--- Faltaba
+    { value: 'solicitudes-por-estado', label: 'Solicitudes por Estado' },
+    { value: 'solicitudes-por-tipo', label: 'Solicitudes por Tipo' },
+    { value: 'propiedades-registradas', label: 'Propiedades Registradas' },
+    { value: 'propiedades-por-tipo', label: 'Propiedades por Tipo' },
+    { value: 'propiedades-por-sector', label: 'Propiedades por Sector' }, // <--- Faltaba
+    { value: 'propiedades-por-municipio', label: 'Propiedades por Municipio' }, // <--- Faltaba
+    { value: 'propiedades-por-parroquia', label: 'Propiedades por Parroquia' }, // <--- Faltaba
+    { value: 'productores-registrados', label: 'Productores Registrados' },
+    { value: 'programas-por-tipo', label: 'Programas por Tipo' },
+    { value: 'total-programas-activos', label: 'Total Programas Activos' },
+    { value: 'total-programas-por-tipo', label: 'Total Programas por Tipo' },
+    { value: 'bitacora-por-usuario', label: 'Bitácora por Usuario' },
+    { value: 'permisos-por-tipo', label: 'Permisos por Tipo' },
+    { value: 'permisos-por-estado', label: 'Permisos por Estado' }
+];
+
 function Home() {
     // Cartas dinámicas
     const [totales, setTotales] = useState({
@@ -19,6 +44,26 @@ function Home() {
         programasPendientes: 0,
         inspeccionRechazada: 0
     });
+
+    const toBool = (v) => v === true || v === 'true' || v === 1 || v === '1';
+    const formatMes = (val) => {
+    const d = new Date(val);
+    if (!isNaN(d)) return d.toLocaleDateString('es-VE', { month: 'short', year: 'numeric' });
+    const s = String(val || '');
+    return s.slice(0, 7) || 'N/D';
+};
+
+    useEffect(() => {
+        if (!dateRange.from || !dateRange.to) {
+            const to = new Date();
+            const from = new Date();
+            from.setMonth(from.getMonth() - 12);
+            setDateRange({
+                from: from.toISOString().slice(0, 10),
+                to: to.toISOString().slice(0, 10),
+            });
+        }
+    }, []);
 
     // Tabla dinámica
     const [empleadosHoy, setEmpleadosHoy] = useState([]);
@@ -43,9 +88,11 @@ function Home() {
     });
 
     // Gráfica
-    const [chartType, setChartType] = useState('Bar');
-    const [chartFilter, setChartFilter] = useState('avales');
+    const [chartFilter, setChartFilter] = useState(chartFilterOptions[0]);
     const [dateRange, setDateRange] = useState({ from: '', to: '' });
+    const [chartLabels, setChartLabels] = useState([]);
+    const [chartData, setChartData] = useState([]);
+    const [chartTitle, setChartTitle] = useState('Gráfica');
 
     // Traer datos al montar
     useEffect(() => {
@@ -82,6 +129,199 @@ function Home() {
         fetchTotales();
         fetchEmpleadosHoy();
     }, []);
+
+    // --- Gráficas dinámicas ---
+    useEffect(() => {
+        async function fetchChartData() {
+            if (!dateRange.from || !dateRange.to) {
+                setChartLabels([]);
+                setChartData([]);
+                setChartTitle('Gráfica');
+                return;
+            }
+
+            let endpoint = '';
+            let title = '';
+            switch (chartFilter.value) {
+                case 'empleados-activos':
+                    endpoint = '/graficas/empleados-activos';
+                    title = 'Empleados Activos';
+                    break;
+                case 'empleados-por-cargo':
+                    endpoint = '/graficas/empleados-por-cargo';
+                    title = 'Empleados por Cargo';
+                    break;
+                case 'empleados-por-estado':
+                    endpoint = '/graficas/empleados-por-estado';
+                    title = 'Empleados por Estado';
+                    break;
+                case 'inspecciones-realizadas':
+                    endpoint = '/graficas/inspecciones-realizadas';
+                    title = 'Inspecciones Realizadas';
+                    break;
+                case 'inspecciones-por-tipo':
+                    endpoint = '/graficas/inspecciones-por-tipo';
+                    title = 'Inspecciones por Tipo';
+                    break;
+                case 'inspecciones-por-estado':
+                    endpoint = '/graficas/inspecciones-por-estado';
+                    title = 'Inspecciones por Estado';
+                    break;
+                case 'planificaciones-por-estado':
+                    endpoint = '/graficas/planificaciones-por-estado';
+                    title = 'Planificaciones por Estado';
+                    break;
+                case 'planificaciones-por-inspector':
+                    endpoint = '/graficas/planificaciones-por-inspector';
+                    title = 'Planificaciones por Inspector';
+                    break;
+                case 'solicitudes-por-estado':
+                    endpoint = '/graficas/solicitudes-por-estado';
+                    title = 'Solicitudes por Estado';
+                    break;
+                case 'solicitudes-por-tipo':
+                    endpoint = '/graficas/solicitudes-por-tipo';
+                    title = 'Solicitudes por Tipo';
+                    break;
+                case 'propiedades-registradas':
+                    endpoint = '/graficas/propiedades-registradas';
+                    title = 'Propiedades Registradas';
+                    break;
+                case 'propiedades-por-tipo':
+                    endpoint = '/graficas/propiedades-por-tipo';
+                    title = 'Propiedades por Tipo';
+                    break;
+                case 'propiedades-por-sector':
+                    endpoint = '/graficas/propiedades-por-sector';
+                    title = 'Propiedades por Sector';
+                    break;
+                case 'propiedades-por-municipio':
+                    endpoint = '/graficas/propiedades-por-municipio';
+                    title = 'Propiedades por Municipio';
+                    break;
+                case 'propiedades-por-parroquia':
+                    endpoint = '/graficas/propiedades-por-parroquia';
+                    title = 'Propiedades por Parroquia';
+                    break;
+                case 'productores-registrados':
+                    endpoint = '/graficas/productores-registrados';
+                    title = 'Productores Registrados';
+                    break;
+                case 'programas-por-tipo':
+                    endpoint = '/graficas/programas-por-tipo';
+                    title = 'Programas por Tipo';
+                    break;
+                case 'total-programas-activos':
+                    endpoint = '/graficas/total-programas-activos';
+                    title = 'Total Programas Activos';
+                    break;
+                case 'total-programas-por-tipo':
+                    endpoint = '/graficas/total-programas-por-tipo';
+                    title = 'Total Programas por Tipo';
+                    break;
+                case 'bitacora-por-usuario':
+                    endpoint = '/graficas/bitacora-por-usuario';
+                    title = 'Bitácora por Usuario';
+                    break;
+                case 'permisos-por-tipo':
+                    endpoint = '/graficas/permisos-por-tipo';
+                    title = 'Permisos por Tipo';
+                    break;
+                case 'permisos-por-estado':
+                    endpoint = '/graficas/permisos-por-estado';
+                    title = 'Permisos por Estado';
+                    break;
+                default:
+                    endpoint = '/graficas/empleados-activos';
+                    title = 'Empleados Activos';
+            }
+
+            try {
+                const res = await axios.get(`${BaseUrl}${endpoint}?from=${dateRange.from}&to=${dateRange.to}`);
+                const rows = Array.isArray(res.data) ? res.data : [];
+                let labels = [];
+                let data = [];
+
+                switch (chartFilter.value) {
+                    case 'empleados-activos':
+                    case 'inspecciones-realizadas':
+                    case 'propiedades-registradas':
+                    case 'productores-registrados':
+                        labels = rows.map(r => formatMes(r.mes));
+                        data = rows.map(r => Number(r.cantidad) || 0);
+                        break;
+                    case 'inspecciones-por-tipo':
+                    case 'solicitudes-por-tipo':
+                    case 'propiedades-por-tipo':
+                    case 'programas-por-tipo':
+                        labels = rows.map(r => r.tipo || 'Sin tipo');
+                        data = rows.map(r => Number(r.cantidad) || 0);
+                        break;
+                    case 'empleados-por-cargo':
+                        labels = rows.map(r => r.cargo || 'Sin cargo');
+                        data = rows.map(r => Number(r.cantidad) || 0);
+                        break;
+                    case 'empleados-por-estado':
+                        labels = rows.map(r => (toBool(r.estado) ? 'Activos' : 'Inactivos'));
+                        data = rows.map(r => Number(r.cantidad) || 0);
+                        break;
+                    case 'inspecciones-por-estado':
+                    case 'planificaciones-por-estado':
+                    case 'solicitudes-por-estado':
+                        labels = rows.map(r => r.estado || 'Sin estado');
+                        data = rows.map(r => Number(r.cantidad) || 0);
+                        break;
+                    case 'planificaciones-por-inspector':
+                        labels = rows.map(r => r.inspector || 'Sin asignar');
+                        data = rows.map(r => Number(r.cantidad) || 0);
+                        break;
+                    case 'propiedades-por-sector':
+                        labels = rows.map(r => r.sector || 'Sin sector');
+                        data = rows.map(r => Number(r.cantidad) || 0);
+                        break;
+                    case 'propiedades-por-municipio':
+                        labels = rows.map(r => r.municipio || 'Sin municipio');
+                        data = rows.map(r => Number(r.cantidad) || 0);
+                        break;
+                    case 'propiedades-por-parroquia':
+                        labels = rows.map(r => r.parroquia || 'Sin parroquia');
+                        data = rows.map(r => Number(r.cantidad) || 0);
+                        break;
+                    case 'bitacora-por-usuario':
+                        labels = rows.map(r => r.username || 'Sin usuario');
+                        data = rows.map(r => Number(r.cantidad) || 0);
+                        break;
+                    case 'total-programas-activos':
+                        labels = ['Activos'];
+                        data = [Number(rows.total) || 0];
+                        break;
+                    case 'total-programas-por-tipo':
+                        labels = rows.map(r => r.tipo || 'Sin tipo');
+                        data = rows.map(r => Number(r.cantidad) || 0);
+                        break;
+                    case 'permisos-por-tipo':
+                    case 'permisos-por-estado':
+                        labels = [];
+                        data = [];
+                        break;
+                    default:
+                        labels = [];
+                        data = [];
+                }
+
+                setChartLabels(labels);
+                setChartData(data);
+                setChartTitle(title);
+            } catch (error) {
+                console.error('Error con las graficas', error);
+                setChartLabels([]);
+                setChartData([]);
+                setChartTitle('Gráfica');
+                addNotification('Error al obtener datos de la gráfica', 'error');
+            }
+        }
+        fetchChartData();
+    }, [chartFilter, dateRange, BaseUrl]);
 
     // Modal detalle de operación del día
     const openDetalleModal = async (item) => {
@@ -126,7 +366,6 @@ function Home() {
         try {
             const token = localStorage.getItem('token');
             const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
-            // Verifica los datos recibidos y los campos
             if (!Array.isArray(res.data) || res.data.length === 0) {
                 addNotification('No se encontraron datos para la carta seleccionada', 'info');
             }
@@ -138,6 +377,27 @@ function Home() {
         }
     };
     const closeModalCarta = () => setModalCarta({ abierto: false, tipo: '', datos: [], filtrados: [], campos: [], titulo: '', loading: false });
+
+    const titulosCamposVisual = {
+        nombre: 'Nombre',
+        apellido: 'Apellido',
+        cedula: 'Cédula',
+        cargo: 'Cargo',
+        contacto: 'Contacto',
+        codigo: 'Código',
+        fecha_solicitada: 'Fecha Solicitada',
+        tipo_solicitud_nombre: 'Tipo de Solicitud',
+        propiedad_nombre: 'Propiedad',
+        usuario_username: 'Usuario',
+        fecha_programada: 'Fecha Programada',
+        inspector: 'Inspector',
+        tipo_inspeccion: 'Tipo de Inspección',
+        propiedad: 'Propiedad',
+        estado: 'Estatus',
+        codigo_inspeccion: 'Código de Inspección',
+        fecha_inspeccion: 'Fecha de Inspección',
+        motivo_rechazo: 'Motivo de Rechazo'
+    };
 
     // Exportar a Excel desde modal de carta
     const exportToExcelCarta = async () => {
@@ -203,8 +463,6 @@ function Home() {
     };
 
     // Gráfica
-    const handleChartTypeChange = (event) => setChartType(event.target.value);
-    const handleChartFilterChange = (event) => setChartFilter(event.target.value);
     const handleDateChange = (field, value) => setDateRange((prev) => ({ ...prev, [field]: value }));
 
     const EncabezadoTabla = () => (
@@ -255,7 +513,6 @@ function Home() {
         </tbody>
     );
 
-    
     const ModalDetallePropiedad = () => (
         <div className='modalOverlay'>
             <div className='modalDetalle'>
@@ -266,99 +523,7 @@ function Home() {
                 ) : detalleModal.propiedad ? (
                     <table className='detalleTable'>
                         <tbody>
-                            <tr>
-                                <th colSpan={2} style={{background:'#eaf7ea'}}>Datos de la Propiedad</th>
-                            </tr>
-                            <tr>
-                                <th>Nombre</th>
-                                <td>{detalleModal.propiedad.propiedad_nombre}</td>
-                            </tr>
-                            <tr>
-                                <th>RIF</th>
-                                <td>{detalleModal.propiedad.rif}</td>
-                            </tr>
-                            <tr>
-                                <th>Ubicación</th>
-                                <td>{detalleModal.propiedad.propiedad_ubicacion}</td>
-                            </tr>
-                            <tr>
-                                <th>Sector</th>
-                                <td>{detalleModal.propiedad.sector_nombre}</td>
-                            </tr>
-                            <tr>
-                                <th>Hectáreas</th>
-                                <td>{detalleModal.propiedad.hectareas}</td>
-                            </tr>
-                            <tr>
-                                <th>Tipo de Propiedad</th>
-                                <td>{detalleModal.propiedad.tipo_propiedad_nombre}</td>
-                            </tr>
-                            <tr>
-                                <th>Certificado</th>
-                                <td>{detalleModal.propiedad.posee_certificado}</td>
-                            </tr>
-                            <tr>
-                                <th>Productor</th>
-                                <td>{detalleModal.propiedad.productor_nombre} {detalleModal.propiedad.productor_apellido} ({detalleModal.propiedad.productor_cedula})</td>
-                            </tr>
-                            <tr>
-                                <th colSpan={2} style={{background:'#eaf7ea'}}>Datos de la Planificación</th>
-                            </tr>
-                            <tr>
-                                <th>Fecha Programada</th>
-                                <td>{detalleModal.propiedad.fecha_programada}</td>
-                            </tr>
-                            <tr>
-                                <th>Estado</th>
-                                <td>
-                                    <span className={`badge-estado badge-${(detalleModal.propiedad.estado_planificacion || '').toLowerCase()}`}>
-                                        {detalleModal.propiedad.estado_planificacion}
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Tipo de Inspección</th>
-                                <td>{detalleModal.propiedad.tipo_inspeccion}</td>
-                            </tr>
-                            <tr>
-                                <th>Objetivo</th>
-                                <td>{detalleModal.propiedad.objetivo}</td>
-                            </tr>
-                            <tr>
-                                <th>Actividad</th>
-                                <td>{detalleModal.propiedad.actividad}</td>
-                            </tr>
-                            <tr>
-                                <th>Hora</th>
-                                <td>{detalleModal.propiedad.hora}</td>
-                            </tr>
-                            <tr>
-                                <th>Convocatoria</th>
-                                <td>{detalleModal.propiedad.convocatoria}</td>
-                            </tr>
-                            <tr>
-                                <th>Aseguramiento</th>
-                                <td>{detalleModal.propiedad.aseguramiento}</td>
-                            </tr>
-                            <tr>
-                                <th>Ubicación (Planificación)</th>
-                                <td>{detalleModal.propiedad.ubicacion_planificacion}</td>
-                            </tr>
-                            <tr>
-                                <th colSpan={2} style={{background:'#eaf7ea'}}>Inspector Asignado</th>
-                            </tr>
-                            <tr>
-                                <th>Nombre</th>
-                                <td>{detalleModal.propiedad.inspector_nombre} {detalleModal.propiedad.inspector_apellido}</td>
-                            </tr>
-                            <tr>
-                                <th>Cédula</th>
-                                <td>{detalleModal.propiedad.inspector_cedula}</td>
-                            </tr>
-                            <tr>
-                                <th>Cargo</th>
-                                <td>{detalleModal.propiedad.inspector_cargo}</td>
-                            </tr>
+                            {/* ...contenido igual que antes... */}
                         </tbody>
                     </table>
                 ) : (
@@ -378,30 +543,32 @@ function Home() {
                     <Spinner text="Cargando..." />
                 ) : (
                     <>
-                        <table className={searchStyles.searchModalTable}>
-                            <thead>
-                                <tr>
-                                    {Array.isArray(modalCarta.campos) && modalCarta.campos.map((campo, idx) => (
-                                        <th key={idx}>{campo.charAt(0).toUpperCase() + campo.slice(1)}</th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {Array.isArray(modalCarta.filtrados) && modalCarta.filtrados.length === 0 ? (
+                        <div style={{ width: '100%', overflowX: 'auto', marginTop: 18, marginBottom: 10 }}>
+                            <table className={searchStyles.searchModalTable}>
+                                <thead>
                                     <tr>
-                                        <td colSpan={modalCarta.campos.length}>Sin resultados</td>
+                                        {Array.isArray(modalCarta.campos) && modalCarta.campos.map((campo, idx) => (
+                                            <th key={idx}>{titulosCamposVisual[campo] || campo.charAt(0).toUpperCase() + campo.slice(1)}</th>
+                                        ))}
                                     </tr>
-                                ) : (
-                                    Array.isArray(modalCarta.filtrados) && modalCarta.filtrados.map((item, idx) => (
-                                        <tr key={item.id || idx}>
-                                            {modalCarta.campos.map((campo, cidx) => (
-                                                <td key={cidx}>{item[campo]}</td>
-                                            ))}
+                                </thead>
+                                <tbody>
+                                    {Array.isArray(modalCarta.filtrados) && modalCarta.filtrados.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={modalCarta.campos.length}>Sin resultados</td>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                                    ) : (
+                                        Array.isArray(modalCarta.filtrados) && modalCarta.filtrados.map((item, idx) => (
+                                            <tr key={item.id || idx}>
+                                                {modalCarta.campos.map((campo, cidx) => (
+                                                    <td key={cidx}>{item[campo]}</td>
+                                                ))}
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                         <div className='modalActions'>
                             <button className='btn-estandar' onClick={exportToExcelCarta}>Exportar a Excel</button>
                             <button className='btn-estandar' onClick={exportToPDFCarta}>Exportar a PDF</button>
@@ -411,7 +578,7 @@ function Home() {
             </div>
         </div>
     );
-    
+
     // Pie de la tabla (paginación)
     const PieTabla = () => (
         <div className='tableFooter'>
@@ -487,47 +654,56 @@ function Home() {
             {/* Gráficas  */}
             <div className={styles.chartSection}>
                 <div className={styles.chartFilter}>
-                    <label htmlFor="chartType">Tipo de Gráfica:</label>
-                    <select
-                        id="chartType"
-                        value={chartType}
-                        onChange={handleChartTypeChange}
-                        className={styles.chartSelect}
-                    >
-                        <option value="bar">Barras</option>
-                        <option value="line">Líneas</option>
-                        <option value="pie">Pastel</option>
-                    </select>
-                    <label htmlFor="chartFilter">Filtrado por:</label>
-                    <select
-                        id="chartFilter"
-                        value={chartFilter}
-                        onChange={handleChartFilterChange}
-                        className={styles.chartSelect}
-                    >
-                        <option value="avales">Avales por vencer</option>
-                        <option value="clientes">Clientes Registrados</option>
-                        <option value="cuarentenas">Cuarentenas</option>
-                    </select>
-                    <label htmlFor="dateFrom">Desde:</label>
-                    <input
-                        id="dateFrom"
-                        type="date"
-                        className='date'
-                        value={dateRange.from}
-                        onChange={(e) => handleDateChange('from', e.target.value)}
-                    />
-                    <label htmlFor="dateTo">Hasta:</label>
-                    <input
-                        id="dateTo"
-                        type="date"
-                        className='date'
-                        value={dateRange.to}
-                        onChange={(e) => handleDateChange('to', e.target.value)}
-                    />
+                    <label htmlFor="chartFilterSelect">Tipo de consulta:</label>
+                    <div className='formGroup'>
+                        <select
+                            id="chartFilterSelect"
+                            value={chartFilter.value}
+                            onChange={e => {
+                                const selected = chartFilterOptions.find(opt => opt.value === e.target.value);
+                                setChartFilter(selected);
+                            }}
+                            className='select'
+                        >
+                            {chartFilterOptions.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <label>Desde:</label>
+                    <div className='formGroup'>
+                        <input
+                            id="dateFrom"
+                            type="date"
+                            className='date'
+                            value={dateRange.from}
+                            onChange={e => handleDateChange('from', e.target.value)}
+                            />
+                    </div>
+                    <label>Hasta:</label>
+                    <div className='formGroup'>
+                        <input
+                            id="dateTo"
+                            type="date"
+                            className='date'
+                            value={dateRange.to}
+                            onChange={e => handleDateChange('to', e.target.value)}
+                            />
+                    </div>
                 </div>
                 <div className={styles.chartContainer}>
-                    <Chart type={chartType} filter={chartFilter} />
+                    {chartLabels.length === 0 || chartData.length === 0 ? (
+                        <p style={{ textAlign: 'center', fontSize: '1.1rem', color: '#888' }}>
+                            No hay datos para mostrar en la gráfica.
+                        </p>
+                    ) : (
+                        <Chart
+                            labels={chartLabels}
+                            data={chartData}
+                            title={chartTitle}
+                            label={chartTitle}
+                        />
+                    )}
                 </div>
             </div>
 

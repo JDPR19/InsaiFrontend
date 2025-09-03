@@ -1,17 +1,16 @@
 import React from "react";
-import { Line } from "react-chartjs-2";
+import { Bubble } from "react-chartjs-2";
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, Tooltip, Legend } from "chart.js";
 
-const LineChart = ({ labels = [], data = [], title = "Gráfica de Líneas", label = "Datos" }) => {
+ChartJS.register(CategoryScale, LinearScale, PointElement, Tooltip, Legend);
+
+const BubbleChart = ({ data = [], title = "Gráfica de Burbujas", label = "Datos" }) => {
     const chartData = {
-        labels,
         datasets: [
             {
                 label,
-                data,
-                backgroundColor: "rgba(75, 192, 192, 0.2)",
-                borderColor: "rgba(75, 192, 192, 1)",
-                borderWidth: 1,
-                fill: true,
+                data: Array.isArray(data) ? data : [],
+                backgroundColor: "rgba(255,99,132,0.6)",
             },
         ],
     };
@@ -30,13 +29,17 @@ const LineChart = ({ labels = [], data = [], title = "Gráfica de Líneas", labe
                 color: '#333',
             },
         },
+        scales: {
+            x: { title: { display: true, text: "X" } },
+            y: { title: { display: true, text: "Y" } },
+        },
     };
 
     return (
         <div style={{ width: "100%", maxWidth: 800, margin: "0 auto" }}>
-            <Line data={chartData} options={options} />
+            <Bubble data={chartData} options={options} />
         </div>
     );
 };
 
-export default LineChart;
+export default BubbleChart;

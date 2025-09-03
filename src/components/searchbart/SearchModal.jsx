@@ -194,7 +194,7 @@ function SearchModal({ abierto, titulo = 'Buscador Universal', onClose }) {
                             }}
                             title='Dirigirse a la Sección'
                         >
-                            Ir a sección
+                            Ir a la sección
                         </button>
                     </div>
                 </div>

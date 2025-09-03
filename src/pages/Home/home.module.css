@@ -52,29 +52,25 @@
     display: flex;
     align-items: center;
     justify-content: space-evenly;
-    margin-bottom: 20px;
-    /* gap: 20px; */
+    gap: 30px;
+    margin-bottom: 18px;
+    flex-wrap: nowrap;
+    width: 100%;
 }
-
-.chartFilter label {
-    margin-right: 10px;
-    font-weight: bold;
-}
-
 
 .chartContainer {
     background-color: var(--white1);
-    border-radius: 8px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.459);
-    padding: 20px ;
-    width: 100%; 
-    max-width: 800px; 
-    height: 400px; 
-    margin: 20px auto; 
+    border-radius: 16px;
+    box-shadow: 0px 4px 18px rgba(0, 0, 0, 0.479);
+    padding: 30px 10px;
+    width: 100%;
+    max-width: 900px;
+    min-height: 420px;
+    margin: 30px auto;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: box-shadow 0.3s;
 }
-
 
 
