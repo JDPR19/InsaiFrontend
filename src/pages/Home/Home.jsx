@@ -10,6 +10,7 @@ import Spinner from '../../components/spinner/Spinner';
 import FileSaver from 'file-saver';
 import { useNotification } from '../../utils/NotificationContext';
 import searchStyles from '../../components/searchbart/searchmodal.module.css';
+import SingleSelect from '../../components/selectmulti/SingleSelect';
 
 const chartFilterOptions = [
     { value: 'empleados-activos', label: 'Empleados Activos' },
@@ -93,7 +94,8 @@ function Home() {
     const [chartLabels, setChartLabels] = useState([]);
     const [chartData, setChartData] = useState([]);
     const [chartTitle, setChartTitle] = useState('Gráfica');
-
+    const handleChartFilterChange = (option) => setChartFilter(option);
+    
     // Traer datos al montar
     useEffect(() => {
         async function fetchTotales() {
@@ -133,7 +135,7 @@ function Home() {
     // --- Gráficas dinámicas ---
     useEffect(() => {
         async function fetchChartData() {
-            if (!dateRange.from || !dateRange.to) {
+            if (!dateRange.from || !dateRange.to || !chartFilter || !chartFilter.value) {
                 setChartLabels([]);
                 setChartData([]);
                 setChartTitle('Gráfica');
@@ -656,7 +658,7 @@ function Home() {
                 <div className={styles.chartFilter}>
                     <label htmlFor="chartFilterSelect">Tipo de consulta:</label>
                     <div className='formGroup'>
-                        <select
+                        {/* <select
                             id="chartFilterSelect"
                             value={chartFilter.value}
                             onChange={e => {
@@ -668,7 +670,14 @@ function Home() {
                             {chartFilterOptions.map(opt => (
                                 <option key={opt.value} value={opt.value}>{opt.label}</option>
                             ))}
-                        </select>
+                        </select> */}
+                        <SingleSelect
+                            id="chartFilterSingle"
+                            options={chartFilterOptions}
+                            value={chartFilter}
+                            onChange={handleChartFilterChange}
+                            placeholder="Filtrar por"
+                        />
                     </div>
                     <label>Desde:</label>
                     <div className='formGroup'>

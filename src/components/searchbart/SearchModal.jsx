@@ -45,15 +45,17 @@ const camposPorTipo = {
 };
 
 function SearchModal({ abierto, titulo = 'Buscador Universal', onClose }) {
-    const [tipo, setTipo] = useState('');
+    const navigate = useNavigate();
+    const tienePermiso = usePermiso();
+    const { addNotification } = useNotification();
+
+    // Mueve la declaración antes del useState
+    const tiposPermitidos = tipos.filter(t => tienePermiso && tienePermiso(t.pantalla, t.accion));
+    const [tipo, setTipo] = useState(tiposPermitidos[0] || null);
     const [texto, setTexto] = useState('');
     const [resultados, setResultados] = useState([]);
     const [loading, setLoading] = useState(false);
     const [detalle, setDetalle] = useState(null);
-    const navigate = useNavigate();
-    const tienePermiso = usePermiso();
-    const { addNotification } = useNotification();
-    const tiposPermitidos = tipos.filter(t => tienePermiso && tienePermiso(t.pantalla, t.accion));
 
     const rutasPorTipo = {
         empleado: '/empleados',
@@ -72,16 +74,22 @@ function SearchModal({ abierto, titulo = 'Buscador Universal', onClose }) {
         cargo: '/cargos'
     };
 
+    // Cuando cambia el modal o los tipos permitidos, selecciona el primero si el actual no es válido
     useEffect(() => {
         if (abierto && tiposPermitidos.length > 0) {
-            setTipo(prev => tiposPermitidos.some(t => t.value === prev) ? prev : tiposPermitidos[0].value);
+            setTipo(prev => {
+                if (prev && tiposPermitidos.some(t => t.value === prev.value)) {
+                    return prev;
+                }
+                return tiposPermitidos[0];
+            });
         }
     }, [abierto, tiposPermitidos]);
 
     useEffect(() => {
         if (!abierto || !tipo) return;
         setLoading(true);
-        axios.get(`${BaseUrl}/header/buscar?tipo=${tipo}&texto=`, {
+        axios.get(`${BaseUrl}/header/buscar?tipo=${tipo.value}&texto=`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         })
         .then(res => setResultados(res.data))
@@ -93,7 +101,7 @@ function SearchModal({ abierto, titulo = 'Buscador Universal', onClose }) {
 
     const resultadosFiltrados = texto.trim()
         ? resultados.filter(item =>
-            camposPorTipo[tipo]?.some(campo =>
+            camposPorTipo[tipo?.value]?.some(campo =>
                 String(item[campo] || '').toLowerCase().includes(texto.toLowerCase())
             )
         )
@@ -101,10 +109,10 @@ function SearchModal({ abierto, titulo = 'Buscador Universal', onClose }) {
 
     if (!abierto) return null;
 
-    const campos = camposPorTipo[tipo] || [];
-    const ayuda = tipos.find(t => t.value === tipo)?.ayuda || '';
-    const tipoObj = tipos.find(t => t.value === tipo);
+    const ayuda = tipo?.ayuda || '';
+    const tipoObj = tipo;
     const tienePermisoTipo = tipoObj && tienePermiso && tienePermiso(tipoObj.pantalla, tipoObj.accion);
+    const campos = camposPorTipo[tipo?.value] || [];
 
     // Modal de detalle con copiado en texto plano y notificación
     const DetalleModal = ({ item, onClose }) => {
@@ -169,7 +177,7 @@ function SearchModal({ abierto, titulo = 'Buscador Universal', onClose }) {
                         <SingleSelect
                             options={tiposPermitidos}
                             value={tipo}
-                            onChange={value => setTipo(value)}
+                            onChange={option => setTipo(option)}
                             placeholder="Filtrar por tipo..."
                             className={styles.searchModalInput}
                         />
@@ -178,7 +186,7 @@ function SearchModal({ abierto, titulo = 'Buscador Universal', onClose }) {
                         <input
                             type="search"
                             className='input'
-                            placeholder={`Buscar en ${tiposPermitidos.find(t => t.value === tipo)?.label || ''}...`}
+                            placeholder={`Buscar en ${tipo?.label || ''}...`}
                             value={texto}
                             onChange={e => setTexto(e.target.value)}
                             autoFocus
@@ -189,8 +197,10 @@ function SearchModal({ abierto, titulo = 'Buscador Universal', onClose }) {
                             className='btn-estandar'
                             disabled={!tipo}
                             onClick={() => {
-                                navigate(rutasPorTipo[tipo]);
-                                onClose();
+                                if (tipo?.value) {
+                                    navigate(rutasPorTipo[tipo.value]);
+                                    onClose();
+                                }
                             }}
                             title='Dirigirse a la Sección'
                         >
@@ -202,6 +212,7 @@ function SearchModal({ abierto, titulo = 'Buscador Universal', onClose }) {
                 <div className={styles.searchModalAyuda}>
                     {ayuda}
                 </div>
+                
                 {/* Si no tiene permiso para el tipo seleccionado */}
                 {!tienePermisoTipo && (
                     <div style={{ color: '#b10b0b', fontWeight: 600, textAlign: 'center', margin: '30px 0' }}>

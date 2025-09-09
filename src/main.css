@@ -971,7 +971,7 @@ html, body {
   cursor: pointer; 
 }
 .select option {
-    background-color: var(--green7);
+    background-color: var(--white1);
     color: var(--input-text); 
     padding: 5px;
     cursor: pointer;
@@ -979,6 +979,11 @@ html, body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+.select:focus option,
+.select:active option {
+    max-height: 500px; 
+    overflow-y: auto;
 }
 
 .dark .select option {

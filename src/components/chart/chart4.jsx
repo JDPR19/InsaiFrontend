@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Pie, Bar, Line, Radar, PolarArea, Bubble, Scatter } from 'react-chartjs-2';
+import SingleSelect from '../selectmulti/SingleSelect';
 import {
     Chart as ChartJS,
     ArcElement,
@@ -110,12 +111,14 @@ const ChartSwitcher = ({
 
     const options = {
         responsive: true,
+        maintainAspectRatio: false, // <-- CLAVE para que respete el alto del contenedor
         plugins: {
-            legend: { position: 'top',
+            legend: { 
+                position: 'top',
                 labels: {
-                color: '#98c79a', 
-                font: { size: 13 }
-            }
+                    color: '#98c79a', 
+                    font: { size: 13 }
+                }
             },
             tooltip: {
                 callbacks: {
@@ -161,50 +164,65 @@ const ChartSwitcher = ({
     const handleDownload = () => {
         if (chartRef.current) {
             const chartInstance = chartRef.current;
-            chartInstance.resize();
             const canvas = chartInstance.canvas;
             const ctx = canvas.getContext('2d');
             ctx.save();
             ctx.globalCompositeOperation = 'destination-over';
             ctx.fillStyle = '#fff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            const url = canvas.toDataURL('image/png');
             ctx.restore();
+            const url = canvas.toDataURL('image/png');
             const link = document.createElement('a');
             link.href = url;
-            link.download = `grafica_${selectedType}.png`;
+            link.download = `grafica Tipo: ${selectedType}.png`;
             link.click();
         }
     };
 
+    // Tamaño específico para graficas
+    const chartSize = (selectedType === 'pie' || selectedType === 'polar' || selectedType === 'radar') 
+        ? { width: 320, height: 320 }
+        : { width: 800, height: 360 };
+
     return (
-        <div style={{ width: '80', position: 'relative' }}>
-            <div style={{ marginBottom: 25 }}>
-                <label htmlFor="chartType" style={{ marginRight: 8 }}>Tipo de gráfica:</label>
-                <select
-                    id="chartType"
-                    value={selectedType}
-                    onChange={e => setSelectedType(e.target.value)}
-                    style={{
-                        padding: '5px 10px',
-                        fontSize: '1rem',
-                        width: '160px',
-                        minWidth: '100px',
-                        maxWidth: '180px'
-                    }}
-                    className='select'
-                >
-                    {chartTypes.map(t => (
-                        <option key={t.value} value={t.value}>{t.label}</option>
-                    ))}
-                </select>
+        <div style={{
+            width: '100%',
+            maxWidth: 800,
+            height: chartSize.height + 130,
+            minHeight: 400,
+            margin: '0 auto',
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            justifyContent: 'flex-start',
+            marginBottom: 60,
+            
+            
+        }}>
+            <div style={{
+                marginBottom: 25,
+                maxWidth: 220,
+                minWidth: 140,
+                width: '100%',
+                display: 'block',
+                marginLeft:20
+            }}>
+                <label htmlFor="chartType" style={{ marginBottom: 10, display: 'block' }}>Tipo de gráfica:</label>
+                <SingleSelect
+                    id="chartTypeSingle"
+                    options={chartTypes}
+                    value={chartTypes.find(opt => opt.value === selectedType)}
+                    onChange={option => setSelectedType(option.value)}
+                    placeholder="Tipo de gráfica"
+                />
             </div>
             <button
                 className="saveButton"
                 style={{
                     position: 'absolute',
                     right: 20,
-                    top: -20,
+                    top: 5,
                     zIndex: 2,
                     padding: '6px 14px',
                     fontSize: '0.95rem',
@@ -214,13 +232,30 @@ const ChartSwitcher = ({
             >
                 Descargar
             </button>
-            <ChartTag
-                ref={chartRef}
-                data={getChartData()}
-                options={options}
-                width={800}
-                height={400}
-            />
+            <div style={{
+                width: '100%',
+                height: chartSize.height,
+                minHeight: 400,
+                maxHeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}>
+                <ChartTag
+                    ref={chartRef}
+                    data={getChartData()}
+                    options={options}
+                    width={chartSize.width}
+                    height={chartSize.height}
+                    style={{
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        width: '100%',
+                        height: '100%',
+                        display: 'block'
+                    }}
+                />
+            </div>
         </div>
     );
 };
