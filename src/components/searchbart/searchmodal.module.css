@@ -16,9 +16,9 @@
   box-shadow: 0 4px 16px var(--modal-shadow-dark);
   padding: 30px 30px 20px 30px;
   min-width: 400px;
-  max-width: 90vw;
+  max-width: 70vw;
   min-height: 300px;
-  max-height: 100vh;
+  max-height: 110vh;
   overflow: hidden;
   position: relative;
   display: flex; 
@@ -31,9 +31,10 @@
   width: 95%;
   max-width: 100%;
   overflow-x: auto;
-  margin-top: 30px;
-  margin-bottom: 30px;
+  margin-top: 15px;
   max-height: 100vh;
+  padding-bottom: 20px;
+  
 }
 
 .searchModal h2 {
@@ -74,24 +75,16 @@
   color: var(--table-header-text);          
   font-weight: 600;
   text-align: left;
-  padding: 10px 20px;
   white-space: normal;
-  word-break: break-word;
   overflow-wrap: break-word;
-  border-bottom: 2px solid #cecece6c;
 }
 .searchModalTable td {
   text-align: left;
-  padding: 10px 20px;
-  font-size: 1rem;
-  vertical-align: top;
-  max-width: 300px;
-  word-break: break-word;
+  max-width: 600px;
   white-space: pre-line;
   overflow-wrap: break-word;
-  background-color: var(--table-row-bg); /* igual que las tablas normales */
+  background-color: var(--table-row-bg); 
   color: var(--input-text);
-  border-bottom: 2px solid #cecece6c;
 }
 
 

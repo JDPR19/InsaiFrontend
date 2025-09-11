@@ -56,6 +56,37 @@ function SearchModal({ abierto, titulo = 'Buscador Universal', onClose }) {
     const [resultados, setResultados] = useState([]);
     const [loading, setLoading] = useState(false);
     const [detalle, setDetalle] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1)
+    
+    const resultadosFiltrados = texto.trim()
+        ? resultados.filter(item =>
+            camposPorTipo[tipo?.value]?.some(campo =>
+                String(item[campo] || '').toLowerCase().includes(texto.toLowerCase())
+            )
+        )
+        : resultados;
+
+    const itemsPerPage = 4;
+    const indexOfLasItem = currentPage * itemsPerPage;
+    const indexOfFirsItem = indexOfLasItem - itemsPerPage;
+    const currentData = resultadosFiltrados.slice(indexOfFirsItem, indexOfLasItem); 
+
+    const handlePreviousPage = () => {
+        if (currentPage > 1) setCurrentPage(currentPage - 1);
+    };
+
+    const handleNextPage = () => {
+        if (indexOfLasItem < resultadosFiltrados.length) setCurrentPage(currentPage + 1);
+    };
+
+    const handlePreviousThreePages = () => {
+    setCurrentPage((prev) => Math.max(prev - 3, 1));
+    };
+
+    const handleNextThreePages = () => {
+        const maxPage = Math.ceil(resultadosFiltrados.length / itemsPerPage);
+        setCurrentPage((prev) => Math.min(prev + 3, maxPage));
+    };
 
     const rutasPorTipo = {
         empleado: '/empleados',
@@ -97,15 +128,8 @@ function SearchModal({ abierto, titulo = 'Buscador Universal', onClose }) {
         .finally(() => setLoading(false));
         setTexto('');
         setDetalle(null);
-    }, [abierto, tipo]);
-
-    const resultadosFiltrados = texto.trim()
-        ? resultados.filter(item =>
-            camposPorTipo[tipo?.value]?.some(campo =>
-                String(item[campo] || '').toLowerCase().includes(texto.toLowerCase())
-            )
-        )
-        : resultados;
+        setCurrentPage(1);
+    }, [tipo, abierto]);
 
     if (!abierto) return null;
 
@@ -237,12 +261,12 @@ function SearchModal({ abierto, titulo = 'Buscador Universal', onClose }) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {resultadosFiltrados.length === 0 ? (
+                                {currentData.length === 0 ? (
                                     <tr>
                                         <td colSpan={campos.length + 1}>Sin resultados</td>
                                     </tr>
                                 ) : (
-                                    resultadosFiltrados.map((item, idx) => (
+                                    currentData.map((item, idx) => (
                                         <tr key={item.id || idx}>
                                             {campos.map((campo, cidx) => (
                                                 <td key={cidx} title={item[campo]}>
@@ -270,6 +294,13 @@ function SearchModal({ abierto, titulo = 'Buscador Universal', onClose }) {
                                 )}
                             </tbody>
                         </table>
+                        <div className='tableFooter'>
+                            <img onClick={handlePreviousPage} src={icon.flecha3} className='iconBack' title='Anterior'/>
+                            <img onClick={handlePreviousThreePages} src={icon.flecha5} className='iconBack' title='Anterior' />
+                            <span>{currentPage}</span>
+                            <img onClick={handleNextThreePages} src={icon.flecha4} className='iconNext' title='Siguiente' />
+                            <img onClick={handleNextPage} src={icon.flecha2} className='iconNext' title='Siguiente'/>
+                        </div>
                     </div>
                     )
                 )}

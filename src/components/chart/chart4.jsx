@@ -1,6 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { Pie, Bar, Line, Radar, PolarArea, Bubble, Scatter } from 'react-chartjs-2';
+import { Pie, Bar, Line, Radar, PolarArea } from 'react-chartjs-2';
 import SingleSelect from '../selectmulti/SingleSelect';
+import annotationPlugin from 'chartjs-plugin-annotation';
+ChartJS.register(annotationPlugin);
 import {
     Chart as ChartJS,
     ArcElement,
@@ -13,8 +15,10 @@ import {
     PointElement,
     LineElement,
     RadialLinearScale,
-    Filler
+    Filler,
+    SubTitle
 } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 ChartJS.register(
     ArcElement,
@@ -27,7 +31,8 @@ ChartJS.register(
     PointElement,
     LineElement,
     RadialLinearScale,
-    Filler
+    Filler,
+    ChartDataLabels
 );
 
 const COLORS = [
@@ -109,6 +114,13 @@ const ChartSwitcher = ({
         }
     };
 
+        // Valores para mostrar
+    const total = Array.isArray(data) ? data.reduce((a, b) => a + b, 0) : 0;
+    const promedio = Array.isArray(data) && data.length ? (total / data.length).toFixed(2) : 0;
+    const maximo = Array.isArray(data) && data.length ? Math.max(...data) : 0;
+    const minimo = Array.isArray(data) && data.length ? Math.min(...data) : 0;
+    const cantidad = Array.isArray(data) ? data.length : 0;
+
     const options = {
         responsive: true,
         maintainAspectRatio: false, // <-- CLAVE para que respete el alto del contenedor
@@ -116,13 +128,31 @@ const ChartSwitcher = ({
             legend: { 
                 position: 'top',
                 labels: {
-                    color: '#98c79a', 
-                    font: { size: 13 }
+                    color: '#98c79a',
+                    font: { size: 13 },
+                    generateLabels: (chart) => {
+                        const defaultLabels = ChartJS.defaults.plugins.legend.labels.generateLabels(chart);
+                        const dataset = chart.data.datasets[0];
+                        const data = dataset.data;
+                        const total = data.reduce((a, b) => a + b, 0);
+
+                        return defaultLabels.map((label, i) => ({
+                        ...label,
+                        text: `${label.text} (${data[i]} - ${((data[i] / total) * 100).toFixed(1)}%)`
+                        }));
+                    }
                 }
             },
             tooltip: {
                 callbacks: {
                     label: function (tooltipItem) {
+                        // Muestra valor y porcentaje si es pie/polar
+                        if (selectedType === 'pie' || selectedType === 'polar') {
+                            const total = tooltipItem.dataset.data.reduce((a, b) => a + b, 0);
+                            const value = tooltipItem.raw;
+                            const percent = ((value / total) * 100).toFixed(1);
+                            return `${tooltipItem.label}: ${value} (${percent}%)`;
+                        }
                         return `${tooltipItem.label || ''}: ${tooltipItem.raw} unidades`;
                     },
                 },
@@ -135,6 +165,44 @@ const ChartSwitcher = ({
                 align: 'center',
                 color: '#98c79a',
             },
+            subtitle: {
+                display: true,
+                text: `Total: ${total} | Promedio: ${promedio} | Máx: ${maximo} | Mín: ${minimo} | Datos: ${cantidad} `,
+                color: '#aaa',
+                font: { size: 14, family: 'Poppins, sans-serif' },
+                padding: { bottom: 10 }
+            },
+            datalabels: {
+                color: '#98c79a',
+                anchor: 'end',
+                align: 'top',
+                font: { weight: 'bold' },
+                formatter: (value, context) => {
+                    // Muestra valor y porcentaje si es pie/polar
+                    if (selectedType === 'pie' || selectedType === 'polar') {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percent = ((value / total) * 100).toFixed(1);
+                        return `${value} (${percent}%)`;
+                    }
+                    return value;
+                }
+            },
+            // annotation: {
+            //     annotations: {
+            //         lineaReferencia: {
+            //         type: 'line',
+            //         yMin: 50,
+            //         yMax: 50,
+            //         borderColor: 'red',
+            //         borderWidth: 2,
+            //         label: {
+            //             content: 'Meta',
+            //             enabled: true,
+            //             position: 'end'
+            //         }
+            //         }
+            //     }
+            // }
         },
         scales: (selectedType === 'bar' || selectedType === 'line' || selectedType === 'scatter' || selectedType === 'bubble')
             ? {
@@ -188,7 +256,7 @@ const ChartSwitcher = ({
         <div style={{
             width: '100%',
             maxWidth: 800,
-            height: chartSize.height + 130,
+            height: chartSize.height + 120,
             minHeight: 400,
             margin: '0 auto',
             position: 'relative',
@@ -196,9 +264,8 @@ const ChartSwitcher = ({
             flexDirection: 'column',
             alignItems: 'flex-start',
             justifyContent: 'flex-start',
-            marginBottom: 60,
-            
-            
+            marginBottom: 10,
+            marginTop: 10
         }}>
             <div style={{
                 marginBottom: 25,
@@ -232,11 +299,29 @@ const ChartSwitcher = ({
             >
                 Descargar
             </button>
+            <div
+                style={{
+                    margin: '10px 0 18px 0',
+                    fontWeight: 600,
+                    color: '#98c79a',
+                    fontSize: '1.08em',
+                    letterSpacing: '0.5px',
+                    display: 'flex',
+                    gap: 24,
+                    flexWrap: 'wrap'
+                }}
+            >
+                <span>Total: {total}</span>
+                <span>Promedio: {promedio}</span>
+                <span>Máximo: {maximo}</span>
+                <span>Mínimo: {minimo}</span>
+                <span>Datos: {cantidad}</span>
+            </div>
             <div style={{
                 width: '100%',
                 height: chartSize.height,
-                minHeight: 400,
-                maxHeight: 600,
+                minHeight: 200,
+                maxHeight: 300,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

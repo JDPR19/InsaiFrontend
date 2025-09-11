@@ -12,6 +12,32 @@ import { useNotification } from '../../utils/NotificationContext';
 import searchStyles from '../../components/searchbart/searchmodal.module.css';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
 
+const camposDetalle = [
+    { key: 'fecha_programada', label: 'Fecha Programada' },
+    { key: 'estado_planificacion', label: 'Estado' },
+    { key: 'objetivo', label: 'Objetivo' },
+    { key: 'actividad', label: 'Actividad' },
+    { key: 'hora', label: 'Hora' },
+    { key: 'convocatoria', label: 'Convocatoria' },
+    { key: 'aseguramiento', label: 'Aseguramiento' },
+    { key: 'ubicacion_planificacion', label: 'Ubicación Planificación' },
+    { key: 'tipo_inspeccion', label: 'Tipo de Inspección' },
+    { key: 'inspector_nombre', label: 'Inspector' },
+    { key: 'inspector_apellido', label: 'Apellido Inspector' },
+    { key: 'inspector_cedula', label: 'Cédula Inspector' },
+    { key: 'inspector_cargo', label: 'Cargo Inspector' },
+    { key: 'propiedad_nombre', label: 'Propiedad' },
+    { key: 'rif', label: 'RIF' },
+    { key: 'propiedad_ubicacion', label: 'Ubicación Propiedad' },
+    { key: 'hectareas', label: 'Hectáreas' },
+    { key: 'posee_certificado', label: 'Posee Certificado' },
+    { key: 'tipo_propiedad_nombre', label: 'Tipo de Propiedad' },
+    { key: 'sector_nombre', label: 'Sector' },
+    { key: 'productor_nombre', label: 'Productor' },
+    { key: 'productor_apellido', label: 'Apellido Productor' },
+    { key: 'productor_cedula', label: 'Cédula Productor' }
+];
+
 const chartFilterOptions = [
     { value: 'empleados-activos', label: 'Empleados Activos' },
     { value: 'empleados-por-cargo', label: 'Empleados por Cargo' },
@@ -128,6 +154,7 @@ function Home() {
             }
             setLoadingTabla(false);
         }
+        
         fetchTotales();
         fetchEmpleadosHoy();
     }, []);
@@ -525,7 +552,17 @@ function Home() {
                 ) : detalleModal.propiedad ? (
                     <table className='detalleTable'>
                         <tbody>
-                            {/* ...contenido igual que antes... */}
+                            {camposDetalle.map(({ key, label }) => (
+                                <tr key={key}>
+                                    <th>{label}</th>
+                                    <td>
+                                        {detalleModal.propiedad && detalleModal.propiedad[key] !== null && detalleModal.propiedad[key] !== undefined && detalleModal.propiedad[key] !== ''
+                                            ? String(detalleModal.propiedad[key])
+                                            : <span style={{ color: '#bbb' }}>—</span>
+                                        }
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 ) : (
@@ -656,21 +693,8 @@ function Home() {
             {/* Gráficas  */}
             <div className={styles.chartSection}>
                 <div className={styles.chartFilter}>
-                    <label htmlFor="chartFilterSelect">Tipo de consulta:</label>
                     <div className='formGroup'>
-                        {/* <select
-                            id="chartFilterSelect"
-                            value={chartFilter.value}
-                            onChange={e => {
-                                const selected = chartFilterOptions.find(opt => opt.value === e.target.value);
-                                setChartFilter(selected);
-                            }}
-                            className='select'
-                        >
-                            {chartFilterOptions.map(opt => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                        </select> */}
+                    <label htmlFor="chartFilterSelect">Tipo de consulta:</label>
                         <SingleSelect
                             id="chartFilterSingle"
                             options={chartFilterOptions}
@@ -679,8 +703,8 @@ function Home() {
                             placeholder="Filtrar por"
                         />
                     </div>
-                    <label>Desde:</label>
                     <div className='formGroup'>
+                    <label>Desde:</label>
                         <input
                             id="dateFrom"
                             type="date"
@@ -689,8 +713,8 @@ function Home() {
                             onChange={e => handleDateChange('from', e.target.value)}
                             />
                     </div>
-                    <label>Hasta:</label>
                     <div className='formGroup'>
+                    <label>Hasta:</label>
                         <input
                             id="dateTo"
                             type="date"
