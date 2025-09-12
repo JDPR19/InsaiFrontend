@@ -22,9 +22,9 @@ function Sector() {
     const [formData, setFormData] = useState({
         id: '',
         nombre: '',
-        estado_id: '',
-        municipio_id: '',
-        parroquia_id: '',
+        estado_id: null,
+        municipio_id: null,
+        parroquia_id: null,
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedSectorId, setSelectedSectorId] = useState(null);
@@ -120,9 +120,9 @@ function Sector() {
         setFormData({
             id: '',
             nombre: '',
-            estado_id: '',
-            municipio_id: '',
-            parroquia_id: '',
+            estado_id: null,
+            municipio_id: null,
+            parroquia_id: null,
         });
         setMunicipios([]);
         setParroquias([]);
@@ -133,11 +133,11 @@ function Sector() {
         setFormData(prev => ({
             ...prev,
             estado_id: val,
-            municipio_id: '',
-            parroquia_id: ''
+            municipio_id: null,
+            parroquia_id: null
         }));
         if (val) {
-            fetchMunicipios(val);
+            fetchMunicipios(val.value);
             setParroquias([]);
         } else {
             setMunicipios([]);
@@ -149,10 +149,10 @@ function Sector() {
         setFormData(prev => ({
             ...prev,
             municipio_id: val,
-            parroquia_id: ''
+            parroquia_id: null
         }));
         if (val) {
-            fetchParroquias(val);
+            fetchParroquias(val.value);
         } else {
             setParroquias([]);
         }
@@ -185,7 +185,21 @@ function Sector() {
     };
 
     const handleSave = async () => {
-        setLoading(true);
+        if (!formData.estado_id || !formData.estado_id.value) {
+            addNotification('Debe seleccionar un estado', 'warning');
+            setLoading(false);
+            return;
+        }
+        if (!formData.municipio_id || !formData.municipio_id.value) {
+            addNotification('Debe seleccionar un municipio', 'warning');
+            setLoading(false);
+            return;
+        }
+        if (!formData.parroquia_id || !formData.parroquia_id.value) {
+            addNotification('Debe seleccionar una parroquia', 'warning');
+            setLoading(false);
+            return;
+        }
         for (const field of ['nombre', 'parroquia_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -198,11 +212,11 @@ function Sector() {
                 }
             }
         }
-
+        setLoading(true);
         try {
             await axios.post(`${BaseUrl}/sector`, {
                 nombre: formData.nombre,
-                parroquia_id: formData.parroquia_id,
+                parroquia_id: formData.parroquia_id?.value || '',
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -220,7 +234,21 @@ function Sector() {
     };
 
     const handleEdit = async () => {
-        setLoading(true);
+        if (!formData.estado_id || !formData.estado_id.value) {
+            addNotification('Debe seleccionar un estado', 'warning');
+            setLoading(false);
+            return;
+        }
+        if (!formData.municipio_id || !formData.municipio_id.value) {
+            addNotification('Debe seleccionar un municipio', 'warning');
+            setLoading(false);
+            return;
+        }
+        if (!formData.parroquia_id || !formData.parroquia_id.value) {
+            addNotification('Debe seleccionar una parroquia', 'warning');
+            setLoading(false);
+            return;
+        }
         for (const field of ['nombre', 'parroquia_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -231,11 +259,11 @@ function Sector() {
                 return;
             }
         }
-
+        setLoading(true);
         try {
             await axios.put(`${BaseUrl}/sector/${formData.id}`, {
                 nombre: formData.nombre,
-                parroquia_id: formData.parroquia_id,
+                parroquia_id: formData.parroquia_id?.value || '',
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -300,12 +328,22 @@ function Sector() {
     const closeModal = () => setCurrentModal(null);
 
     const openEditModal = (sector) => {
+        const estadoObj = sector.estado_id
+            ? { value: String(sector.estado_id), label: estados.find(e => String(e.id) === String(sector.estado_id))?.nombre || '' }
+            : null;
+        const municipioObj = sector.municipio_id
+            ? { value: String(sector.municipio_id), label: municipios.find(m => String(m.id) === String(sector.municipio_id))?.nombre || '' }
+            : null;
+        const parroquiaObj = sector.parroquia_id
+            ? { value: String(sector.parroquia_id), label: parroquias.find(p => String(p.id) === String(sector.parroquia_id))?.nombre || '' }
+            : null;
+
         setFormData({
             id: sector.id,
             nombre: sector.nombre || '',
-            estado_id: sector.estado_id || '',
-            municipio_id: sector.municipio_id || '',
-            parroquia_id: sector.parroquia_id || '',
+            estado_id: estadoObj,
+            municipio_id: municipioObj,
+            parroquia_id: parroquiaObj,
         });
         fetchMunicipios(sector.estado_id);
         fetchParroquias(sector.municipio_id);
@@ -353,7 +391,6 @@ function Sector() {
                                         onChange={handleEstadoChange}
                                         placeholder="Seleccione un estado"
                                     />
-                                    {errors.estado_id && <span className='errorText'>{errors.estado_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="municipio_id">Municipio:</label>
@@ -364,7 +401,6 @@ function Sector() {
                                         placeholder="Seleccione un municipio"
                                         isDisabled={!formData.estado_id || municipiosOptions.length === 0}
                                     />
-                                    {errors.municipio_id && <span className='errorText'>{errors.municipio_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="parroquia_id">Parroquia:</label>
@@ -375,7 +411,6 @@ function Sector() {
                                         placeholder="Seleccione una parroquia"
                                         isDisabled={!formData.municipio_id || parroquiasOptions.length === 0}
                                     />
-                                    {errors.parroquia_id && <span className='errorText'>{errors.parroquia_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="nombre">Sector:</label>

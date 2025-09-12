@@ -21,8 +21,8 @@ function Parroquia() {
     const [formData, setFormData] = useState({
         id: '',
         nombre: '',
-        estado_id: '',
-        municipio_id: '',
+        estado_id: null,
+        municipio_id: null,
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedParroquiaId, setSelectedParroquiaId] = useState(null);
@@ -99,8 +99,8 @@ function Parroquia() {
         setFormData({
             id: '',
             nombre: '',
-            estado_id: '',
-            municipio_id: '',
+            estado_id: null,
+            municipio_id: null,
         });
         setMunicipios([]);
     };
@@ -122,10 +122,10 @@ function Parroquia() {
         setFormData(prev => ({
             ...prev,
             estado_id: val,
-            municipio_id: ''
+            municipio_id: null
         }));
         if (val) {
-            fetchMunicipios(val);
+            fetchMunicipios(val.value);
         } else {
             setMunicipios([]);
         }
@@ -145,7 +145,17 @@ function Parroquia() {
     };
 
     const handleSave = async () => {
-        setLoading(true);
+
+        if (!formData.estado_id || !formData.estado_id.value) {
+            addNotification('Debe seleccionar un estado', 'warning');
+            setLoading(false);
+            return;
+        }
+        if (!formData.municipio_id || !formData.municipio_id.value) {
+            addNotification('Debe seleccionar un municipio', 'warning');
+            setLoading(false);
+            return;
+        }
         for (const field in formData) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -158,11 +168,11 @@ function Parroquia() {
                 }
             }
         }
-
+        setLoading(true);
         try {
             await axios.post(`${BaseUrl}/parroquia`, {
                 nombre: formData.nombre,
-                municipio_id: formData.municipio_id,
+                municipio_id: formData.municipio_id?.value || '',
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -180,7 +190,6 @@ function Parroquia() {
     };
 
     const handleEdit = async () => {
-        setLoading(true);
         const camposObligatorios = ['nombre', 'municipio_id'];
         for (const field of camposObligatorios) {
             if (!validationRules[field]) continue;
@@ -192,11 +201,11 @@ function Parroquia() {
                 return;
             }
         }
-
+        setLoading(true);
         try {
             await axios.put(`${BaseUrl}/parroquia/${formData.id}`, {
                 nombre: formData.nombre,
-                municipio_id: formData.municipio_id,
+                municipio_id: formData.municipio_id?.value || '',
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -261,11 +270,18 @@ function Parroquia() {
     const closeModal = () => setCurrentModal(null);
 
     const openEditModal = (parroquia) => {
+        
+        const estadoObj = parroquia.estado_id
+            ? { value: String(parroquia.estado_id), label: estados.find(e => String(e.id) === String(parroquia.estado_id))?.nombre || '' }
+            : null;
+        const municipioObj = parroquia.municipio_id
+            ? { value: String(parroquia.municipio_id), label: municipios.find(m => String(m.id) === String(parroquia.municipio_id))?.nombre || '' }
+            : null;
         setFormData({
             id: parroquia.id,
             nombre: parroquia.nombre || '',
-            estado_id: parroquia.estado_id || '',
-            municipio_id: parroquia.municipio_id || '',
+            estado_id: estadoObj,
+            municipio_id: municipioObj,
         });
         fetchMunicipios(parroquia.estado_id);
         setCurrentModal('parroquia');
@@ -298,7 +314,6 @@ function Parroquia() {
                                         onChange={handleEstadoChange}
                                         placeholder="Seleccione un estado"
                                     />
-                                    {errors.estado_id && <span className='errorText'>{errors.estado_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="municipio_id">Municipio:</label>
@@ -309,7 +324,6 @@ function Parroquia() {
                                         placeholder="Seleccione un municipio"
                                         isDisabled={!formData.estado_id || municipios.length === 0}
                                     />
-                                    {errors.municipio_id && <span className='errorText'>{errors.municipio_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="nombre">Parroquia:</label>

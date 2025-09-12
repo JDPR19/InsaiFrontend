@@ -1,4 +1,6 @@
 export const validateField = (value, regex, errorMessage) => {
+    // Si el valor no es string, no lo valides aquí (deja que el handleSave lo valide)
+    if (typeof value !== 'string') return { valid: true, message: '' };
     if (!value.trim()) {
         return { valid: false, message: 'Complete Todos los Campos' };
     }
@@ -10,8 +12,8 @@ export const validateField = (value, regex, errorMessage) => {
 
 export const validationRules = {
     cedula: {
-        regex: /^\d{7,8}$/, // Ejemplo: V-12345678
-        errorMessage: 'La cédula debe tener el formato V-12345678 o E-12345678 de ser necesario'
+        regex: /^(V-|E-)?\d{7,8}$/, // Ejemplo: V-12345678, E-12345678, 12345678
+        errorMessage: 'La cédula debe tener 7 u 8 dígitos, con o sin prefijo V- o E-'
     },
     nombre: {
         regex: /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s-]+$/, // Solo letras y espacios

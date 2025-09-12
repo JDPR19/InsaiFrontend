@@ -25,11 +25,10 @@ function Usuario() {
     const tienePermiso = usePermiso(); 
     const [formData, setFormData] = useState({
         id: '',
-        empleado_id: '',
-        cedula: '',
+        empleado_id: null,
         username: '',
         email: '',
-        roles_id: '',
+        roles_id: null,
         password: '',
         confirmarpassword: ''
     });
@@ -43,11 +42,10 @@ function Usuario() {
     const resetFormData = () => {
         setFormData({
             id: '',
-            empleado_id: '',
-            cedula: '',
+            empleado_id: null,
             username: '',
             email: '',
-            roles_id: '',
+            roles_id: null,
             password: '',
             confirmarpassword: ''
         });
@@ -131,9 +129,22 @@ function Usuario() {
 
 
     const handleSave = async () => {
-        setLoading(true);
-        for (const field in formData) {
+        // Validación para selects
+    if (!formData.empleado_id || !formData.empleado_id.value) {
+        addNotification('Debe seleccionar un empleado', 'warning');
+        return;
+    }
+    if (!formData.roles_id || !formData.roles_id.value) {
+        addNotification('Debe seleccionar un tipo de usuario', 'warning');
+        return;
+    }
+
+    // Validación para los demás campos (solo strings)
+    for (const field in formData) {
             if (!validationRules[field]) continue;
+            // Solo valida si es string
+            if (typeof formData[field] !== 'string') continue;
+
             const { regex, errorMessage } = validationRules[field];
             if (regex) {
                 const { valid, message } = validateField(formData[field], regex, errorMessage);
@@ -153,10 +164,13 @@ function Usuario() {
                 }
             }
         }
+        setLoading(true);
 
         try {
             const response = await axios.post(`${BaseUrl}/usuarios`, {
                 ...formData,
+                empleado_id: formData.empleado_id?.value || '',
+                roles_id: formData.roles_id?.value || '',
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -168,8 +182,12 @@ function Usuario() {
             fetchUsuarios();
             closeModal();
         } catch (error) {
-            console.error('error al registrar el usuario',error);
+            if (error.response && error.response.status === 409) {
+            addNotification(error.response.data.error || 'El correo ya está registrado.', 'warning');
+        } else {
             addNotification('Error al registrar usuario', 'error');
+        }
+            console.error('error al registrar el usuario', error);
         } finally {
             setLoading(false);
         }
@@ -190,6 +208,8 @@ function Usuario() {
         try {
             const response = await axios.put(`${BaseUrl}/usuarios/${formData.id}`, {
                 ...formData,
+                empleado_id: formData.empleado_id?.value || '',
+                roles_id: formData.roles_id?.value || '',
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -291,21 +311,21 @@ function Usuario() {
         await fetchTiposUsuario();
         setFormData({
             id: usuario.id,
-            empleado_id: usuario.empleado_id || '',
+            empleado_id: usuario.empleado_id
+            ? { value: String(usuario.empleado_id), label: cedulas.find(c => String(c.id) === String(usuario.empleado_id))?.cedula || '' }
+            : null,
             cedula: usuario.cedula || '',
             username: usuario.username || '',
             email: usuario.email || '',
-            roles_id: usuario.roles_id || '',
+            roles_id: usuario.roles_id
+            ? { value: String(usuario.roles_id), label: tiposUsuario.find(r => String(r.id) === String(usuario.roles_id))?.nombre || '' }
+            : null,
             password: '',
             confirmarpassword: ''
         });
         setCurrentModal('usuario');
     };
 
-    // const openConfirmDeleteModal = (id) => {
-    //     setSelectedEmpleadoId(id);
-    //     setConfirmDeleteModal(true);
-    // };
     const closeConfirmDeleteModal = () => {
         setSelectedEmpleadoId(null);
         setConfirmDeleteModal(false);
@@ -332,7 +352,9 @@ function Usuario() {
     };
     const closeDetalleModal = () => setDetalleModal({ abierto: false, usuario: null });
 
-    const empleadoSeleccionado = cedulas.find((c) => c.id === parseInt(formData.empleado_id));
+    const empleadoSeleccionado = cedulas.find(
+        (c) => String(c.id) === String(formData.empleado_id?.value)
+    );
 
     return (
         <div className='mainContainer'>
@@ -435,11 +457,10 @@ function Usuario() {
                                             value={formData.empleado_id}
                                             onChange={val => setFormData(prev => ({ ...prev, empleado_id: val }))}
                                             placeholder="Seleccione un tipo"
-                                            />
-                                    <div className='text_empleado'>
-                                        {empleadoSeleccionado ? `${empleadoSeleccionado.nombre} ${empleadoSeleccionado.apellido}` : '\u00A0'}
-                                    </div>
-                                    {errors.cedula && <span className='errorText'>{errors.cedula}</span>}
+                                        />
+                                        <div className='text_empleado'>
+                                            {empleadoSeleccionado ? `${empleadoSeleccionado.nombre} ${empleadoSeleccionado.apellido}` : '\u00A0'}
+                                        </div>
                                 </div>
 
                                 <div className='formGroup'>
@@ -462,7 +483,6 @@ function Usuario() {
                                         onChange={val => setFormData(prev => ({ ...prev, roles_id: val }))}
                                         placeholder="Seleccione un tipo"
                                         />
-                                    {errors.roles_id && <span className='errorText'>{errors.roles_id}</span>}
                                 </div>
 
                                 <div className='formGroup'>

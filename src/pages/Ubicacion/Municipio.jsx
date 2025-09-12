@@ -20,7 +20,7 @@ function Municipio() {
     const [formData, setFormData] = useState({
         id: '',
         nombre: '',
-        estado_id: '',
+        estado_id: null,
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedMunicipioId, setSelectedMunicipioId] = useState(null);
@@ -73,7 +73,7 @@ function Municipio() {
         setFormData({
             id: '',
             nombre: '',
-            estado_id: '',
+            estado_id: null,
         });
     };
 
@@ -94,7 +94,12 @@ function Municipio() {
     };
 
     const handleSave = async () => {
-        setLoading(true);
+        
+        if (!formData.estado_id || !formData.estado_id.value) {
+            addNotification('Debe seleccionar un estado', 'warning');
+            setLoading(false);
+            return;
+        }
         for (const field in formData) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -106,12 +111,11 @@ function Municipio() {
                 }
             }
         }
-
-
+        setLoading(true);
         try {
             await axios.post(`${BaseUrl}/municipio`, {
                 nombre: formData.nombre,
-                estado_id: formData.estado_id,
+                estado_id: formData.estado_id?.value || '',
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -129,7 +133,12 @@ function Municipio() {
     };
 
     const handleEdit = async () => {
-        setLoading(true);
+
+        if (!formData.estado_id || !formData.estado_id.value) {
+            addNotification('Debe seleccionar un estado', 'warning');
+            setLoading(false);
+            return;
+        }
         const camposObligatorios = ['nombre', 'estado_id'];
         for (const field of camposObligatorios) {
             if (!validationRules[field]) continue;
@@ -140,11 +149,11 @@ function Municipio() {
                 return;
             }
         }
-
+        setLoading(true);
         try {
             await axios.put(`${BaseUrl}/municipio/${formData.id}`, {
                 nombre: formData.nombre,
-                estado_id: formData.estado_id,
+                estado_id: formData.estado_id?.value || '',
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -212,7 +221,9 @@ function Municipio() {
         setFormData({
             id: municipio.id,
             nombre: municipio.nombre || '',
-            estado_id: municipio.estado_id || '',
+            estado_id: municipio.estado_id
+            ? { value: String(municipio.estado_id), label: estados.find(e => String(e.id) === String(municipio.estado_id))?.nombre || '' }
+            : null,
         });
         setCurrentModal('municipio');
     };
@@ -244,7 +255,6 @@ function Municipio() {
                                         onChange={val => setFormData(prev => ({ ...prev, estado_id: val }))}
                                         placeholder="Seleccione un tipo"
                                         />
-                                    {errors.estado_id && <span className='errorText'>{errors.estado_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="nombre">Municipio:</label>
