@@ -22,7 +22,7 @@ function Empleado() {
         nombre: '',
         apellido: '',
         contacto: '',
-        cargo_id: ''
+        cargo_id: null
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false); 
     const [selectedEmpleadoId, setSelectedEmpleadoId] = useState(null); 
@@ -38,7 +38,7 @@ function Empleado() {
             nombre: '',
             apellido: '',
             contacto: '',
-            cargo_id: ''
+            cargo_id: null
         });
         setErrors({});
     };
@@ -108,6 +108,10 @@ function Empleado() {
 
     
     const handleSave = async () => {
+        if (!formData.cargo_id || !formData.cargo_id.value) {
+            addNotification('Debe seleccionar un cargo', 'warning');
+            return;
+        }
         for (const field in formData) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -120,7 +124,11 @@ function Empleado() {
         }
         setLoading(true);
         try {
-            const response = await axios.post(`${BaseUrl}/empleados`, formData, {
+            const payload = {
+                ...formData,
+                cargo_id: formData.cargo_id?.value || ''
+            };
+            const response = await axios.post(`${BaseUrl}/empleados`, payload, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -139,6 +147,10 @@ function Empleado() {
     };
 
     const handleEdit = async () => {
+        if (!formData.cargo_id || !formData.cargo_id.value) {
+            addNotification('Debe seleccionar un cargo', 'warning');
+            return;
+        }
         const camposObligatorios = ['cedula', 'nombre', 'apellido'];
         for (const field of camposObligatorios) {
             const { regex, errorMessage } = validationRules[field];
@@ -151,7 +163,11 @@ function Empleado() {
         }
         setLoading(true);
         try {
-            const response = await axios.put(`${BaseUrl}/empleados/${formData.id}`, formData, {
+            const payload = {
+                ...formData,
+                cargo_id: formData.cargo_id?.value || ''
+            };
+            const response = await axios.put(`${BaseUrl}/empleados/${formData.id}`, payload, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -220,7 +236,12 @@ function Empleado() {
     const closeModal = () => setCurrentModal(null);
 
     const openEditModal = (empleado) => {
-        setFormData(empleado);
+        setFormData({
+            ...empleado,
+            cargo_id: empleado.cargo_id
+                ? { value: String(empleado.cargo_id), label: cargos.find(c => String(c.id) === String(empleado.cargo_id))?.nombre || '' }
+                : null
+        });
         setErrors({});
         setCurrentModal('empleado');
     };
@@ -293,7 +314,9 @@ function Empleado() {
                                     <label htmlFor="cargo_id">Cargo:</label>
                                     <SingleSelect
                                         options={cargos.map(cargo => ({ value: String(cargo.id), label: cargo.nombre }))}
-                                        value={detalleModal.empleado.cargo_id}
+                                        value={ detalleModal.empleado.cargo_id ? { value: String(detalleModal.empleado.cargo_id), label: cargos.find(c => String(c.id) === String(detalleModal.empleado.cargo_id))?.nombre || '' }
+                                            : null
+                                    }
                                         isDisabled={true}
                                     />
                                 </div>
@@ -337,7 +360,7 @@ function Empleado() {
                                         value={formData.cargo_id}
                                         onChange={val => setFormData(prev => ({ ...prev, cargo_id: val }))}
                                         placeholder="Seleccione un tipo"
-                                        />
+                                    />
                                     {errors.cargo_id && <span className='errorText'>{errors.cargo_id}</span>}
                                 </div>
                             </div>

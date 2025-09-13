@@ -25,8 +25,8 @@ function Solicitud() {
         id: '',
         descripcion: '',
         fecha_solicitada: '',
-        tipo_solicitud_id: '',
-        propiedad_id: '',
+        tipo_solicitud_id: null,
+        propiedad_id: null,
         fecha_programada: '',
         estado: '',
     });
@@ -91,8 +91,8 @@ function Solicitud() {
         id: '',
         descripcion: '',
         fecha_solicitada: '',
-        tipo_solicitud_id: '',
-        propiedad_id: '',
+        tipo_solicitud_id: null,
+        propiedad_id: null,
         fecha_programada: '',
         estado: '',
     });
@@ -135,8 +135,12 @@ function Solicitud() {
             fecha_solicitada: item.fecha_solicitada || '',
             fecha_resolucion: item.fecha_resolucion || '',
             fecha_programada: item.fecha_programada || item.fecha_planificacion || '',
-            tipo_solicitud_id: item.tipo_solicitud_id ? String(item.tipo_solicitud_id) : '',
-            propiedad_id: item.propiedad_id ? String(item.propiedad_id) : '',
+            tipo_solicitud_id: item.tipo_solicitud_id
+                ? tipoSolicitudOptions.find(opt => String(opt.value) === String(item.tipo_solicitud_id)) || null
+                : null,
+            propiedad_id: item.propiedad_id
+                ? propiedadOptions.find(opt => String(opt.value) === String(item.propiedad_id)) || null
+                : null,
             estado: item.estado || 'creada',
         });
         setErrors({});
@@ -159,6 +163,13 @@ function Solicitud() {
 
     
     const handleSave = async () => {
+        if (!formData.tipo_solicitud_id || !formData.tipo_solicitud_id.value) {
+            newErrors.tipo_solicitud_id = 'Debe seleccionar un tipo de solicitud';
+        }
+        if (!formData.propiedad_id || !formData.propiedad_id.value) {
+            newErrors.propiedad_id = 'Debe seleccionar una propiedad';
+        }
+
         let newErrors = {};
         for (const field of ['descripcion', 'fecha_solicitada', 'tipo_solicitud_id', 'propiedad_id']) {
             if (validationRules[field]) {
@@ -177,6 +188,8 @@ function Solicitud() {
         try {
             const cleanFormData = {
                 ...formData,
+                tipo_solicitud_id: formData.tipo_solicitud_id?.value || '',
+                propiedad_id: formData.propiedad_id?.value || '',
                 fecha_solicitada: formData.fecha_solicitada || null,
                 fecha_resolucion: formData.fecha_resolucion || null,
                 estado: formData.estado || 'creada',
@@ -197,6 +210,14 @@ function Solicitud() {
 
     
     const handleEdit = async () => {
+
+        if (!formData.tipo_solicitud_id || !formData.tipo_solicitud_id.value) {
+            newErrors.tipo_solicitud_id = 'Debe seleccionar un tipo de solicitud';
+        }
+        if (!formData.propiedad_id || !formData.propiedad_id.value) {
+            newErrors.propiedad_id = 'Debe seleccionar una propiedad';
+        }
+
         let newErrors = {};
         for (const field of ['descripcion', 'fecha_solicitada', 'tipo_solicitud_id', 'propiedad_id']) {
             if (validationRules[field]) {
@@ -215,6 +236,8 @@ function Solicitud() {
         try {
             const cleanFormData = {
                 ...formData,
+                tipo_solicutd_id: formData.tipo_solicitud_id?.value || '',
+                propiedad_id: formData.propiedad_id?.value || '',
                 fecha_solicitada: formData.fecha_solicitada || null,
                 fecha_resolucion: formData.fecha_resolucion || null,
                 estado: formData.estado || 'creada',
@@ -359,7 +382,6 @@ function Solicitud() {
                                         onChange={val => setFormData({ ...formData, tipo_solicitud_id: val })}
                                         placeholder="Seleccione tipo de solicitud"
                                     />
-                                    {errors.tipo_solicitud_id && <span className='errorText'>{errors.tipo_solicitud_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label>Propiedad:</label>
@@ -369,7 +391,6 @@ function Solicitud() {
                                         onChange={val => setFormData({ ...formData, propiedad_id: val })}
                                         placeholder="Seleccione propiedad"
                                     />
-                                    {errors.propiedad_id && <span className='errorText'>{errors.propiedad_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="descripcion">Descripción:</label>

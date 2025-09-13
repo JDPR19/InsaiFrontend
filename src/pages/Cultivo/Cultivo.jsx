@@ -23,7 +23,7 @@ function Cultivo() {
         nombre: '',
         nombre_cientifico: '',
         descripcion: '',
-        tipo_cultivo_id: ''
+        tipo_cultivo_id: null
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedCultivoId, setSelectedCultivoId] = useState(null);
@@ -86,7 +86,7 @@ function Cultivo() {
             nombre: '',
             nombre_cientifico: '',
             descripcion: '',
-            tipo_cultivo_id: ''
+            tipo_cultivo_id: null
         });
     };
 
@@ -113,6 +113,11 @@ function Cultivo() {
     };
 
     const handleSave = async () => {
+        if (!formData.tipo_cultivo_id || !formData.tipo_cultivo_id.value) {
+            addNotification('Debe seleccionar un tipo de cultivo', 'warning');
+            setLoading(false);
+            return;
+        }
         for (const field of ['nombre', 'tipo_cultivo_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -125,13 +130,12 @@ function Cultivo() {
             }
         }
         setLoading(true);
-
         try {
             await axios.post(`${BaseUrl}/cultivo`, {
                 nombre: formData.nombre,
                 nombre_cientifico: formData.nombre_cientifico,
                 descripcion: formData.descripcion,
-                tipo_cultivo_id: formData.tipo_cultivo_id
+                tipo_cultivo_id: formData.tipo_cultivo_id?.value || ''
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -149,6 +153,11 @@ function Cultivo() {
     };
 
     const handleEdit = async () => {
+        if (!formData.tipo_cultivo_id || !formData.tipo_cultivo_id.value) {
+            addNotification('Debe seleccionar un tipo de cultivo', 'warning');
+            setLoading(false);
+            return;
+        }
         for (const field of ['nombre', 'tipo_cultivo_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -159,7 +168,6 @@ function Cultivo() {
             }
         }
         setLoading(true);
-
         try {
             await axios.put(`${BaseUrl}/cultivo/${formData.id}`, {
                 nombre: formData.nombre,
@@ -235,7 +243,7 @@ function Cultivo() {
             nombre: cultivo.nombre || '',
             nombre_cientifico: cultivo.nombre_cientifico || '',
             descripcion: cultivo.descripcion || '',
-            tipo_cultivo_id: cultivo.tipo_cultivo_id || ''
+            tipo_cultivo_id: tiposOptions.find(opt => String(opt.value) === String(cultivo.tipo_cultivo_id)) || null
         });
         setCurrentModal('cultivo');
     };
@@ -287,7 +295,7 @@ function Cultivo() {
                                     <label htmlFor="tipo_cultivo_id">Tipo:</label>
                                     <SingleSelect
                                         options={tiposOptions}
-                                        value={detalleModal.cultivo.tipo_cultivo_id}
+                                        value={tiposOptions.find(opt => String(opt.value) === String(detalleModal.cultivo.tipo_cultivo_id)) || null}
                                         isDisabled={true}
                                     />
                                 </div>

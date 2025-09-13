@@ -23,7 +23,7 @@ function Planificacion() {
     const [detalleModal, setDetalleModal] = useState({ abierto: false, planificacion: null });
     const [formData, setFormData] = useState({
         id: '',
-        solicitud_id: '',
+        solicitud_id: null,
         fecha_programada: '',
         actividad: '',
         objetivo: '',
@@ -31,7 +31,7 @@ function Planificacion() {
         convocatoria: '',
         ubicacion: '',
         aseguramiento: '',
-        tipo_inspeccion_fito_id: '',
+        tipo_inspeccion_fito_id: null,
         estado: '',
         empleados_ids: []
     });
@@ -118,7 +118,7 @@ function Planificacion() {
     const resetFormData = () => {
         setFormData({
             id: '',
-            solicitud_id: '',
+            solicitud_id: null,
             fecha_programada: '',
             actividad: '',
             objetivo: '',
@@ -126,7 +126,7 @@ function Planificacion() {
             convocatoria: '',
             ubicacion: '',
             aseguramiento: '',
-            tipo_inspeccion_fito_id: '',
+            tipo_inspeccion_fito_id: null,
             estado: '',
             empleados_ids: []
         });
@@ -147,7 +147,7 @@ function Planificacion() {
     const openEditModal = (item) => {
         setFormData({
             id: item.id,
-            solicitud_id: item.solicitud_id ? String(item.solicitud_id) : '',
+            solicitud_id: solicitudOptions.find(opt => String(opt.value) === String(item.solicitud_id)) || null,
             fecha_programada: item.fecha_programada || '',
             actividad: item.actividad || '',
             objetivo: item.objetivo || '',
@@ -155,7 +155,7 @@ function Planificacion() {
             convocatoria: item.convocatoria || '',
             ubicacion: item.ubicacion || '',
             aseguramiento: item.aseguramiento || '',
-            tipo_inspeccion_fito_id: item.tipo_inspeccion_fito_id ? String(item.tipo_inspeccion_fito_id) : '',
+            tipo_inspeccion_fito_id: tipoInspeccionOptions.find(opt => String(opt.value) === String(item.tipo_inspeccion_fito_id)) || null,
             estado: item.estado || 'pendiente',
             empleados_ids: (item.empleados || []).map(e => String(e.id))
         });
@@ -179,14 +179,14 @@ function Planificacion() {
     const handleSolicitudChange = (val) => {
         setFormData(prev => ({ ...prev, solicitud_id: val }));
     };
+    const handleTipoInspeccionChange = (val) => {
+        setFormData(prev => ({ ...prev, tipo_inspeccion_fito_id: val }));
+    };
     const handleEmpleadosChange = (selected) => {
         setFormData(prev => ({
             ...prev,
             empleados_ids: selected ? selected.map(opt => opt.value) : []
         }));
-    };
-    const handleTipoInspeccionChange = (val) => {
-        setFormData(prev => ({ ...prev, tipo_inspeccion_fito_id: val }));
     };
     const clearMultiSelect = () => {
         setFormData(prev => ({
@@ -222,10 +222,21 @@ function Planificacion() {
             addNotification('Completa todos los campos obligatorios', 'warning');
             return;
         }
+        if (!formData.solicitud_id || !formData.solicitud_id.value) {
+            addNotification('Debe seleccionar una solicitud', 'warning');
+            return;
+        }
+        if (!formData.tipo_inspeccion_fito_id || !formData.tipo_inspeccion_fito_id.value) {
+            addNotification('Debe seleccionar un tipo de inspección', 'warning');
+            return;
+        }
         setLoading(true);
         try {
             const cleanFormData = {
                 ...formData,
+                solicitud_id: formData.solicitud_id?.value || '',
+                tipo_inspeccion_fito_id: formData.tipo_inspeccion_fito_id?.value || '',
+                empleados_ids: formData.empleados_ids,
                 fecha_programada: formData.fecha_programada || null,
                 estado: formData.estado || 'pendiente'
             };
@@ -258,10 +269,21 @@ function Planificacion() {
             addNotification('Completa todos los campos obligatorios', 'warning');
             return;
         }
+        if (!formData.solicitud_id || !formData.solicitud_id.value) {
+            addNotification('Debe seleccionar una solicitud', 'warning');
+            return;
+        }
+        if (!formData.tipo_inspeccion_fito_id || !formData.tipo_inspeccion_fito_id.value) {
+            addNotification('Debe seleccionar un tipo de inspección', 'warning');
+            return;
+        }
         setLoading(true);
         try {
             const cleanFormData = {
                 ...formData,
+                solicitud_id: formData.solicitud_id?.value || '',
+                tipo_inspeccion_fito_id: formData.tipo_inspeccion_fito_id?.value || '',
+                empleados_ids: formData.empleados_ids,
                 fecha_programada: formData.fecha_programada || null,
                 estado: formData.estado || 'pendiente'
             };
@@ -338,9 +360,7 @@ function Planificacion() {
                                     <label>Solicitud:</label>
                                     <SingleSelect
                                         options={solicitudOptions}
-                                        value={detalleModal.planificacion.solicitud_id}
-                                        onChange={() => {}}
-                                        placeholder="Seleccione solicitud"
+                                        value={solicitudOptions.find(opt => String(opt.value) === String(detalleModal.planificacion.solicitud_id)) || null}
                                         isDisabled={true}
                                     />
                                 </div>
@@ -412,9 +432,7 @@ function Planificacion() {
                                     <label>Tipo de Inspección:</label>
                                     <SingleSelect
                                         options={tipoInspeccionOptions}
-                                        value={detalleModal.planificacion.tipo_inspeccion_fito_id}
-                                        onChange={() => {}}
-                                        placeholder="Tipo de inspección"
+                                        value={tipoInspeccionOptions.find(opt => String(opt.value) === String(detalleModal.planificacion.tipo_inspeccion_fito_id)) || null}
                                         isDisabled={true}
                                     />
                                 </div>

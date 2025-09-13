@@ -27,11 +27,11 @@ function Laboratorio() {
         nombre: '',
         descripcion: '',
         ubicación: '',
-        tipo_laboratorio_id: '',
+        tipo_laboratorio_id: null,
         estado_id: '',
-        municipio_id: '',
-        parroquia_id: '',
-        sector_id: ''
+        municipio_id: null,
+        parroquia_id: null,
+        sector_id: null
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedLabId, setSelectedLabId] = useState(null);
@@ -173,11 +173,11 @@ function Laboratorio() {
             nombre: '',
             descripcion: '',
             ubicación: '',
-            tipo_laboratorio_id: '',
-            estado_id: '',
-            municipio_id: '',
-            parroquia_id: '',
-            sector_id: ''
+            tipo_laboratorio_id: null,
+            estado_id: null,
+            municipio_id: null,
+            parroquia_id: null,
+            sector_id: null
         });
         setMunicipios([]);
         setParroquias([]);
@@ -189,12 +189,12 @@ function Laboratorio() {
         setFormData(prev => ({
             ...prev,
             estado_id: val,
-            municipio_id: '',
-            parroquia_id: '',
-            sector_id: ''
+            municipio_id: null,
+            parroquia_id: null,
+            sector_id: null
         }));
         if (val) {
-            fetchMunicipios(val);
+            fetchMunicipios(val.value);
             setParroquias([]);
             setSectores([]);
         } else {
@@ -208,11 +208,11 @@ function Laboratorio() {
         setFormData(prev => ({
             ...prev,
             municipio_id: val,
-            parroquia_id: '',
-            sector_id: ''
+            parroquia_id: null,
+            sector_id: null
         }));
         if (val) {
-            fetchParroquias(val);
+            fetchParroquias(val.value);
             setSectores([]);
         } else {
             setParroquias([]);
@@ -224,10 +224,10 @@ function Laboratorio() {
         setFormData(prev => ({
             ...prev,
             parroquia_id: val,
-            sector_id: ''
+            sector_id: null
         }));
         if (val) {
-            fetchSectores(val);
+            fetchSectores(val.value);
         } else {
             setSectores([]);
         }
@@ -260,6 +260,26 @@ function Laboratorio() {
     };
 
     const handleSave = async () => {
+        if (!formData.tipo_laboratorio_id || !formData.tipo_laboratorio_id.value) {
+            addNotification('Debe seleccionar un tipo de laboratorio', 'warning');
+            return;
+        }
+        if (!formData.estado_id || !formData.estado_id.value) {
+            addNotification('Debe seleccionar un estado', 'warning');
+            return;
+        }
+        if (!formData.municipio_id || !formData.municipio_id.value) {
+            addNotification('Debe seleccionar un municipio', 'warning');
+            return;
+        }
+        if (!formData.parroquia_id || !formData.parroquia_id.value) {
+            addNotification('Debe seleccionar una parroquia', 'warning');
+            return;
+        }
+        if (!formData.sector_id || !formData.sector_id.value) {
+            addNotification('Debe seleccionar un sector', 'warning');
+            return;
+        }
         for (const field of ['nombre', 'tipo_laboratorio_id', 'sector_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -279,8 +299,8 @@ function Laboratorio() {
                 nombre: formData.nombre,
                 descripcion: formData.descripcion,
                 ubicación: formData.ubicación,
-                tipo_laboratorio_id: formData.tipo_laboratorio_id,
-                sector_id: formData.sector_id
+                tipo_laboratorio_id: formData.tipo_laboratorio_id?.value || '',
+                sector_id: formData.sector_id?.value || ''
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -298,6 +318,26 @@ function Laboratorio() {
     };
 
     const handleEdit = async () => {
+        if (!formData.tipo_laboratorio_id || !formData.tipo_laboratorio_id.value) {
+            addNotification('Debe seleccionar un tipo de laboratorio', 'warning');
+            return;
+        }
+        if (!formData.estado_id || !formData.estado_id.value) {
+            addNotification('Debe seleccionar un estado', 'warning');
+            return;
+        }
+        if (!formData.municipio_id || !formData.municipio_id.value) {
+            addNotification('Debe seleccionar un municipio', 'warning');
+            return;
+        }
+        if (!formData.parroquia_id || !formData.parroquia_id.value) {
+            addNotification('Debe seleccionar una parroquia', 'warning');
+            return;
+        }
+        if (!formData.sector_id || !formData.sector_id.value) {
+            addNotification('Debe seleccionar un sector', 'warning');
+            return;
+        }
         for (const field of ['nombre', 'tipo_laboratorio_id', 'sector_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -315,8 +355,8 @@ function Laboratorio() {
                 nombre: formData.nombre,
                 descripcion: formData.descripcion,
                 ubicación: formData.ubicación,
-                tipo_laboratorio_id: formData.tipo_laboratorio_id,
-                sector_id: formData.sector_id
+                tipo_laboratorio_id: formData.tipo_laboratorio_id?.value || '',
+                sector_id: formData.sector_id?.value || ''
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -386,11 +426,11 @@ function Laboratorio() {
             nombre: lab.nombre || '',
             descripcion: lab.descripcion || '',
             ubicación: lab.ubicación || '',
-            tipo_laboratorio_id: lab.tipo_laboratorio_id || '',
-            estado_id: lab.estado_id || '',
-            municipio_id: lab.municipio_id || '',
-            parroquia_id: lab.parroquia_id || '',
-            sector_id: lab.sector_id || ''
+            tipo_laboratorio_id: tiposOptions.find(opt => String(opt.value) === String(lab.tipo_laboratorio_id)) || null,
+            estado_id: estadosOptions.find(opt => String(opt.value) === String(lab.estado_id)) || null,
+            municipio_id: municipiosOptions.find(opt => String(opt.value) === String(lab.municipio_id)) || null,
+            parroquia_id: parroquiasOptions.find(opt => String(opt.value) === String(lab.parroquia_id)) || null,
+            sector_id: sectoresOptions.find(opt => String(opt.value) === String(lab.sector_id)) || null
         });
         fetchMunicipios(lab.estado_id);
         fetchParroquias(lab.municipio_id);
@@ -444,7 +484,7 @@ function Laboratorio() {
                                     <label htmlFor="tipo_laboratorio_id">Tipo de laboratorio:</label>
                                     <SingleSelect
                                         options={tiposOptions}
-                                        value={detalleModal.laboratorio.tipo_laboratorio_id}
+                                        value={tiposOptions.find(opt => String(opt.value) === String(detalleModal.laboratorio.tipo_laboratorio_id)) || null}
                                         isDisabled={true}
                                     />
                                 </div>
@@ -452,7 +492,7 @@ function Laboratorio() {
                                     <label htmlFor="estado_id">Estado:</label>
                                     <SingleSelect
                                         options={estadosOptions}
-                                        value={detalleModal.laboratorio.estado_id}
+                                        value={estadosOptions.find(opt => String(opt.value) === String(detalleModal.laboratorio.estado_id)) || null}
                                         isDisabled={true}
                                     />
                                 </div>
@@ -460,7 +500,7 @@ function Laboratorio() {
                                     <label htmlFor="municipio_id">Municipio:</label>
                                     <SingleSelect
                                         options={municipiosOptions}
-                                        value={detalleModal.laboratorio.municipio_id}
+                                        value={municipiosOptions.find(opt => String(opt.value) === String(detalleModal.laboratorio.municipio_id)) || null}
                                         isDisabled={true}
                                     />
                                 </div>
@@ -468,7 +508,7 @@ function Laboratorio() {
                                     <label htmlFor="parroquia_id">Parroquia:</label>
                                     <SingleSelect
                                         options={parroquiasOptions}
-                                        value={detalleModal.laboratorio.parroquia_id}
+                                        value={parroquiasOptions.find(opt => String(opt.value) === String(detalleModal.laboratorio.parroquia_id)) || null}
                                         isDisabled={true}
                                     />
                                 </div>
@@ -476,7 +516,7 @@ function Laboratorio() {
                                     <label htmlFor="sector_id">Sector:</label>
                                     <SingleSelect
                                         options={sectoresOptions}
-                                        value={detalleModal.laboratorio.sector_id}
+                                        value={sectoresOptions.find(opt => String(opt.value) === String(detalleModal.laboratorio.sector_id)) || null}
                                         isDisabled={true}
                                     />
                                 </div>
@@ -520,7 +560,6 @@ function Laboratorio() {
                                         onChange={val => setFormData(prev => ({ ...prev, tipo_laboratorio_id: val }))}
                                         placeholder="Seleccione un tipo"
                                     />
-                                    {errors.tipo_laboratorio_id && <span className='errorText'>{errors.tipo_laboratorio_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="estado_id">Estado:</label>
@@ -530,7 +569,6 @@ function Laboratorio() {
                                         onChange={handleEstadoChange}
                                         placeholder="Seleccione un estado"
                                     />
-                                    {errors.estado_id && <span className='errorText'>{errors.estado_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="municipio_id">Municipio:</label>
@@ -541,7 +579,6 @@ function Laboratorio() {
                                         placeholder="Seleccione un municipio"
                                         isDisabled={!formData.estado_id || municipiosOptions.length === 0}
                                     />
-                                    {errors.municipio_id && <span className='errorText'>{errors.municipio_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="parroquia_id">Parroquia:</label>
@@ -552,7 +589,6 @@ function Laboratorio() {
                                         placeholder="Seleccione una parroquia"
                                         isDisabled={!formData.municipio_id || parroquiasOptions.length === 0}
                                     />
-                                    {errors.parroquia_id && <span className='errorText'>{errors.parroquia_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="sector_id">Sector:</label>
@@ -563,7 +599,6 @@ function Laboratorio() {
                                         placeholder="Seleccione un sector"
                                         isDisabled={!formData.parroquia_id || sectoresOptions.length === 0}
                                     />
-                                    {errors.sector_id && <span className='errorText'>{errors.sector_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="descripcion">Descripción:</label>

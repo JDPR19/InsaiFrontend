@@ -26,7 +26,7 @@ function Programas() {
         id: '',
         nombre: '',
         descripcion: '',
-        tipo_programa_fito_id: '',
+        tipo_programa_fito_id: null,
         empleados_ids: [],
         plaga_fito_ids: [],
         cultivo_ids: []
@@ -136,7 +136,7 @@ function Programas() {
             id: '',
             nombre: '',
             descripcion: '',
-            tipo_programa_fito_id: '',
+            tipo_programa_fito_id: null,
             empleados_ids: [],
             plaga_fito_ids: [],
             cultivo_ids: []
@@ -154,11 +154,14 @@ function Programas() {
         }
     };
 
-    
+    const tiposOptions = tipos.map(tipo => ({ value: String(tipo.id), label: tipo.nombre }));
     const empleadosOptions = empleados.map(e => ({ value: String(e.id), label: e.nombre }));
     const plagasOptions = plagas.map(p => ({ value: String(p.id), label: p.nombre }));
     const cultivosOptions = cultivos.map(c => ({ value: String(c.id), label: c.nombre }));
 
+    const handleTipoProgramaChange = (val) => {
+        setFormData(prev => ({ ...prev, tipo_programa_fito_id: val }));
+    };
 
     const handleEmpleadosChange = (selected) => {
         setFormData(prev => ({
@@ -196,7 +199,11 @@ function Programas() {
     };
 
     const handleSave = async () => {
-        setLoading(true);
+        if (!formData.tipo_programa_fito_id || !formData.tipo_programa_fito_id.value) {
+            addNotification('Debe seleccionar un tipo de programa', 'warning');
+            setLoading(false);
+            return;
+        }
         for (const field of ['nombre', 'tipo_programa_fito_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -209,12 +216,12 @@ function Programas() {
                 }
             }
         }
-
+        setLoading(true);
         try {
             await axios.post(`${BaseUrl}/programa`, {
                 nombre: formData.nombre,
                 descripcion: formData.descripcion,
-                tipo_programa_fito_id: formData.tipo_programa_fito_id,
+                tipo_programa_fito_id: formData.tipo_programa_fito_id?.value || '',
                 empleados_ids: formData.empleados_ids,
                 plaga_fito_ids: formData.plaga_fito_ids,
                 cultivo_ids: formData.cultivo_ids
@@ -235,7 +242,11 @@ function Programas() {
     };
 
     const handleEdit = async () => {
-        setLoading(true);
+        if (!formData.tipo_programa_fito_id || !formData.tipo_programa_fito_id.value) {
+            addNotification('Debe seleccionar un tipo de programa', 'warning');
+            setLoading(false);
+            return;
+        }
         for (const field of ['nombre']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -246,12 +257,12 @@ function Programas() {
                 return;
             }
         }
-
+        setLoading(true);
         try {
             await axios.put(`${BaseUrl}/programa/${formData.id}`, {
                 nombre: formData.nombre,
                 descripcion: formData.descripcion,
-                tipo_programa_fito_id: formData.tipo_programa_fito_id,
+                tipo_programa_fito_id: formData.tipo_programa_fito_id?.value || '',
                 empleados_ids: formData.empleados_ids,
                 plaga_fito_ids: formData.plaga_fito_ids,
                 cultivo_ids: formData.cultivo_ids
@@ -323,7 +334,7 @@ function Programas() {
             id: programa.id,
             nombre: programa.nombre || '',
             descripcion: programa.descripcion || '',
-            tipo_programa_fito_id: programa.tipo_programa_fito_id || '',
+            tipo_programa_fito_id: tiposOptions.find(opt => String(opt.value) === String(programa.tipo_programa_fito_id)) || null,
             empleados_ids: (programa.empleados || []).map(e => String(e.id)),
             plaga_fito_ids: (programa.plagas || []).map(p => String(p.id)),
             cultivo_ids: (programa.cultivos || []).map(c => String(c.id))
@@ -368,9 +379,10 @@ function Programas() {
                                 <div className='formGroup'>
                                     <label htmlFor="tipo_programa_fito_id">Tipo de Programa:</label>
                                     <SingleSelect
-                                        options={tipos.map(tipo => ({ value: String(tipo.id), label: tipo.nombre }))}
-                                        value={detalleModal.programa.tipo_programa_fito_id}
-                                        isDisabled={true}
+                                        options={tiposOptions}
+                                        value={tiposOptions.find(opt => String(opt.value) === String(detalleModal.programa.tipo_programa_fito_id)) || null}
+                                        onChange={handleTipoProgramaChange}
+                                        placeholder="Seleccione un tipo"
                                     />
                                 </div>
                                 <div className='formGroup'>

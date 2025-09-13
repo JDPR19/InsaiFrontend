@@ -34,12 +34,12 @@ function Propiedad() {
         ubicación: '',
         posee_certificado: 'NO',
         cultivos_ids: [],
-        tipo_propiedad_id: '',
-        estado_id: '',
-        municipio_id: '',
-        parroquia_id: '',
-        sector_id: '',
-        productor_id: ''
+        tipo_propiedad_id: null,
+        estado_id: null,
+        municipio_id: null,
+        parroquia_id: null,
+        sector_id: null,
+        productor_id: null
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedPropiedadId, setSelectedPropiedadId] = useState(null);
@@ -184,12 +184,12 @@ function Propiedad() {
         setFormData(prev => ({
             ...prev,
             estado_id: val,
-            municipio_id: '',
-            parroquia_id: '',
-            sector_id: ''
+            municipio_id: null,
+            parroquia_id: null,
+            sector_id: null
         }));
         if (val) {
-            fetchMunicipios(val);
+            fetchMunicipios(val.value);
             setParroquias([]);
             setSectores([]);
         } else {
@@ -203,11 +203,11 @@ function Propiedad() {
         setFormData(prev => ({
             ...prev,
             municipio_id: val,
-            parroquia_id: '',
-            sector_id: ''
+            parroquia_id: null,
+            sector_id: null
         }));
         if (val) {
-            fetchParroquias(val);
+            fetchParroquias(val.value);
             setSectores([]);
         } else {
             setParroquias([]);
@@ -219,10 +219,10 @@ function Propiedad() {
         setFormData(prev => ({
             ...prev,
             parroquia_id: val,
-            sector_id: ''
+            sector_id: null
         }));
         if (val) {
-            fetchSectores(val);
+            fetchSectores(val.value);
         } else {
             setSectores([]);
         }
@@ -245,12 +245,12 @@ function Propiedad() {
             sitios_asociados: '',
             ubicación: '',
             cultivos_ids: [],
-            tipo_propiedad_id: '',
-            estado_id: '',
-            municipio_id: '',
-            parroquia_id: '',
-            sector_id: '',
-            productor_id: ''
+            tipo_propiedad_id: null,
+            estado_id: null,
+            municipio_id: null,
+            parroquia_id: null,
+            sector_id: null,
+            productor_id: null
         });
         setErrors({});
     };
@@ -293,9 +293,44 @@ function Propiedad() {
             addNotification('RIF y Nombre son obligatorios', 'warning');
             return;
         }
+        if (!formData.tipo_propiedad_id || !formData.tipo_propiedad_id.value) {
+            addNotification('Debe seleccionar un tipo de propiedad', 'warning');
+            return;
+        }
+        if (!formData.productor_id || !formData.productor_id.value) {
+            addNotification('Debe seleccionar un productor responsable', 'warning');
+            return;
+        }
+        if (!formData.estado_id || !formData.estado_id.value) {
+            addNotification('Debe seleccionar un estado', 'warning');
+            return;
+        }
+        if (!formData.municipio_id || !formData.municipio_id.value) {
+            addNotification('Debe seleccionar un municipio', 'warning');
+            return;
+        }
+        if (!formData.parroquia_id || !formData.parroquia_id.value) {
+            addNotification('Debe seleccionar una parroquia', 'warning');
+            return;
+        }
+        if (!formData.sector_id || !formData.sector_id.value) {
+            addNotification('Debe seleccionar un sector', 'warning');
+            return;
+        }
         setLoading(true);
         try {
-            await axios.post(`${BaseUrl}/propiedad`, formData, {
+            const cleanFormData = {
+                ...formData,
+                tipo_propiedad_id: formData.tipo_propiedad_id?.value || '',
+                productor_id: formData.productor_id?.value || '',
+                estado_id: formData.estado_id?.value || '',
+                municipio_id: formData.municipio_id?.value || '',
+                parroquia_id: formData.parroquia_id?.value || '',
+                sector_id: formData.sector_id?.value || '',
+                cultivos_ids: formData.cultivos_ids,
+            };
+
+            await axios.post(`${BaseUrl}/propiedad`, cleanFormData, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Propiedad registrada con éxito', 'success');
@@ -314,9 +349,44 @@ function Propiedad() {
             addNotification('RIF y Nombre son obligatorios', 'warning');
             return;
         }
+        if (!formData.tipo_propiedad_id || !formData.tipo_propiedad_id.value) {
+            addNotification('Debe seleccionar un tipo de propiedad', 'warning');
+            return;
+        }
+        if (!formData.productor_id || !formData.productor_id.value) {
+            addNotification('Debe seleccionar un productor responsable', 'warning');
+            return;
+        }
+        if (!formData.estado_id || !formData.estado_id.value) {
+            addNotification('Debe seleccionar un estado', 'warning');
+            return;
+        }
+        if (!formData.municipio_id || !formData.municipio_id.value) {
+            addNotification('Debe seleccionar un municipio', 'warning');
+            return;
+        }
+        if (!formData.parroquia_id || !formData.parroquia_id.value) {
+            addNotification('Debe seleccionar una parroquia', 'warning');
+            return;
+        }
+        if (!formData.sector_id || !formData.sector_id.value) {
+            addNotification('Debe seleccionar un sector', 'warning');
+            return;
+        }
         setLoading(true);
         try {
-            await axios.put(`${BaseUrl}/propiedad/${formData.id}`, formData, {
+            const cleanFormData = {
+                ...formData,
+                tipo_propiedad_id: formData.tipo_propiedad_id?.value || '',
+                productor_id: formData.productor_id?.value || '',
+                estado_id: formData.estado_id?.value || '',
+                municipio_id: formData.municipio_id?.value || '',
+                parroquia_id: formData.parroquia_id?.value || '',
+                sector_id: formData.sector_id?.value || '',
+                cultivos_ids: formData.cultivos_ids,
+            };
+
+            await axios.put(`${BaseUrl}/propiedad/${formData.id}`, cleanFormData, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Propiedad actualizada con éxito', 'success');
@@ -384,12 +454,12 @@ function Propiedad() {
         ubicación: propiedad.ubicación || '',
         posee_certificado: propiedad.posee_certificado || 'NO',
         cultivos_ids: (propiedad.cultivos || []).map(c => String(c.id)),
-        tipo_propiedad_id: propiedad.tipo_propiedad_id ? String(propiedad.tipo_propiedad_id) : '',
-        productor_id: propiedad.productor_id ? String(propiedad.productor_id) : '',
-        estado_id: propiedad.estado_id ? String(propiedad.estado_id) : '',
-        municipio_id: propiedad.municipio_id ? String(propiedad.municipio_id) : '',
-        parroquia_id: propiedad.parroquia_id ? String(propiedad.parroquia_id) : '',
-        sector_id: propiedad.sector_id ? String(propiedad.sector_id) : ''
+        tipo_propiedad_id: tiposOptions.find(opt => String(opt.value) === String(propiedad.tipo_propiedad_id)) || null,
+        productor_id: productoresOptions.find(opt => String(opt.value) === String(propiedad.productor_id)) || null,
+        estado_id: estadosOptions.find(opt => String(opt.value) === String(propiedad.estado_id)) || null,
+        municipio_id: municipiosOptions.find(opt => String(opt.value) === String(propiedad.municipio_id)) || null,
+        parroquia_id: parroquiasOptions.find(opt => String(opt.value) === String(propiedad.parroquia_id)) || null,
+        sector_id: sectoresOptions.find(opt => String(opt.value) === String(propiedad.sector_id)) || null,
     });
 
     if (propiedad.estado_id) fetchMunicipios(propiedad.estado_id);
@@ -434,7 +504,7 @@ function Propiedad() {
                                     <label>Productor Responsable:</label>
                                     <SingleSelect
                                         options={productoresOptions}
-                                        value={detalleModal.propiedad.productor_id}
+                                        value={productoresOptions.find(opt => String(opt.value) === String(detalleModal.propiedad.productor_id)) || null}
                                         isDisabled={true}
                                     />
                                 </div>
@@ -442,7 +512,7 @@ function Propiedad() {
                                     <label>Tipo de Propiedad:</label>
                                     <SingleSelect
                                         options={tiposOptions}
-                                        value={detalleModal.propiedad.tipo_propiedad_id}
+                                        value={tiposOptions.find(opt => String(opt.value) === String(detalleModal.propiedad.tipo_propiedad_id)) || null}
                                         isDisabled={true}
                                     />
                                 </div>
@@ -476,7 +546,7 @@ function Propiedad() {
                                     <label>Estado:</label>
                                     <SingleSelect
                                         options={estadosOptions}
-                                        value={detalleModal.propiedad.estado_id}
+                                        value={tiposOptions.find(opt => String(opt.value) === String(detalleModal.propiedad.tipo_propiedad_id)) || null}
                                         isDisabled={true}
                                     />
                                 </div>
@@ -484,7 +554,7 @@ function Propiedad() {
                                     <label>Municipio:</label>
                                     <SingleSelect
                                         options={municipiosOptions}
-                                        value={detalleModal.propiedad.municipio_id}
+                                        value={municipiosOptions.find(opt => String(opt.value) === String(detalleModal.propiedad.municipio_id)) || null}
                                         isDisabled={true}
                                     />
                                 </div>
@@ -492,7 +562,7 @@ function Propiedad() {
                                     <label>Parroquia:</label>
                                     <SingleSelect
                                         options={parroquiasOptions}
-                                        value={detalleModal.propiedad.parroquia_id}
+                                        value={parroquiasOptions.find(opt => String(opt.value) === String(detalleModal.propiedad.parroquia_id)) || null}
                                         isDisabled={true}
                                     />
                                 </div>
@@ -500,7 +570,7 @@ function Propiedad() {
                                     <label>Sector:</label>
                                     <SingleSelect
                                         options={sectoresOptions}
-                                        value={detalleModal.propiedad.sector_id}
+                                        value={sectoresOptions.find(opt => String(opt.value) === String(detalleModal.propiedad.sector_id)) || null}
                                         isDisabled={true}
                                     />
                                 </div>

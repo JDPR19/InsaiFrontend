@@ -23,7 +23,7 @@ function Plagas() {
         nombre: '',
         nombre_cientifico: '',
         observaciones: '',
-        tipo_plaga_fito_id: ''
+        tipo_plaga_fito_id: null
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedPlagaId, setSelectedPlagaId] = useState(null);
@@ -85,7 +85,7 @@ function Plagas() {
             nombre: '',
             nombre_cientifico: '',
             observaciones: '',
-            tipo_plaga_fito_id: ''
+            tipo_plaga_fito_id: null
         });
     };
 
@@ -112,6 +112,11 @@ function Plagas() {
     };
 
     const handleSave = async () => {
+        if (!formData.tipo_plaga_fito_id || !formData.tipo_plaga_fito_id.value) {
+            addNotification('Debe seleccionar un tipo de plaga', 'warning');
+            setLoading(false);
+            return;
+        }
         for (const field of ['nombre', 'tipo_plaga_fito_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -124,14 +129,13 @@ function Plagas() {
                 }
             }
         }
-        setLoading(true);
-        
+        setLoading(true);   
         try {
             await axios.post(`${BaseUrl}/plagas`, {
                 nombre: formData.nombre,
                 nombre_cientifico: formData.nombre_cientifico,
                 observaciones: formData.observaciones,
-                tipo_plaga_fito_id: formData.tipo_plaga_fito_id
+                tipo_plaga_fito_id: formData.tipo_plaga_fito_id?.value || ''
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -149,6 +153,11 @@ function Plagas() {
     };
 
     const handleEdit = async () => {
+        if (!formData.tipo_plaga_fito_id || !formData.tipo_plaga_fito_id.value) {
+            addNotification('Debe seleccionar un tipo de plaga', 'warning');
+            setLoading(false);
+            return;
+        }
         for (const field of ['nombre', 'tipo_plaga_fito_id']) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -159,14 +168,13 @@ function Plagas() {
                 return;
             }
         }
-        setLoading(true);
-        
+        setLoading(true);       
         try {
             await axios.put(`${BaseUrl}/plagas/${formData.id}`, {
                 nombre: formData.nombre,
                 nombre_cientifico: formData.nombre_cientifico,
                 observaciones: formData.observaciones,
-                tipo_plaga_fito_id: formData.tipo_plaga_fito_id
+                tipo_plaga_fito_id: formData.tipo_plaga_fito_id?.value || ''
             }, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -236,7 +244,7 @@ function Plagas() {
             nombre: plaga.nombre || '',
             nombre_cientifico: plaga.nombre_cientifico || '',
             observaciones: plaga.observaciones || '',
-            tipo_plaga_fito_id: plaga.tipo_plaga_fito_id || ''
+            tipo_plaga_fito_id: tiposOptions.find(opt => String(opt.value) === String(plaga.tipo_plaga_fito_id)) || null
         });
         setCurrentModal('plaga');
     };
@@ -290,7 +298,7 @@ function Plagas() {
                                     <label htmlFor="tipo_plaga_fito_id">Tipo:</label>
                                     <SingleSelect
                                         options={tiposOptions}
-                                        value={detalleModal.plaga.tipo_plaga_fito_id}
+                                        value={tiposOptions.find(opt => String(opt.value) === String(detalleModal.plaga.tipo_plaga_fito_id)) || null}
                                         isDisabled={true}
                                     />
                                 </div>
@@ -335,7 +343,6 @@ function Plagas() {
                                         onChange={handleTipoChange}
                                         placeholder="Seleccione un tipo"
                                     />
-                                    {errors.tipo_plaga_fito_id && <span className='errorText'>{errors.tipo_plaga_fito_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="observaciones">Observaciones:</label>
