@@ -7,7 +7,7 @@ import SearchBar from "../../components/searchbart/SearchBar";
 import axios from 'axios';
 import { BaseUrl } from '../../utils/constans';
 import Spinner from '../../components/spinner/Spinner';
-import FileSaver from 'file-saver';
+import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 import { useNotification } from '../../utils/NotificationContext';
 import searchStyles from '../../components/searchbart/searchmodal.module.css';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
@@ -46,6 +46,44 @@ function Home() {
         inspeccionRechazada: 0
     });
 
+    const totalesPorTipo = {
+        empleadosActivos: { count: true, label: 'TOTAL REGISTROS' },
+        operacionesCompletadas: { count: true, label: 'TOTAL REGISTROS' },
+        programasPendientes: { count: true, label: 'TOTAL REGISTROS' },
+        inspeccionRechazada: { count: true, label: 'TOTAL REGISTROS' }
+    };
+
+    const columnsPorTipo = {
+        empleadosActivos: [
+            { header: 'Nombre', key: 'nombre' },
+            { header: 'Apellido', key: 'apellido' },
+            { header: 'Cédula', key: 'cedula' },
+            { header: 'Cargo', key: 'cargo' },
+            { header: 'Contacto', key: 'contacto' }
+        ],
+        operacionesCompletadas: [
+            { header: 'Código', key: 'codigo' },
+            { header: 'Fecha Solicitada', key: 'fecha_solicitada' },
+            { header: 'Tipo de Solicitud', key: 'tipo_solicitud_nombre' },
+            { header: 'Propiedad', key: 'propiedad_nombre' },
+            { header: 'Usuario', key: 'usuario_username' }
+        ],
+        programasPendientes: [
+            { header: 'Fecha Programada', key: 'fecha_programada' },
+            { header: 'Inspector', key: 'inspector' },
+            { header: 'Tipo de Inspección', key: 'tipo_inspeccion' },
+            { header: 'Propiedad', key: 'propiedad' },
+            { header: 'Estatus', key: 'estado' }
+        ],
+        inspeccionRechazada: [
+            { header: 'Código de Inspección', key: 'codigo_inspeccion' },
+            { header: 'Fecha de Inspección', key: 'fecha_inspeccion' },
+            { header: 'Inspector', key: 'inspector' },
+            { header: 'Propiedad', key: 'propiedad' },
+            { header: 'Motivo de Rechazo', key: 'motivo_rechazo' }
+        ]
+    };
+
     const toBool = (v) => v === true || v === 'true' || v === 1 || v === '1';
     const formatMes = (val) => {
     const d = new Date(val);
@@ -76,6 +114,8 @@ function Home() {
     const [loadingTotales, setLoadingTotales] = useState(false);
     const [detalleModal, setDetalleModal] = useState({ abierto: false, propiedad: null, loading: false });
     const { addNotification } = useNotification();
+    const [pdfUrl, setPdfUrl] = useState(null);
+    const [pdfFileName, setPdfFileName] = useState('');
 
     // Modal para cartas con SearchBar local
     const [modalCarta, setModalCarta] = useState({
@@ -417,46 +457,6 @@ function Home() {
         motivo_rechazo: 'Motivo de Rechazo'
     };
 
-    // Exportar a Excel desde modal de carta
-    const exportToExcelCarta = async () => {
-        const token = localStorage.getItem('token');
-        let url = '';
-        if (modalCarta.titulo === 'Inspectores Activos') url = `${BaseUrl}/home/inspectores-activos/excel`;
-        if (modalCarta.titulo === 'Solicitudes Completadas') url = `${BaseUrl}/home/solicitudes-completadas/excel`;
-        if (modalCarta.titulo === 'Planificaciones Pendientes') url = `${BaseUrl}/home/planificaciones-pendientes/excel`;
-        if (modalCarta.titulo === 'Inspecciones Rechazadas') url = `${BaseUrl}/home/inspecciones-rechazadas/excel`;
-        try {
-            const res = await axios.get(url, {
-                headers: { Authorization: `Bearer ${token}` },
-                responseType: 'blob'
-            });
-            FileSaver.saveAs(res.data, `${modalCarta.titulo.replace(/\s/g, '_')}.xlsx`);
-        } catch (error) {
-            console.error('Error exportando a Excel', error);
-            addNotification('Error exportando a Excel', 'warning');
-        }
-    };
-
-    // Exportar a PDF desde modal de carta
-    const exportToPDFCarta = async () => {
-        const token = localStorage.getItem('token');
-        let url = '';
-        if (modalCarta.titulo === 'Inspectores Activos') url = `${BaseUrl}/home/inspectores-activos/pdf`;
-        if (modalCarta.titulo === 'Solicitudes Completadas') url = `${BaseUrl}/home/solicitudes-completadas/pdf`;
-        if (modalCarta.titulo === 'Planificaciones Pendientes') url = `${BaseUrl}/home/planificaciones-pendientes/pdf`;
-        if (modalCarta.titulo === 'Inspecciones Rechazadas') url = `${BaseUrl}/home/inspecciones-rechazadas/pdf`;
-        try {
-            const res = await axios.get(url, {
-                headers: { Authorization: `Bearer ${token}` },
-                responseType: 'blob'
-            });
-            FileSaver.saveAs(res.data, `${modalCarta.titulo.replace(/\s/g, '_')}.pdf`);
-        } catch (error) {
-            console.error('Error exportando a PDF', error);
-            addNotification('Error exportando a PDF', 'warning');
-        }
-    };
-
     // Paginado
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -530,6 +530,20 @@ function Home() {
             )}
         </tbody>
     );
+
+        const handlePreviewPDF = () => {
+            const blob = exportToPDF({
+                data: modalCarta.datos,
+                columns: columnsPorTipo[modalCarta.tipo],
+                fileName: `${modalCarta.titulo.replace(/\s+/g, ' ')}.pdf`,
+                title: modalCarta.titulo,
+                preview: true
+            });
+            const url = URL.createObjectURL(blob);
+            setPdfUrl(url);
+            setPdfFileName(`${modalCarta.titulo.replace(/\s+/g, ' ')}.pdf`);
+            setModalCarta({ ...modalCarta, abierto: false });
+        };
 
         const ModalDetallePropiedad = () => {
         const propiedad = detalleModal.propiedad;
@@ -705,8 +719,31 @@ function Home() {
                         />
                     </div>
                     <div className='modalActions'>
-                        <button className='btn-estandar' onClick={exportToExcelCarta}>Exportar a Excel</button>
-                        <button className='btn-estandar' onClick={exportToPDFCarta}>Exportar a PDF</button>
+                        <button
+                            className='btn-estandar'
+                            title='Previsualizar PDF'
+                            onClick={handlePreviewPDF}
+                        >
+                            Exportar a PDF
+                        </button>
+                        
+                        <button
+                            className='btn-estandar'
+                            title='Descargar Excel'
+                            onClick={() => {
+                                const totalConfig = totalesPorTipo[modalCarta.tipo] || {};
+                                exportToExcel({
+                                    data: modalCarta.datos,
+                                    columns: columnsPorTipo[modalCarta.tipo],
+                                    fileName: `${modalCarta.titulo.replace(/\s+/g, ' ')}.xlsx`,
+                                    count: totalConfig.count,
+                                    totalLabel: totalConfig.label
+                                });
+                            }}
+                        >
+                            Exportar a Excel
+                        </button>
+
                     </div>
                 </>
             )}
@@ -838,6 +875,22 @@ function Home() {
 
             {detalleModal.abierto && <ModalDetallePropiedad />}
             {modalCarta.abierto && <ModalCartaDetalle />}
+            {pdfUrl && (
+            <div className="modalOverlay">
+                <div className="modalDetalle">
+                    <button className="closeButton" onClick={() => setPdfUrl(null)}>&times;</button>
+                    <iframe src={pdfUrl} width="100%" height="600px" title="Vista previa PDF" />
+                    <a
+                        href={pdfUrl}
+                        download={pdfFileName}
+                        className="btn-estandar"
+                        style={{ marginTop: 16, display: 'inline-block', textDecoration: 'none' }}
+                    >
+                        Descargar PDF
+                    </a>
+                </div>
+            </div>
+        )}
         </div>
     );
 }

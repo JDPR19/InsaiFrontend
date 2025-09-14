@@ -719,6 +719,7 @@ html, body {
   color: var(--white); 
   border: none; 
   transition: background 0.4s ease-in-out;
+  text-decoration: none !important;
 }
 
 .btn-estandar:hover {

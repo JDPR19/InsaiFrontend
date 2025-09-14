@@ -5,6 +5,7 @@ import Insai from '../../../public/assets/insai.png';
 import Perro from '../../../public/assets/perro.png';
 import Importancia from '../../../public/assets/impor.png';
 import inspecciones from '../../../public/assets/export.png';
+import Sisic from '../../../public/assets/logo-sisic.png'
 import icon from '../../components/iconos/iconos';
 import { useNotification } from '../../utils/NotificationContext';
 import Spinner from '../../components/spinner/Spinner';
@@ -72,8 +73,8 @@ function Login() {
 
     const phrases = useMemo(() => [
         "La seguridad y eficiencia son nuestra prioridad.",
-        "Optimiza tus procesos con SIGENSAI.",
-        "SIGENSAI: Facilitamos tu labor.",
+        "Optimiza tus procesos con SISIC-INSAI.",
+        "SISIC-INSAI: Facilitamos tu labor.",
         "Tu aliado en la innovación y eficiencia.",
     ], []);
 
@@ -85,6 +86,7 @@ function Login() {
 
     // Slides del carrusel
     const slides = [
+        { image: Sisic, text: 'Optimiza tus procesos agrícolas' },
         { image: inspecciones, text: 'Inspecciones sanitarias' },
         { image: Insai, text: 'Bienvenido al sistema SIGENSAI' },
         { image: Perro, text: 'Gestión eficiente y segura' },
