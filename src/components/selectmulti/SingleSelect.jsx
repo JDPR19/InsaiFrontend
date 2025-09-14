@@ -83,8 +83,6 @@ const customSelectStyles = {
     <Select
         isMulti={false}
         options={options}
-        // value={options.find(opt => String(opt.value) === String(value)) || null}
-        // onChange={selected => onChange(selected ? selected.value : '')}
         value={value}
         onChange={onChange}
         placeholder={placeholder}

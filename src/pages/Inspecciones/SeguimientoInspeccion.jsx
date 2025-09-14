@@ -24,7 +24,7 @@ function SeguimientoInspeccion() {
     // Estado del formulario
     const [formData, setFormData] = useState({
         id: '',
-        programa_fito_id: '',
+        programa_fito_id: null,
         observacion: ''
     });
     // Opciones para el select de programas 
@@ -91,7 +91,7 @@ function SeguimientoInspeccion() {
     const openModal = () => {
         setFormData({
             id: '',
-            programa_fito_id: '',
+            programa_fito_id: null,
             observacion: ''
         });
         setModalOpen(true);
@@ -101,18 +101,17 @@ function SeguimientoInspeccion() {
     const openEditModal = (asociado) => {
         setFormData({
             id: asociado.id,
-            programa_fito_id: String(asociado.programa_id),
+            programa_fito_id: programaOptions.find(opt => String(opt.value) === String(asociado.programa_id)) || null,
             observacion: asociado.observacion || ''
         });
         setModalOpen(true);
     };
-
     // Cerrar modal
     const closeModal = () => {
         setModalOpen(false);
         setFormData({
             id: '',
-            programa_fito_id: '',
+            programa_fito_id: null,
             observacion: ''
         });
     };
@@ -136,7 +135,7 @@ function SeguimientoInspeccion() {
     try {
         await axios.post(`${BaseUrl}/seguimiento`, {
             inspeccion_est_id: id,
-            programa_fito_id: formData.programa_fito_id,
+            programa_fito_id: formData.programa_fito_id.value,
             observacion: formData.observacion
         }, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }

@@ -1,8 +1,9 @@
 import React, { useRef, useState } from 'react';
-import { Pie, Bar, Line, Radar, PolarArea } from 'react-chartjs-2';
+import { Pie, Bar, Line, Radar, PolarArea, Doughnut} from 'react-chartjs-2';
 import SingleSelect from '../selectmulti/SingleSelect';
 import annotationPlugin from 'chartjs-plugin-annotation';
-ChartJS.register(annotationPlugin);
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+
 import {
     Chart as ChartJS,
     ArcElement,
@@ -16,10 +17,10 @@ import {
     LineElement,
     RadialLinearScale,
     Filler,
-    SubTitle
+    SubTitle,
 } from 'chart.js';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
 
+ChartJS.register(annotationPlugin);
 ChartJS.register(
     ArcElement,
     Tooltip,
@@ -32,7 +33,9 @@ ChartJS.register(
     LineElement,
     RadialLinearScale,
     Filler,
-    ChartDataLabels
+    SubTitle,
+    annotationPlugin,
+    ChartDataLabels,
 );
 
 const COLORS = [
@@ -42,8 +45,9 @@ const COLORS = [
 
 const chartTypes = [
     { value: 'bar', label: 'Barras' },
-    { value: 'line', label: 'Líneas' },
     { value: 'pie', label: 'Pie' },
+    { value: 'doughnut', label: 'Dona' },
+    { value: 'line', label: 'Líneas' },
     { value: 'radar', label: 'Radar' },
     { value: 'polar', label: 'Polar Area' },
 ];
@@ -60,89 +64,64 @@ const ChartSwitcher = ({
 
     // Estructura de datos para cada tipo de gráfica
     const getChartData = () => {
-        switch (selectedType) {
-            case 'radar':
-            case 'polar':
-                return {
-                    labels,
-                    datasets: [
-                        {
-                            label,
-                            data,
-                            backgroundColor: COLORS.slice(0, labels.length),
-                            borderColor: COLORS.slice(0, labels.length),
-                        }
-                    ]
-                };
-            case 'bubble':
-                // Espera data = [{x, y, r}, ...]
-                return {
-                    datasets: [
-                        {
-                            label,
-                            data: Array.isArray(data) && data.length && typeof data[0] === 'object' ? data : [],
-                            backgroundColor: COLORS[0],
-                        }
-                    ]
-                };
-            case 'scatter':
-                // Espera data = [{x, y}, ...]
-                return {
-                    datasets: [
-                        {
-                            label,
-                            data: Array.isArray(data) && data.length && typeof data[0] === 'object' ? data : [],
-                            backgroundColor: COLORS[1],
-                        }
-                    ]
-                };
-            default:
-                // bar, line, pie
-                return {
-                    labels,
-                    datasets: [
-                        {
-                            label,
-                            data,
-                            backgroundColor: COLORS.slice(0, labels.length),
-                            borderColor: COLORS.slice(0, labels.length),
-                            fill: selectedType === 'line' ? true : false,
-                            borderWidth: 1,
-                        }
-                    ]
-                };
+            if (
+            (selectedType === 'bar' || selectedType === 'line') &&
+            Array.isArray(data) &&
+            data.length > 0 &&
+            typeof data[0] === 'object' &&
+            data[0].data
+        ) {
+            return {
+                labels,
+                datasets: data.map((serie, idx) => ({
+                    label: serie.label || `Serie ${idx + 1}`,
+                    data: serie.data,
+                    backgroundColor: COLORS[idx % COLORS.length],
+                    borderColor: COLORS[idx % COLORS.length],
+                    fill: selectedType === 'line' ? true : false,
+                    borderWidth: 1,
+                }))
+            };
         }
+        return {
+            labels,
+            datasets: [
+                {
+                    label,
+                    data,
+                    backgroundColor: COLORS.slice(0, labels.length),
+                    borderColor: COLORS.slice(0, labels.length),
+                    fill: selectedType === 'line' ? true : false,
+                    borderWidth: 1,
+                }
+            ]
+        };
     };
 
         // Valores para mostrar
-    const total = Array.isArray(data) ? data.reduce((a, b) => a + b, 0) : 0;
-    const promedio = Array.isArray(data) && data.length ? (total / data.length).toFixed(2) : 0;
-    const maximo = Array.isArray(data) && data.length ? Math.max(...data) : 0;
-    const minimo = Array.isArray(data) && data.length ? Math.min(...data) : 0;
-    const cantidad = Array.isArray(data) ? data.length : 0;
+    const flatData = Array.isArray(data)
+        ? (typeof data[0] === 'number'
+            ? data
+            : (Array.isArray(data[0]?.data)
+                ? data.flatMap(d => d.data).filter(v => typeof v === 'number')
+                : []))
+        : [];
+    const total = flatData.reduce((a, b) => a + b, 0);
+    const promedio = flatData.length ? (total / flatData.length).toFixed(2) : 0;
+    const maximo = flatData.length ? Math.max(...flatData) : 0;
+    const minimo = flatData.length ? Math.min(...flatData) : 0;
+    const cantidad = flatData.length;
 
     const options = {
         responsive: true,
-        maintainAspectRatio: false, // <-- CLAVE para que respete el alto del contenedor
-        plugins: {
-            legend: { 
-                position: 'top',
-                labels: {
-                    color: '#98c79a',
-                    font: { size: 13 },
-                    generateLabels: (chart) => {
-                        const defaultLabels = ChartJS.defaults.plugins.legend.labels.generateLabels(chart);
-                        const dataset = chart.data.datasets[0];
-                        const data = dataset.data;
-                        const total = data.reduce((a, b) => a + b, 0);
-
-                        return defaultLabels.map((label, i) => ({
-                        ...label,
-                        text: `${label.text} (${data[i]} - ${((data[i] / total) * 100).toFixed(1)}%)`
-                        }));
-                    }
-                }
-            },
+        maintainAspectRatio: false,
+        layout: {
+            padding: {
+                top: 0, 
+                bottom: 0,
+            }
+        }, 
+        plugins: {      
             tooltip: {
                 callbacks: {
                     label: function (tooltipItem) {
@@ -153,7 +132,7 @@ const ChartSwitcher = ({
                             const percent = ((value / total) * 100).toFixed(1);
                             return `${tooltipItem.label}: ${value} (${percent}%)`;
                         }
-                        return `${tooltipItem.label || ''}: ${tooltipItem.raw} unidades`;
+                        return `${tooltipItem.dataset.label || ''}${tooltipItem.label ? ' - ' + tooltipItem.label : ''}: ${tooltipItem.raw} unidades`;
                     },
                 },
             },
@@ -161,25 +140,25 @@ const ChartSwitcher = ({
                 display: true,
                 text: title,
                 font: { size: 18, family: 'Poppins, sans-serif', weight: 'bold' },
-                padding: { top: 10, bottom: 20 },
+                padding: { top: 0, bottom: 10 },
                 align: 'center',
                 color: '#98c79a',
             },
             subtitle: {
                 display: true,
                 text: `Total: ${total} | Promedio: ${promedio} | Máx: ${maximo} | Mín: ${minimo} | Datos: ${cantidad} `,
-                color: '#aaa',
+                color: '#539E43',
                 font: { size: 14, family: 'Poppins, sans-serif' },
-                padding: { bottom: 10 }
-            },
+                padding: { bottom: 30 }
+            },    
             datalabels: {
-                color: '#98c79a',
+                color: '#539E43',
                 anchor: 'end',
                 align: 'top',
                 font: { weight: 'bold' },
                 formatter: (value, context) => {
                     // Muestra valor y porcentaje si es pie/polar
-                    if (selectedType === 'pie' || selectedType === 'polar') {
+                    if (selectedType === 'pie' || selectedType === 'polar' || selectedType === 'bar' || selectedType === 'line' ) {
                         const total = context.dataset.data.reduce((a, b) => a + b, 0);
                         const percent = ((value / total) * 100).toFixed(1);
                         return `${value} (${percent}%)`;
@@ -187,42 +166,117 @@ const ChartSwitcher = ({
                     return value;
                 }
             },
-            // annotation: {
-            //     annotations: {
-            //         lineaReferencia: {
-            //         type: 'line',
-            //         yMin: 50,
-            //         yMax: 50,
-            //         borderColor: 'red',
-            //         borderWidth: 2,
-            //         label: {
-            //             content: 'Meta',
-            //             enabled: true,
-            //             position: 'end'
-            //         }
-            //         }
-            //     }
-            // }
+            legend: {
+                position: 'bottom',       
+                labels: {
+                    padding: 25,
+                    color: '#539E43',
+                    font: { size: 13 },
+                    usePointStyle: true,
+                    generateLabels: (chart) => {
+                        const type = chart.config.type; // 'bar' | 'line' | 'pie' | 'radar' | 'polarArea'
+                        const perLabelTypes = new Set(['pie', 'doughnut', 'polarArea']);
+
+                        // 1) Leyenda por label: pie/doughnut/polarArea
+                        if (perLabelTypes.has(type)) {
+                            const ds = chart.data.datasets[0] || { data: [], backgroundColor: [], borderColor: [] };
+                            const total = ds.data.reduce((a, b) => a + (Number(b) || 0), 0) || 1;
+
+                            return chart.data.labels.map((lbl, i) => {
+                                const bg = Array.isArray(ds.backgroundColor) ? ds.backgroundColor[i] : ds.backgroundColor;
+                                const br = Array.isArray(ds.borderColor) ? ds.borderColor[i] : ds.borderColor;
+                                const val = Number(ds.data[i] ?? 0);
+                                const pointHidden = chart.getDatasetMeta(0)?.data?.[i]?.hidden ?? false;
+
+                                return {
+                                    text: `${lbl} (${val} - ${((val / total) * 100).toFixed(1)}%)`,
+                                    fillStyle: bg ?? '#539E43',
+                                    strokeStyle: br ?? bg ?? '#539E43',
+                                    lineWidth: 1,
+                                    hidden: !!pointHidden,
+                                    index: i,          
+                                    datasetIndex: 0,
+                                };
+                            });
+                        }
+
+                        const dsets = chart.data.datasets || [];
+                        if (dsets.length > 1) {
+                            return dsets.map((ds, i) => {
+                                const fill = Array.isArray(ds.backgroundColor) ? (ds.backgroundColor[0] ?? '#539E43') : (ds.backgroundColor ?? '#539E43');
+                                const stroke = Array.isArray(ds.borderColor) ? (ds.borderColor[0] ?? fill) : (ds.borderColor ?? fill);
+                                return {
+                                    text: ds.label ?? `Serie ${i + 1}`,
+                                    fillStyle: fill,
+                                    strokeStyle: stroke,
+                                    lineWidth: 1,
+                                    hidden: chart.getDatasetMeta(i)?.hidden ?? false,
+                                    datasetIndex: i, // toggle por dataset
+                                };
+                            });
+                        }
+                        // Un solo dataset => mostramos por label
+                        const ds0 = dsets[0] || { data: [], backgroundColor: [], borderColor: [] };
+                        return chart.data.labels.map((lbl, i) => {
+                            const bg = Array.isArray(ds0.backgroundColor) ? ds0.backgroundColor[i] : ds0.backgroundColor;
+                            const br = Array.isArray(ds0.borderColor) ? ds0.borderColor[i] : ds0.borderColor;
+                            const pointHidden = chart.getDatasetMeta(0)?.data?.[i]?.hidden ?? false;
+                            const val = Number(ds0.data?.[i] ?? 0);
+                            return {
+                                text: `${lbl} (${val})`,
+                                fillStyle: bg ?? '#539E43',
+                                strokeStyle: br ?? bg ?? '#539E43',
+                                lineWidth: 1,
+                                hidden: !!pointHidden,
+                                index: i,          // toggle por punto (índice de label)
+                                datasetIndex: 0,
+                            };
+                        });
+                    }
+                },
+                onClick: (e, legendItem, legend) => {
+                    const chart = legend.chart;
+                    const type = chart.config.type;
+                    const perLabelTypes = new Set(['pie', 'doughnut', 'polarArea']);
+
+                    // Toggle por punto (label index)
+                    if (perLabelTypes.has(type) || typeof legendItem.index === 'number') {
+                        chart.toggleDataVisibility(legendItem.index);
+                        chart.update();
+                        return;
+                    }
+                    // Toggle por dataset
+                    if (typeof legendItem.datasetIndex === 'number') {
+                        const i = legendItem.datasetIndex;
+                        chart.setDatasetVisibility(i, !chart.isDatasetVisible(i));
+                        chart.update();
+                    }
+                },
+            },
         },
         scales: (selectedType === 'bar' || selectedType === 'line' || selectedType === 'scatter' || selectedType === 'bubble')
             ? {
                 x: {
-                    title: { display: true, text: 'X', color: '#98c79a' },
-                    ticks: { color: '#98c79a' } 
+                    title: { display: true, text: 'X', color: '#539E43' },
+                    ticks: { color: '#539E43' },
+                    grid: { color: '#98c79a' }
                 },
                 y: {
-                    title: { display: true, text: 'Y', color: '#98c79a' },
-                    ticks: { color: '#98c79a' }
+                    title: { display: true, text: 'Y', color: '#539E43' },
+                    ticks: { color: '#539E43' },
+                    grid: { color: '#98c79a' }
                 }
             }
             : undefined
     };
+    
 
     let ChartTag;
     switch (selectedType) {
         case 'bar': ChartTag = Bar; break;
-        case 'line': ChartTag = Line; break;
         case 'pie': ChartTag = Pie; break;
+        case 'doughnut': ChartTag = Doughnut; break;
+        case 'line': ChartTag = Line; break;
         case 'radar': ChartTag = Radar; break;
         case 'polar': ChartTag = PolarArea; break;
         default: return <p>Tipo de gráfica no soportado</p>;
@@ -249,14 +303,14 @@ const ChartSwitcher = ({
 
     // Tamaño específico para graficas
     const chartSize = (selectedType === 'pie' || selectedType === 'polar' || selectedType === 'radar') 
-        ? { width: 320, height: 320 }
+        ? { width: 320, height: 320 ,}
         : { width: 800, height: 360 };
 
     return (
         <div style={{
             width: '100%',
             maxWidth: 800,
-            height: chartSize.height + 120,
+            height: chartSize.height + 100,
             minHeight: 400,
             margin: '0 auto',
             position: 'relative',
@@ -264,11 +318,9 @@ const ChartSwitcher = ({
             flexDirection: 'column',
             alignItems: 'flex-start',
             justifyContent: 'flex-start',
-            marginBottom: 10,
-            marginTop: 10
         }}>
             <div style={{
-                marginBottom: 25,
+                marginBottom: 40,
                 maxWidth: 220,
                 minWidth: 140,
                 width: '100%',
@@ -299,29 +351,11 @@ const ChartSwitcher = ({
             >
                 Descargar
             </button>
-            <div
-                style={{
-                    margin: '10px 0 18px 0',
-                    fontWeight: 600,
-                    color: '#98c79a',
-                    fontSize: '1.08em',
-                    letterSpacing: '0.5px',
-                    display: 'flex',
-                    gap: 24,
-                    flexWrap: 'wrap'
-                }}
-            >
-                <span>Total: {total}</span>
-                <span>Promedio: {promedio}</span>
-                <span>Máximo: {maximo}</span>
-                <span>Mínimo: {minimo}</span>
-                <span>Datos: {cantidad}</span>
-            </div>
             <div style={{
                 width: '100%',
                 height: chartSize.height,
                 minHeight: 200,
-                maxHeight: 300,
+                maxHeight: 500,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -337,7 +371,7 @@ const ChartSwitcher = ({
                         maxHeight: '100%',
                         width: '100%',
                         height: '100%',
-                        display: 'block'
+                        display: 'block',
                     }}
                 />
             </div>

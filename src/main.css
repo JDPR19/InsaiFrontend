@@ -56,6 +56,7 @@ html, body {
 --green6: #71894a;
 --green7: #c7f9cc;
 --green8: #afe6b574;
+--green9: #539E43;
 --green-hover: #5a6d3a;
 --green-hover1: #6ba55a;
 
@@ -314,7 +315,7 @@ html, body {
   width: 100%;
   min-width: 0vh;
   min-height: 0vh;
-  max-width: 120vh;
+  max-width: 140vh;
   max-height: 90vh;
   position: relative;
 }
@@ -446,7 +447,7 @@ html, body {
 .formColumns_tree {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr; 
-    gap: 5px;
+    gap: 15px;
     min-height: 0;
     height: 100%; 
 }
@@ -1365,6 +1366,18 @@ html, body {
   text-align: center;
 }
 
+.badge-estado-modal {
+    display: inline-block;
+    padding: 0.4em 8em;
+    font-size: 1rem;
+    border-radius: 1.5em;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-align: center;
+    min-width: 140px;
+    margin: 0.2em 0;
+}
+
 .badge-creada        { background: var(--badge-bg); color: var(--badge-text); border: 1px solid var(--badge-border);}
 .badge-pendiente     { background: var(--badge-pendiente-bg); color: var(--badge-text); border: 1px solid var(--badge-pendiente-border);}
 .badge-diagnosticada { background: var(--badge-diagnosticada-bg); color: var(--badge-text); border: 1px solid var(--badge-diagnosticada-border);}
@@ -1477,6 +1490,13 @@ html, body {
     word-break: break-word;
 }
 
+.Unique {
+  display: inline-block;
+  margin-right: 2px;
+  margin-left: 2px;
+  font-size: 1.2rem;
+  color: rgba(250, 82, 82, 0.87);
+}
 
 @media (max-width: 700px) {
     .ss-center {

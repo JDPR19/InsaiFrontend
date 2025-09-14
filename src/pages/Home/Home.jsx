@@ -12,48 +12,22 @@ import { useNotification } from '../../utils/NotificationContext';
 import searchStyles from '../../components/searchbart/searchmodal.module.css';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
 
-const camposDetalle = [
-    { key: 'fecha_programada', label: 'Fecha Programada' },
-    { key: 'estado_planificacion', label: 'Estado' },
-    { key: 'objetivo', label: 'Objetivo' },
-    { key: 'actividad', label: 'Actividad' },
-    { key: 'hora', label: 'Hora' },
-    { key: 'convocatoria', label: 'Convocatoria' },
-    { key: 'aseguramiento', label: 'Aseguramiento' },
-    { key: 'ubicacion_planificacion', label: 'Ubicación Planificación' },
-    { key: 'tipo_inspeccion', label: 'Tipo de Inspección' },
-    { key: 'inspector_nombre', label: 'Inspector' },
-    { key: 'inspector_apellido', label: 'Apellido Inspector' },
-    { key: 'inspector_cedula', label: 'Cédula Inspector' },
-    { key: 'inspector_cargo', label: 'Cargo Inspector' },
-    { key: 'propiedad_nombre', label: 'Propiedad' },
-    { key: 'rif', label: 'RIF' },
-    { key: 'propiedad_ubicacion', label: 'Ubicación Propiedad' },
-    { key: 'hectareas', label: 'Hectáreas' },
-    { key: 'posee_certificado', label: 'Posee Certificado' },
-    { key: 'tipo_propiedad_nombre', label: 'Tipo de Propiedad' },
-    { key: 'sector_nombre', label: 'Sector' },
-    { key: 'productor_nombre', label: 'Productor' },
-    { key: 'productor_apellido', label: 'Apellido Productor' },
-    { key: 'productor_cedula', label: 'Cédula Productor' }
-];
-
 const chartFilterOptions = [
     { value: 'empleados-activos', label: 'Empleados Activos' },
     { value: 'empleados-por-cargo', label: 'Empleados por Cargo' },
-    { value: 'empleados-por-estado', label: 'Empleados por Estado' }, // <--- Faltaba
+    { value: 'empleados-por-estado', label: 'Empleados por Estado' }, 
     { value: 'inspecciones-realizadas', label: 'Inspecciones Realizadas' },
-    { value: 'inspecciones-por-tipo', label: 'Inspecciones por Tipo' }, // <--- Faltaba
-    { value: 'inspecciones-por-estado', label: 'Inspecciones por Estado' }, // <--- Faltaba
+    { value: 'inspecciones-por-tipo', label: 'Inspecciones por Tipo' }, 
+    { value: 'inspecciones-por-estado', label: 'Inspecciones por Estado' }, 
     { value: 'planificaciones-por-estado', label: 'Planificaciones por Estado' },
-    { value: 'planificaciones-por-inspector', label: 'Planificaciones por Inspector' }, // <--- Faltaba
+    { value: 'planificaciones-por-inspector', label: 'Planificaciones por Inspector' }, 
     { value: 'solicitudes-por-estado', label: 'Solicitudes por Estado' },
     { value: 'solicitudes-por-tipo', label: 'Solicitudes por Tipo' },
     { value: 'propiedades-registradas', label: 'Propiedades Registradas' },
     { value: 'propiedades-por-tipo', label: 'Propiedades por Tipo' },
-    { value: 'propiedades-por-sector', label: 'Propiedades por Sector' }, // <--- Faltaba
-    { value: 'propiedades-por-municipio', label: 'Propiedades por Municipio' }, // <--- Faltaba
-    { value: 'propiedades-por-parroquia', label: 'Propiedades por Parroquia' }, // <--- Faltaba
+    { value: 'propiedades-por-sector', label: 'Propiedades por Sector' }, 
+    { value: 'propiedades-por-municipio', label: 'Propiedades por Municipio' }, 
+    { value: 'propiedades-por-parroquia', label: 'Propiedades por Parroquia' }, 
     { value: 'productores-registrados', label: 'Productores Registrados' },
     { value: 'programas-por-tipo', label: 'Programas por Tipo' },
     { value: 'total-programas-activos', label: 'Total Programas Activos' },
@@ -542,35 +516,110 @@ function Home() {
         </tbody>
     );
 
-    const ModalDetallePropiedad = () => (
-        <div className='modalOverlay'>
-            <div className='modalDetalle'>
-                <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
-                <h2>Detalle de Operación</h2>
-                {detalleModal.loading ? (
-                    <Spinner text="Cargando detalle..." />
-                ) : detalleModal.propiedad ? (
-                    <table className='detalleTable'>
-                        <tbody>
-                            {camposDetalle.map(({ key, label }) => (
-                                <tr key={key}>
-                                    <th>{label}</th>
-                                    <td>
-                                        {detalleModal.propiedad && detalleModal.propiedad[key] !== null && detalleModal.propiedad[key] !== undefined && detalleModal.propiedad[key] !== ''
-                                            ? String(detalleModal.propiedad[key])
-                                            : <span style={{ color: '#bbb' }}>—</span>
-                                        }
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                ) : (
-                    <p>No se encontró información de la operación.</p>
-                )}
+        const ModalDetallePropiedad = () => {
+        const propiedad = detalleModal.propiedad;
+
+        
+        const sectionTitleStyle = {
+            color: '#98c79a',
+            fontSize: '1.2rem',
+            marginTop: '1.2em',
+            marginBottom: '0.5em',
+            borderBottom: '2px solid #539E43',
+            paddingBottom: '0.2em'
+        };
+
+        return (
+            <div className='modalOverlay'>
+                <div className='modalDetalle'>
+                    <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
+                    <h2>Detalle de Operación</h2>
+                    {detalleModal.loading ? (
+                        <Spinner text="Cargando detalle..." />
+                    ) : propiedad ? (
+                        <div>
+                            <h1 style={sectionTitleStyle}>En estado:</h1>
+                            <table className='detalleTable'>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            {propiedad.estado_planificacion ? (
+                                            <span className={`badge-estado-modal badge-estado badge-${(propiedad.estado_planificacion || '').toLowerCase()}`}>
+                                                {propiedad.estado_planificacion}
+                                            </span>
+                                            ) : '—'}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h1 style={sectionTitleStyle}>Datos de la Planificación</h1>
+                            <table className='detalleTable'>
+                                <tbody>
+                                    <tr><th>Fecha Programada</th><td>{propiedad.fecha_programada || '—'}</td></tr>
+                                    <tr><th>Objetivo</th><td>{propiedad.objetivo || '—'}</td></tr>
+                                    <tr><th>Actividad</th><td>{propiedad.actividad || '—'}</td></tr>
+                                    <tr><th>Hora</th><td>{propiedad.hora || '—'}</td></tr>
+                                    <tr><th>Convocatoria</th><td>{propiedad.convocatoria || '—'}</td></tr>
+                                    <tr><th>Aseguramiento</th><td>{propiedad.aseguramiento || '—'}</td></tr>
+                                    <tr><th>Ubicación Planificación</th><td>{propiedad.ubicacion_planificacion || '—'}</td></tr>
+                                    <tr><th>Tipo de Inspección</th><td>{propiedad.tipo_inspeccion || '—'}</td></tr>
+                                </tbody>
+                            </table>
+
+                            <h1 style={sectionTitleStyle}>Datos de la Propiedad a Inspeccionar</h1>
+                            <table className='detalleTable'>
+                                <tbody>
+                                    <tr><th>Propiedad</th><td>{propiedad.propiedad_nombre || '—'}</td></tr>
+                                    <tr><th>RIF</th><td>{propiedad.rif || '—'}</td></tr>
+                                    <tr><th>Ubicación</th><td>{propiedad.propiedad_ubicacion || '—'}</td></tr>
+                                    <tr><th>Hectáreas</th><td>{propiedad.hectareas || '—'}</td></tr>
+                                    <tr><th>Posee Certificado</th><td>{propiedad.posee_certificado || '—'}</td></tr>
+                                    <tr><th>Tipo de Propiedad</th><td>{propiedad.tipo_propiedad_nombre || '—'}</td></tr>
+                                    <tr><th>Sector</th><td>{propiedad.sector_nombre || '—'}</td></tr>
+                                </tbody>
+                            </table>
+
+                            <h1 style={sectionTitleStyle}>Cultivos de la Propiedad</h1>
+                            <table className='detalleTable'>
+                                <tbody>
+                                    <tr>
+                                        <th>Cultivos</th>
+                                        <td>
+                                            {Array.isArray(propiedad.cultivos) && propiedad.cultivos.length > 0
+                                                ? propiedad.cultivos.join(', ')
+                                                : '—'}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h1 style={sectionTitleStyle}>Datos del Productor</h1>
+                            <table className='detalleTable'>
+                                <tbody>
+                                    <tr><th>Nombre</th><td>{propiedad.productor_nombre || '—'}</td></tr>
+                                    <tr><th>Apellido</th><td>{propiedad.productor_apellido || '—'}</td></tr>
+                                    <tr><th>Cédula</th><td>{propiedad.productor_cedula || '—'}</td></tr>
+                                </tbody>
+                            </table>
+
+                            <h1 style={sectionTitleStyle}>Datos del Inspector Encargado</h1>
+                            <table className='detalleTable'>
+                                <tbody>
+                                    <tr><th>Nombre</th><td>{propiedad.inspector_nombre || '—'}</td></tr>
+                                    <tr><th>Apellido</th><td>{propiedad.inspector_apellido || '—'}</td></tr>
+                                    <tr><th>Cédula</th><td>{propiedad.inspector_cedula || '—'}</td></tr>
+                                    <tr><th>Cargo</th><td>{propiedad.inspector_cargo || '—'}</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <p>No se encontró información de la operación.</p>
+                    )}
+                </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     // Modal de cartas con SearchBar local
     const ModalCartaDetalle = () => (

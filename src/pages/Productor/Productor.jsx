@@ -86,7 +86,6 @@ function Productor() {
     };
 
     const handleSave = async () => {
-        setLoading(true);
         for (const field in formData) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -98,6 +97,7 @@ function Productor() {
                 return;
             }
         }
+        setLoading(true);
         try {
             await axios.post(`${BaseUrl}/productor`, formData, {
                 headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
@@ -295,32 +295,32 @@ function Productor() {
                         <form className='modalForm'>
                             <div className='formColumns'>
                                 <div className='formGroup'>
-                                    <label htmlFor="codigo">Código Runsai:</label>
+                                    <label htmlFor="codigo"><span className='Unique' title='Campo Obligatorio'>*</span>Código Runsai:</label>
                                     <input type="text" id="codigo" value={formData.codigo} onChange={handleChange} className='input' placeholder='Código único'/>
                                     {errors.codigo && <span className='errorText'>{errors.codigo}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="cedula">Cédula:</label>
+                                    <label htmlFor="cedula"><span className='Unique' title='Campo Obligatorio'>*</span>Cédula:</label>
                                     <input type="text" id="cedula" value={formData.cedula} onChange={handleChange} className='input' placeholder='Cédula'/>
                                     {errors.cedula && <span className='errorText'>{errors.cedula}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="nombre">Nombre:</label>
+                                    <label htmlFor="nombre"><span className='Unique' title='Campo Obligatorio'>*</span>Nombre:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Nombre'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="apellido">Apellido:</label>
+                                    <label htmlFor="apellido"><span className='Unique' title='Campo Obligatorio'>*</span>Apellido:</label>
                                     <input type="text" id="apellido" value={formData.apellido} onChange={handleChange} className='input' placeholder='Apellido'/>
                                     {errors.apellido && <span className='errorText'>{errors.apellido}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="contacto">Contacto:</label>
+                                    <label htmlFor="contacto"><span className='Unique' title='Campo Obligatorio'>*</span>Contacto:</label>
                                     <input type="text" id="contacto" value={formData.contacto} onChange={handleChange} className='input' placeholder='Teléfono'/>
                                     {errors.contacto && <span className='errorText'>{errors.contacto}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="email">Correo:</label>
+                                    <label htmlFor="email"><span className='Unique' title='Campo Obligatorio'>*</span>Correo:</label>
                                     <input type="email" id="email" value={formData.email} onChange={handleChange} className='input' placeholder='Correo electrónico'/>
                                     {errors.email && <span className='errorText'>{errors.email}</span>}
                                 </div>

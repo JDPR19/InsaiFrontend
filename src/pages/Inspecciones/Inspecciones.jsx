@@ -49,7 +49,7 @@ function InspeccionesEst() {
         ordenamientos: '',
         fecha_proxima_inspeccion: '',
         estado: '',
-        planificacion_id: '',
+        planificacion_id: null,
         finalidades: [],
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
@@ -134,7 +134,7 @@ function InspeccionesEst() {
             ordenamientos: '',
             fecha_proxima_inspeccion: '',
             estado: '',
-            planificacion_id: '',
+            planificacion_id: null,
             finalidades: [],
         });
         setImagenes([]);
@@ -175,11 +175,13 @@ function InspeccionesEst() {
             ordenamientos: item.ordenamientos || '',
             fecha_proxima_inspeccion: item.fecha_proxima_inspeccion || '',
             estado: item.estado || '',
-            planificacion_id: item.planificacion_id ? String(item.planificacion_id) : '',
-            finalidades: item.finalidades ? item.finalidades.map(f => ({
-                finalidad_id: String(f.finalidad_id || f.id),
-                objetivo: f.objetivo || ''
-            })) : [],
+            planificacion_id: planificacionOptions.find(opt => String(opt.value) === String(item.planificacion_id)) || null,
+            finalidades: item.finalidades
+                ? item.finalidades.map(f => ({
+                    finalidad_id: finalidadOptions.find(opt => String(opt.value) === String(f.finalidad_id || f.id)) || null,
+                    objetivo: f.objetivo || ''
+                }))
+                : [],
         });
         setImagenesGuardadas(item.imagenes || []);
         setImagenes([]);
@@ -293,6 +295,16 @@ function InspeccionesEst() {
             addNotification('Completa todos los campos obligatorios', 'warning');
             return;
         }
+        if (!formData.planificacion_id || !formData.planificacion_id.value) {
+            addNotification('Debe seleccionar una planificación', 'warning');
+            return;
+        }
+        for (const [idx, fin] of formData.finalidades.entries()) {
+            if (!fin.finalidad_id || !fin.finalidad_id.value) {
+                addNotification(`Debe seleccionar una finalidad en la fila ${idx + 1}`, 'warning');
+                return;
+            }
+        }
         setLoading(true);
         try {
             const data = new FormData();
@@ -324,13 +336,30 @@ function InspeccionesEst() {
             addNotification('Completa todos los campos obligatorios', 'warning');
             return;
         }
+        if (!formData.planificacion_id || !formData.planificacion_id.value) {
+            addNotification('Debe seleccionar una planificación', 'warning');
+            return;
+        }
+        for (const [idx, fin] of formData.finalidades.entries()) {
+            if (!fin.finalidad_id || !fin.finalidad_id.value) {
+                addNotification(`Debe seleccionar una finalidad en la fila ${idx + 1}`, 'warning');
+                return;
+            }
+        }
         setLoading(true);
         try {
             const data = new FormData();
             Object.entries(formData).forEach(([key, value]) => {
                 if (key === 'finalidades') {
-                    data.append('finalidades', JSON.stringify(value));
-                } else {
+                    // Convierte cada finalidad a { finalidad_id: value.value, objetivo }
+                    const finalidades = value.map(f => ({
+                        finalidad_id: f.finalidad_id?.value || '',
+                        objetivo: f.objetivo
+                    }));
+                    data.append('finalidades', JSON.stringify(finalidades));
+                } else if (key === 'planificacion_id') {
+                    data.append('planificacion_id', value?.value || '');
+                } else if (key !== 'estado') {
                     data.append(key, value ?? '');
                 }
             });
@@ -475,7 +504,9 @@ function InspeccionesEst() {
                                     <label>Finalidades:</label>
                                     <ul>
                                         {(detalleModal.inspeccion.finalidades || []).map((f, idx) => (
-                                            <li key={idx}>{f.finalidad}: {f.objetivo}</li>
+                                            <li key={idx}>
+                                                {finalidadOptions.find(opt => String(opt.value) === String(f.finalidad_id))?.label || f.finalidad}: {f.objetivo}
+                                            </li>
                                         ))}
                                     </ul>
                                 </div>
@@ -493,9 +524,7 @@ function InspeccionesEst() {
                                     <label>Planificación:</label>
                                     <SingleSelect
                                         options={planificacionOptions}
-                                        value={detalleModal.inspeccion.planificacion_id}
-                                        onChange={() => {}}
-                                        placeholder="Planificación"
+                                        value={planificacionOptions.find(opt => String(opt.value) === String(detalleModal.inspeccion.planificacion_id)) || null}
                                         isDisabled={true}
                                     />
                                 </div>
@@ -640,7 +669,6 @@ function InspeccionesEst() {
                                     onChange={val => handleSelectChange('planificacion_id', val)}
                                     placeholder="Planificación"
                                 />
-                                {errors.planificacion_id && <span className='errorText'>{errors.planificacion_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                 <label htmlFor="fecha_proxima_inspeccion">Fecha Próxima Inspección:</label>

@@ -8,6 +8,7 @@ import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
 import { useNotification } from '../../utils/NotificationContext';
 import Spinner from '../../components/spinner/Spinner';
+import { validateField, getValidationRule } from '../../utils/validation';
 import { BaseUrl } from '../../utils/constans';
 
 function Propiedad() {
@@ -179,6 +180,7 @@ function Propiedad() {
         fetchProductores();
     }, []);
 
+    
     // Selects dependientes
     const handleEstadoChange = (val) => {
         setFormData(prev => ({
@@ -258,6 +260,14 @@ function Propiedad() {
     const handleChange = (e) => {
         const { id, value } = e.target;
         setFormData(prev => ({ ...prev, [id]: value }));
+
+        // Validación universal usando getValidationRule
+        const rule = getValidationRule(id);
+        if (rule && rule.regex) {
+            const { regex, errorMessage } = rule;
+            const { valid, message } = validateField(value, regex, errorMessage);
+            setErrors(prev => ({ ...prev, [id]: valid ? '' : message }));
+        }
     };
 
     const handleSelectChange = (field, value) => {
@@ -317,6 +327,19 @@ function Propiedad() {
             addNotification('Debe seleccionar un sector', 'warning');
             return;
         }
+        // Validación universal de todos los campos con reglas
+        for (const field in formData) {
+            const rule = getValidationRule(field);
+            if (!rule || !rule.regex) continue;
+            const { regex, errorMessage } = rule;
+            const { valid, message } = validateField(formData[field], regex, errorMessage);
+            if (!valid) {
+                addNotification(message, 'warning');
+                setErrors(prev => ({ ...prev, [field]: message }));
+                setLoading(false);
+                return;
+            }
+        }
         setLoading(true);
         try {
             const cleanFormData = {
@@ -373,6 +396,7 @@ function Propiedad() {
             addNotification('Debe seleccionar un sector', 'warning');
             return;
         }
+        
         setLoading(true);
         try {
             const cleanFormData = {
@@ -614,17 +638,17 @@ function Propiedad() {
                         <form className='modalForm'>
                             <div className='formColumns_tree'>
                                 <div className='formGroup'>
-                                    <label htmlFor="rif">RIF:</label>
+                                    <label htmlFor="rif"><span className='Unique'  title='Campos Obligatorios'>*</span>RIF:</label>
                                     <input type="text" id="rif" value={formData.rif} onChange={handleChange} className='input' placeholder='RIF'/>
                                     {errors.rif && <span className='errorText'>{errors.rif}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="nombre">Nombre:</label>
+                                    <label htmlFor="nombre"><span className='Unique'  title='Campos Obligatorios'>*</span>Nombre:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Nombre'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="productor_id">Productor Responsable:</label>
+                                    <label htmlFor="productor_id"><span className='Unique'  title='Campos Obligatorios'>*</span>Productor Responsable:</label>
                                     <SingleSelect
                                         options={productoresOptions}
                                         value={formData.productor_id}
@@ -633,7 +657,7 @@ function Propiedad() {
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="tipo_propiedad_id">Tipo de Propiedad:</label>
+                                    <label htmlFor="tipo_propiedad_id"><span className='Unique'  title='Campos Obligatorios'>*</span>Tipo de Propiedad:</label>
                                     <SingleSelect
                                         options={tiposOptions}
                                         value={formData.tipo_propiedad_id}
@@ -642,16 +666,16 @@ function Propiedad() {
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="hectareas">Hectáreas:</label>
+                                    <label htmlFor="hectareas"><span className='Unique'  title='Campos Obligatorios'>*</span>Hectáreas:</label>
                                     <input type="number" id="hectareas" value={formData.hectareas} onChange={handleChange} className='input' placeholder='Hectáreas'/>
                                 </div>
                                 
                                 <div className='formGroup'>
-                                    <label htmlFor="c_cultivo">Cantidad de Cultivos:</label>
+                                    <label htmlFor="c_cultivo"><span className='Unique'  title='Campos Obligatorios'>*</span>Cantidad de Cultivos:</label>
                                     <input type="number" id="c_cultivo" value={formData.c_cultivo} onChange={handleChange} className='input' placeholder='Cantidad de cultivos'/>
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Cultivos:</label>
+                                    <label><span className='Unique'  title='Campos Obligatorios'>*</span>Cultivos:</label>
                                     <MultiSelect
                                         options={cultivosOptions}
                                         value={cultivosOptions.filter(opt => formData.cultivos_ids.includes(opt.value))}
@@ -663,15 +687,17 @@ function Propiedad() {
                                     )}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="sitios_asociados">Sitios Asociados:</label>
+                                    <label htmlFor="sitios_asociados"><span className='Unique'  title='Campos Obligatorios'>*</span>Sitios Asociados:</label>
                                     <input type="text" id="sitios_asociados" value={formData.sitios_asociados} onChange={handleChange} className='input' placeholder='Sitios asociados'/>
+                                    {errors.sitios_asociados && <span className='errorText'>{errors.sitios_asociados}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="ubicación">Ubicación:</label>
+                                    <label htmlFor="ubicación"><span className='Unique'  title='Campos Obligatorios'>*</span>Ubicación:</label>
                                     <input type="text" id="ubicación" value={formData.ubicación} onChange={handleChange} className='input' placeholder='Ubicación'/>
+                                    {errors.ubicación && <span className='errorText'>{errors.ubicación}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="estado_id">Estado:</label>
+                                    <label htmlFor="estado_id"><span className='Unique'  title='Campos Obligatorios'>*</span>Estado:</label>
                                     <SingleSelect
                                         options={estadosOptions}
                                         value={formData.estado_id}
@@ -680,7 +706,7 @@ function Propiedad() {
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="municipio_id">Municipio:</label>
+                                    <label htmlFor="municipio_id"><span className='Unique'  title='Campos Obligatorios'>*</span>Municipio:</label>
                                     <SingleSelect
                                         options={municipiosOptions}
                                         value={formData.municipio_id}
@@ -690,7 +716,7 @@ function Propiedad() {
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="parroquia_id">Parroquia:</label>
+                                    <label htmlFor="parroquia_id"><span className='Unique'  title='Campos Obligatorios'>*</span>Parroquia:</label>
                                     <SingleSelect
                                         options={parroquiasOptions}
                                         value={formData.parroquia_id}
@@ -700,7 +726,7 @@ function Propiedad() {
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="sector_id">Sector:</label>
+                                    <label htmlFor="sector_id"><span className='Unique'  title='Campos Obligatorios'>*</span>Sector:</label>
                                     <SingleSelect
                                         options={sectoresOptions}
                                         value={formData.sector_id}
@@ -710,7 +736,7 @@ function Propiedad() {
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label>¿Posee Certificado?</label>
+                                    <label><span className='Unique'  title='Campos Obligatorios'>*</span>¿Posee Certificado?</label>
                                     <div className="radio-group">
                                         <label style={{ marginLeft: '1em' }}>
                                             <input
@@ -722,7 +748,7 @@ function Propiedad() {
                                                 onChange={() => setFormData(prev => ({ ...prev, posee_certificado: 'SI' }))}
                                             /> SI
                                         </label>
-                                        <label >
+                                        <label>
                                             <input
                                                 type="radio"
                                                 className="radio-input"
