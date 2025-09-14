@@ -384,7 +384,7 @@ function Sector() {
                         <form className='modalForm'>
                             <div className='formColumns'>
                                 <div className='formGroup'>
-                                    <label htmlFor="estado_id">Estado:</label>
+                                    <label htmlFor="estado_id"><span className='Unique' title='Campo Obligatorio'>*</span>Estado:</label>
                                     <SingleSelect
                                         options={estadosOptions}
                                         value={formData.estado_id}
@@ -393,7 +393,7 @@ function Sector() {
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="municipio_id">Municipio:</label>
+                                    <label htmlFor="municipio_id"><span className='Unique' title='Campo Obligatorio'>*</span>Municipio:</label>
                                     <SingleSelect
                                         options={municipiosOptions}
                                         value={formData.municipio_id}
@@ -403,7 +403,7 @@ function Sector() {
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="parroquia_id">Parroquia:</label>
+                                    <label htmlFor="parroquia_id"><span className='Unique' title='Campo Obligatorio'>*</span>Parroquia:</label>
                                     <SingleSelect
                                         options={parroquiasOptions}
                                         value={formData.parroquia_id}
@@ -413,7 +413,7 @@ function Sector() {
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="nombre">Sector:</label>
+                                    <label htmlFor="nombre"><span className='Unique' title='Campo Obligatorio'>*</span>Sector:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleInputChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>

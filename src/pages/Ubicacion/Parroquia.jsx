@@ -307,7 +307,7 @@ function Parroquia() {
                         <form className='modalForm'>
                             <div className='formColumns'>
                                 <div className='formGroup'>
-                                    <label htmlFor="estado_id">Estado:</label>
+                                    <label htmlFor="estado_id"><span className='Unique' title='Campo Obligatorio'>*</span>Estado:</label>
                                     <SingleSelect
                                         options={estados.map(estado => ({ value: String(estado.id), label: estado.nombre }))}
                                         value={formData.estado_id}
@@ -316,7 +316,7 @@ function Parroquia() {
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="municipio_id">Municipio:</label>
+                                    <label htmlFor="municipio_id"><span className='Unique' title='Campo Obligatorio'>*</span>Municipio:</label>
                                     <SingleSelect
                                         options={municipios.map(m => ({ value: String(m.id), label: m.nombre }))}
                                         value={formData.municipio_id}
@@ -326,7 +326,7 @@ function Parroquia() {
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="nombre">Parroquia:</label>
+                                    <label htmlFor="nombre"><span className='Unique' title='Campo Obligatorio'>*</span>Parroquia:</label>
                                     <input
                                         type="text"
                                         id="nombre"

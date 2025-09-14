@@ -232,7 +232,7 @@ function TipoEvento() {
                             <div className='formColunms_mono'>
 
                                 <div className='formGroup'>
-                                    <label htmlFor="tipo_evento">Tipo de Evento:</label>
+                                    <label htmlFor="tipo_evento"><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Evento:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>

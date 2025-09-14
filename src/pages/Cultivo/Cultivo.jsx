@@ -5,7 +5,7 @@ import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
 import { useNotification } from '../../utils/NotificationContext';
-import { validateField, validationRules } from '../../utils/validation';
+import { validateField, getValidationRule } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
 import { BaseUrl } from '../../utils/constans';
@@ -94,8 +94,10 @@ function Cultivo() {
         const { id, value } = e.target;
         setFormData(prev => ({ ...prev, [id]: value }));
 
-        if (validationRules[id]) {
-            const { regex, errorMessage } = validationRules[id];
+        // Validación universal usando getValidationRule
+        const rule = getValidationRule(id);
+        if (rule && rule.regex) {
+            const { regex, errorMessage } = rule;
             const { valid, message } = validateField(value, regex, errorMessage);
             setErrors(prev => ({ ...prev, [id]: valid ? '' : message }));
         }
@@ -118,15 +120,16 @@ function Cultivo() {
             setLoading(false);
             return;
         }
-        for (const field of ['nombre', 'tipo_cultivo_id']) {
-            if (!validationRules[field]) continue;
-            const { regex, errorMessage } = validationRules[field];
-            if (regex) {
-                const { valid, message } = validateField(formData[field], regex, errorMessage);
-                if (!valid) {
-                    addNotification(message, 'warning');
-                    return;
-                }
+        for (const field in formData) {
+            const rule = getValidationRule(field);
+            if (!rule || !rule.regex) continue;
+            const { regex, errorMessage } = rule;
+            const { valid, message } = validateField(formData[field], regex, errorMessage);
+            if (!valid) {
+                addNotification(message, 'warning');
+                setErrors(prev => ({ ...prev, [field]: message }));
+                setLoading(false);
+                return;
             }
         }
         setLoading(true);
@@ -158,12 +161,15 @@ function Cultivo() {
             setLoading(false);
             return;
         }
-        for (const field of ['nombre', 'tipo_cultivo_id']) {
-            if (!validationRules[field]) continue;
-            const { regex, errorMessage } = validationRules[field];
+        for (const field in formData) {
+            const rule = getValidationRule(field);
+            if (!rule || !rule.regex) continue;
+            const { regex, errorMessage } = rule;
             const { valid, message } = validateField(formData[field], regex, errorMessage);
             if (!valid) {
                 addNotification(message, 'warning');
+                setErrors(prev => ({ ...prev, [field]: message }));
+                setLoading(false);
                 return;
             }
         }
@@ -323,29 +329,27 @@ function Cultivo() {
                         <form className='modalForm'>
                             <div className='formColumns'>
                                 <div className='formGroup'>
-                                    <label htmlFor="nombre">Nombre:</label>
+                                    <label htmlFor="nombre"><span className='Unique' title='Campo Obligatorio'>*</span>Nombre:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Nombre del cultivo'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="nombre_cientifico">Nombre Científico:</label>
+                                    <label htmlFor="nombre_cientifico"><span className='Unique' title='Campo Obligatorio'>*</span>Nombre Científico:</label>
                                     <input type="text" id="nombre_cientifico" value={formData.nombre_cientifico} onChange={handleChange} className='input' placeholder='Nombre científico'/>
                                     {errors.nombre_cientifico && <span className='errorText'>{errors.nombre_cientifico}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="tipo_cultivo_id">Tipo:</label>
+                                    <label htmlFor="tipo_cultivo_id"><span className='Unique' title='Campo Obligatorio'>*</span>Tipo:</label>
                                     <SingleSelect
                                         options={tiposOptions}
                                         value={formData.tipo_cultivo_id}
                                         onChange={handleTipoChange}
                                         placeholder="Seleccione un tipo"
                                     />
-                                    {errors.tipo_cultivo_id && <span className='errorText'>{errors.tipo_cultivo_id}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="descripcion">Descripción:</label>
                                     <textarea id="descripcion" value={formData.descripcion} onChange={handleChange} className='input' placeholder='Descripción'/>
-                                    {errors.descripcion && <span className='errorText'>{errors.descripcion}</span>}
                                 </div>
                             </div>
                             <button 

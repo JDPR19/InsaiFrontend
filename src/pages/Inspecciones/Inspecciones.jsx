@@ -7,7 +7,7 @@ import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
 import { useNotification } from '../../utils/NotificationContext';
 import Spinner from '../../components/spinner/Spinner';
-import { validateField, validationRules } from '../../utils/validation';
+import { validateField, getValidationRule } from '../../utils/validation';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
 import MultiSelect from '../../components/selectmulti/MultiSelect';
 import { BaseUrl } from '../../utils/constans';
@@ -266,32 +266,19 @@ function InspeccionesEst() {
         const { id, value } = e.target;
         setFormData(prev => ({ ...prev, [id]: value }));
 
-        if (validationRules[id]) {
-            const { regex, errorMessage } = validationRules[id];
+        // Validación universal usando getValidationRule
+        const rule = getValidationRule(id);
+        if (rule && rule.regex) {
+            const { regex, errorMessage } = rule;
             const { valid, message } = validateField(value, regex, errorMessage);
             setErrors(prev => ({ ...prev, [id]: valid ? '' : message }));
         }
     };
 
-    // Validación
-    const validateForm = () => {
-        let newErrors = {};
-        for (const field of ['fecha_inspeccion', 'planificacion_id']) {
-            if (validationRules[field]) {
-                const { regex, errorMessage } = validationRules[field];
-                const { valid, message } = validateField(formData[field], regex, errorMessage);
-                if (!valid) newErrors[field] = message;
-            } else if (!formData[field]) {
-                newErrors[field] = 'Campo obligatorio';
-            }
-        }
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
 
     // Guardar nueva inspección
     const handleSave = async () => {
-        if (!validateForm()) {
+        if (!Object(errors) >= 0) {
             addNotification('Completa todos los campos obligatorios', 'warning');
             return;
         }
@@ -305,6 +292,18 @@ function InspeccionesEst() {
                 return;
             }
         }
+        for (const field in formData) {
+            const rule = getValidationRule(field);
+            if (!rule || !rule.regex) continue;
+            const { regex, errorMessage } = rule;
+            const { valid, message } = validateField(formData[field], regex, errorMessage);
+            if (!valid) {
+                addNotification(message, 'warning');
+                setErrors(prev => ({ ...prev, [field]: message }));
+                setLoading(false);
+                return;
+            }
+}
         setLoading(true);
         try {
             const data = new FormData();
@@ -332,7 +331,7 @@ function InspeccionesEst() {
 
     // Editar inspección
     const handleEdit = async () => {
-        if (!validateForm()) {
+        if (!Object(errors) >= 0) {
             addNotification('Completa todos los campos obligatorios', 'warning');
             return;
         }
@@ -343,6 +342,18 @@ function InspeccionesEst() {
         for (const [idx, fin] of formData.finalidades.entries()) {
             if (!fin.finalidad_id || !fin.finalidad_id.value) {
                 addNotification(`Debe seleccionar una finalidad en la fila ${idx + 1}`, 'warning');
+                return;
+            }
+        }
+        for (const field in formData) {
+            const rule = getValidationRule(field);
+            if (!rule || !rule.regex) continue;
+            const { regex, errorMessage } = rule;
+            const { valid, message } = validateField(formData[field], regex, errorMessage);
+            if (!valid) {
+                addNotification(message, 'warning');
+                setErrors(prev => ({ ...prev, [field]: message }));
+                setLoading(false);
                 return;
             }
         }
@@ -623,36 +634,36 @@ function InspeccionesEst() {
                             {/* Columna 1: campos principales */}
                             <div className='formColumn'>
                                 <div className='formGroup'>
-                                <label htmlFor="fecha_notificacion">Fecha Notificación:</label>
+                                <label htmlFor="fecha_notificacion"><span className='Unique' title='Campo Obligatorio'>*</span>Fecha Notificación:</label>
                                 <input type="date" id="fecha_notificacion" value={formData.fecha_notificacion} onChange={handleChange} className='date' />
                                 </div>
                                 <div className='formGroup'>
-                                <label htmlFor="fecha_inspeccion">Fecha Inspección:</label>
+                                <label htmlFor="fecha_inspeccion"><span className='Unique' title='Campo Obligatorio'>*</span>Fecha Inspección:</label>
                                 <input type="date" id="fecha_inspeccion" value={formData.fecha_inspeccion} onChange={handleChange} className='date' />
                                 {errors.fecha_inspeccion && <span className='errorText'>{errors.fecha_inspeccion}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                <label htmlFor="hora_inspeccion">Hora Inspección:</label>
+                                <label htmlFor="hora_inspeccion"><span className='Unique' title='Campo Obligatorio'>*</span>Hora Inspección:</label>
                                 <input type="time" id="hora_inspeccion" value={formData.hora_inspeccion} onChange={handleChange} className='input' />
                                 </div>
                                 <div className='formGroup'>
-                                <label htmlFor="norte">Norte:</label>
+                                <label htmlFor="norte"><span className='Unique' title='Campo Obligatorio'>*</span>Norte:</label>
                                 <input type="number" id="norte" value={formData.norte} onChange={handleChange} className='input' placeholder='Coordenada'/>
                                 </div>
                                 <div className='formGroup'>
-                                <label htmlFor="este">Este:</label>
+                                <label htmlFor="este"><span className='Unique' title='Campo Obligatorio'>*</span>Este:</label>
                                 <input type="number" id="este" value={formData.este} onChange={handleChange} className='input' placeholder='Coordenada'/>
                                 </div>
                                 <div className='formGroup'>
-                                <label htmlFor="zona">Zona:</label>
+                                <label htmlFor="zona"><span className='Unique' title='Campo Obligatorio'>*</span>Zona:</label>
                                 <input type="number" id="zona" value={formData.zona} onChange={handleChange} className='input' placeholder='Coordenada'/>
                                 </div>
                                 <div className='formGroup'>
-                                <label htmlFor="aspectos">Aspectos:</label>
+                                <label htmlFor="aspectos"><span className='Unique' title='Campo Obligatorio'>*</span>Aspectos:</label>
                                 <textarea id="aspectos" value={formData.aspectos} onChange={handleChange} className='textarea' placeholder='Rellene el campo'/>
                                 </div>
                                 <div className='formGroup'>
-                                <label htmlFor="ordenamientos">Ordenamientos:</label>
+                                <label htmlFor="ordenamientos"><span className='Unique' title='Campo Obligatorio'>*</span>Ordenamientos:</label>
                                 <textarea id="ordenamientos" value={formData.ordenamientos} onChange={handleChange} className='textarea' placeholder='Rellene el campo'/>
                                 </div>
                             </div>
@@ -662,7 +673,7 @@ function InspeccionesEst() {
                                 
                                 
                                 <div className='formGroup'>
-                                <label htmlFor="planificacion_id">Planificación:</label>
+                                <label htmlFor="planificacion_id"><span className='Unique' title='Campo Obligatorio'>*</span>Planificación:</label>
                                 <SingleSelect
                                     options={planificacionOptions}
                                     value={formData.planificacion_id}
@@ -671,11 +682,11 @@ function InspeccionesEst() {
                                 />
                                 </div>
                                 <div className='formGroup'>
-                                <label htmlFor="fecha_proxima_inspeccion">Fecha Próxima Inspección:</label>
+                                <label htmlFor="fecha_proxima_inspeccion"><span className='Unique' title='Campo Obligatorio'>*</span>Fecha Próxima Inspección:</label>
                                 <input type="date" id="fecha_proxima_inspeccion" value={formData.fecha_proxima_inspeccion} onChange={handleChange} className='date' />
                                 </div>
                                 <div className='formGroup'>
-                                <label>Área:</label>
+                                <label><span className='Unique' title='Campo Obligatorio'>*</span>Área:</label>
                                 <div className="radio-group">
                                     <label className="radio-label">
                                     <input
@@ -702,7 +713,7 @@ function InspeccionesEst() {
                                 </div>
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Responsable que atiende:</label>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Responsable que atiende:</label>
                                 <button
                                     type="button"
                                     className="btn-limpiar"
@@ -713,25 +724,25 @@ function InspeccionesEst() {
                                 </button>
                                 <div className={`opcionales-group${showOpcionales ? '' : ' hide'}`}>
                                     <div className='formGroup'>
-                                    <label htmlFor="responsable_e">Responsable:</label>
+                                    <label htmlFor="responsable_e"><span className='Unique' title='Campo Obligatorio'>*</span>Responsable:</label>
                                     <input type="text" id="responsable_e" value={formData.responsable_e} onChange={handleChange} className='input' placeholder='Campo opcional'/>
                                     </div>
                                     <div className='formGroup'>
-                                    <label htmlFor="cedula_res">Cédula Responsable:</label>
+                                    <label htmlFor="cedula_res"><span className='Unique' title='Campo Obligatorio'>*</span>Cédula Responsable:</label>
                                     <input type="text" id="cedula_res" value={formData.cedula_res} onChange={handleChange} className='input' placeholder='Campo opcional'/>
                                     </div>
                                     <div className='formGroup'>
-                                    <label htmlFor="tlf">Teléfono:</label>
+                                    <label htmlFor="tlf"><span className='Unique' title='Campo Obligatorio'>*</span>Teléfono:</label>
                                     <input type="text" id="tlf" value={formData.tlf} onChange={handleChange} className='input' placeholder='Campo opcional'/>
                                     </div>
                                     <div className='formGroup'>
-                                    <label htmlFor="correo">Correo:</label>
+                                    <label htmlFor="correo"><span className='Unique' title='Campo Obligatorio'>*</span>Correo:</label>
                                     <input type="email" id="correo" value={formData.correo} onChange={handleChange} className='input' placeholder='Campo opcional'/>
                                     </div>
                                 </div>
                                 </div>
                                 <div className='formGroup'>
-                                <label>Finalidades:</label>
+                                <label><span className='Unique' title='Campo Obligatorio'>*</span>Finalidades:</label>
                                 <div className='finalidades-group'>
                                     {formData.finalidades.map((fin, idx) => (
                                     <div key={idx} className='finalidadRow'>

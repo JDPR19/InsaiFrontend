@@ -231,7 +231,7 @@ function Estados() {
                             <div className='formColumns_mono'>
 
                                 <div className='formGroup'>
-                                    <label htmlFor="estado">Estado:</label>
+                                    <label htmlFor="estado"><span className='Unique' title='Campo Obligatorio'>*</span>Estado:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>

@@ -451,7 +451,7 @@ function Usuario() {
                         <form className='modalForm'>
                             <div className='formColumns'>
                                 <div className='formGroup'>
-                                    <label htmlFor="empleado_id">Cédula:</label>
+                                    <label htmlFor="empleado_id"><span className='Unique' title='Campo Obligatorio'>*</span>Cédula:</label>
                                         <SingleSelect
                                             options={cedulas.map(cedula => ({ value: String(cedula.id), label: cedula.cedula }))}
                                             value={formData.empleado_id}
@@ -464,19 +464,19 @@ function Usuario() {
                                 </div>
 
                                 <div className='formGroup'>
-                                    <label htmlFor="username">Usuario:</label>
+                                    <label htmlFor="username"><span className='Unique' title='Campo Obligatorio'>*</span>Usuario:</label>
                                     <input type="text" id="username" value={formData.username} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.username && <span className='errorText'>{errors.username}</span>}
                                 </div>
 
                                 <div className='formGroup'>
-                                    <label htmlFor="email">Email:</label>
+                                    <label htmlFor="email"><span className='Unique' title='Campo Obligatorio'>*</span>Email:</label>
                                     <input type="text" id="email" value={formData.email} onChange={handleChange} className='input' placeholder='Rellene el campo'/>
                                     {errors.email && <span className='errorText'>{errors.email}</span>}
                                 </div>
 
                                 <div className='formGroup'>
-                                    <label htmlFor="tipo_usuario_id">Tipo de Usuario:</label>
+                                    <label htmlFor="tipo_usuario_id"><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Usuario:</label>
                                     <SingleSelect
                                         options={tiposUsuario.map(roles => ({ value: String(roles.id), label: roles.nombre }))}
                                         value={formData.roles_id}
@@ -486,13 +486,13 @@ function Usuario() {
                                 </div>
 
                                 <div className='formGroup'>
-                                    <label htmlFor="password">Contraseña</label>
+                                    <label htmlFor="password"><span className='Unique' title='Campo Obligatorio'>*</span>Contraseña</label>
                                     <input type="password" id="password" value={formData.password} onChange={handleChange} className='password' placeholder='Rellene el campo'/>
                                     {errors.password && <span className='errorText'>{errors.password}</span>}
                                 </div>
 
                                 <div className='formGroup'>
-                                    <label htmlFor="confirmarpassword">Confirme:</label>
+                                    <label htmlFor="confirmarpassword"><span className='Unique' title='Campo Obligatorio'>*</span>Confirme:</label>
                                     <input type="password" id="confirmarpassword" value={formData.confirmarpassword} onChange={handleChange} className='password' placeholder='Rellene el campo'/>
                                     {errors.confirmarpassword && <span className='errorText'>{errors.confirmarpassword}</span>}
                                 </div>

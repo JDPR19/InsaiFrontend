@@ -16,7 +16,7 @@ function Header() {
     const [user, setUser] = useState({ name: '', roles_nombre: '', id: null });
     const [notificaciones, setNotificaciones] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
-    const [tabActivo, setTabActivo] = useState('todas');
+    const [tabActivo, setTabActivo] = useState('no-leidas');
     const [showSearchModal, setShowSearchModal] = useState(false);
     const audioRef = useRef(null);
     const { theme, setTheme } = useTheme(); 

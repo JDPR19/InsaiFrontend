@@ -439,23 +439,22 @@ function Programas() {
                         <form className='modalForm'>
                             <div className='formColumns'>
                                 <div className='formGroup'>
-                                    <label htmlFor="nombre">Nombre:</label>
+                                    <label htmlFor="nombre"><span className='Unique' title='Campo Obligatorio'>*</span>Nombre:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Nombre del programa'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="tipo_programa_fito_id">Tipo de Programa:</label>
+                                    <label htmlFor="tipo_programa_fito_id"><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Programa:</label>
                                     <SingleSelect
                                         options={tipos.map(tipo => ({ value: String(tipo.id), label: tipo.nombre }))}
                                         value={formData.tipo_programa_fito_id}
                                         onChange={val => setFormData(prev => ({ ...prev, tipo_programa_fito_id: val }))}
                                         placeholder="Seleccione un tipo"
                                         />
-                                    {errors.tipo_programa_fito_id && <span className='errorText'>{errors.tipo_programa_fito_id}</span>}
                                 </div>
                                 
                                 <div className='formGroup'>
-                                    <label>Plagas a Tratar:</label>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Plagas a Tratar:</label>
                                     <MultiSelect
                                         options={plagasOptions}
                                         value={plagasOptions.filter(opt => formData.plaga_fito_ids.includes(opt.value))}
@@ -465,11 +464,10 @@ function Programas() {
                                     {formData.plaga_fito_ids.length > 0 && (
                                         <button type="button" onClick={() => clearMultiSelect('plaga_fito_ids')} className='btn-limpiar'>Limpiar</button>
                                     )}
-                                    {errors.plaga_fito_ids && <span className='errorText'>{errors.plaga_fito_ids}</span>}
                                 </div>
 
                                 <div className='formGroup'>
-                                    <label>Cultivos Asociados:</label>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Cultivos Asociados:</label>
                                     <MultiSelect
                                         options={cultivosOptions}
                                         value={cultivosOptions.filter(opt => formData.cultivo_ids.includes(opt.value))}
@@ -479,11 +477,10 @@ function Programas() {
                                     {formData.cultivo_ids.length > 0 && (
                                         <button type="button" onClick={() => clearMultiSelect('cultivo_ids')} className='btn-limpiar'>Limpiar</button>
                                     )}
-                                    {errors.cultivo_ids && <span className='errorText'>{errors.cultivo_ids}</span>}
                                 </div>
 
                                 <div className='formGroup'>
-                                    <label>Empleados Responsables:</label>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Empleados Responsables:</label>
                                     <MultiSelect
                                         options={empleadosOptions}
                                         value={empleadosOptions.filter(opt => formData.empleados_ids.includes(opt.value))}
@@ -493,12 +490,10 @@ function Programas() {
                                     {formData.empleados_ids.length > 0 && (
                                         <button type="button" onClick={() => clearMultiSelect('empleados_ids')} className='btn-limpiar'>Limpiar</button>
                                     )}
-                                    {errors.empleados_ids && <span className='errorText'>{errors.empleados_ids}</span>}
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="descripcion">Descripción:</label>
                                     <textarea id="descripcion" value={formData.descripcion} onChange={handleChange} className='input' placeholder='Descripción'/>
-                                    {errors.descripcion && <span className='errorText'>{errors.descripcion}</span>}
                                 </div>
                             </div>
                             <button 

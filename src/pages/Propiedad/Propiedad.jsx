@@ -396,7 +396,18 @@ function Propiedad() {
             addNotification('Debe seleccionar un sector', 'warning');
             return;
         }
-        
+        for (const field in formData) {
+            const rule = getValidationRule(field);
+            if (!rule || !rule.regex) continue;
+            const { regex, errorMessage } = rule;
+            const { valid, message } = validateField(formData[field], regex, errorMessage);
+            if (!valid) {
+                addNotification(message, 'warning');
+                setErrors(prev => ({ ...prev, [field]: message }));
+                setLoading(false);
+                return;
+            }
+        }    
         setLoading(true);
         try {
             const cleanFormData = {

@@ -232,7 +232,7 @@ function TipoPermiso() {
                             <div>
 
                                 <div className='formGroup'>
-                                    <label htmlFor="tipo_permiso">Tipo de Permiso:</label>
+                                    <label htmlFor="tipo_permiso"><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Permiso:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>

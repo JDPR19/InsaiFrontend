@@ -231,7 +231,7 @@ function Cargo() {
                             <div>
 
                                 <div className='formGroup'>
-                                    <label htmlFor="cargo">Cargo:</label>
+                                    <label htmlFor="cargo"><span className='Unique' title='Campo Obligatorio'>*</span>Cargo:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>

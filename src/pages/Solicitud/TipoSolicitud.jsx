@@ -232,7 +232,7 @@ function TipoSolicitud() {
                             <div>
 
                                 <div className='formGroup'>
-                                    <label htmlFor="tipo_solicitud">Tipo de Solicitud:</label>
+                                    <label htmlFor="tipo_solicitud"><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Solicitud:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>

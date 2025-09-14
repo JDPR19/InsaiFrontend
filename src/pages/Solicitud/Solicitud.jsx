@@ -370,12 +370,12 @@ function Solicitud() {
                         <form className='modalForm'>
                             <div className='formColumns'>
                                 <div className='formGroup'>
-                                    <label>Fecha Solicitada:</label>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Fecha Solicitada:</label>
                                     <input type="date" id='fecha_solicitada' value={formData.fecha_solicitada} onChange={handleChange} className='date' />
                                     {errors.fecha_solicitada && <span className='errorText'>{errors.fecha_solicitada}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Tipo de Solicitud:</label>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Solicitud:</label>
                                     <SingleSelect
                                         options={tipoSolicitudOptions}
                                         value={formData.tipo_solicitud_id}
@@ -384,7 +384,7 @@ function Solicitud() {
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Propiedad:</label>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Propiedad:</label>
                                     <SingleSelect
                                         options={propiedadOptions}
                                         value={formData.propiedad_id}
@@ -393,7 +393,7 @@ function Solicitud() {
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="descripcion">Descripción:</label>
+                                    <label htmlFor="descripcion"><span className='Unique' title='Campo Obligatorio'>*</span>Descripción:</label>
                                     <textarea id="descripcion" value={formData.descripcion} onChange={handleChange} className='textarea' placeholder='Descripción'/>
                                     {errors.descripcion && <span className='errorText'>{errors.descripcion}</span>}
                                 </div>

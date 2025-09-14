@@ -17,10 +17,16 @@ export const validateField = (value, regex, errorMessage) => {
 };
 
 export const campos = [
-    { id: 'nombre_propiedad', tipo: 'letras' },
+    { id: 'nombre_propiedad', tipo: 'codigo' },
     { id: 'rif', tipo: 'rif' },
     {id: 'sitios_asociados', tipo: 'codigo'},
     {id: 'ubicación', tipo: 'codigo'},
+    {id: 'ubicacion', tipo: 'codigo'},
+    {id: 'nombre_cientifico', tipo: 'codigo'},
+    {id: 'objetivo', tipo: 'codigo'}, 
+    {id: 'actividad', tipo: 'codigo'}, 
+    {id: 'convocatoria', tipo: 'codigo'}, 
+    {id: 'aseguramiento', tipo: 'codigo'}, 
 ];
 
 // Función para obtener la regla de validación por campo
@@ -79,7 +85,7 @@ export const validationRules = {
         errorMessage: 'Solo se permiten letras, guiones y sin espacios'
     },
     codigo: {
-        regex: /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ-]+$/,
+        regex: /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s-]+$/,
         errorMessage: 'Debe escribir un formato válido'
     },
     numeros: {

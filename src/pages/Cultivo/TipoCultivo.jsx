@@ -231,7 +231,7 @@ function TipoCultivo() {
                             <div className='formColumns_mono'>
 
                                 <div className='formGroup'>
-                                    <label htmlFor="tipo_cultivo">Tipo de Cultivo:</label>
+                                    <label htmlFor="tipo_cultivo"><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Cultivo:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>

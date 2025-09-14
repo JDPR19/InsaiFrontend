@@ -95,7 +95,22 @@ function Home() {
     const [chartData, setChartData] = useState([]);
     const [chartTitle, setChartTitle] = useState('Gráfica');
     const handleChartFilterChange = (option) => setChartFilter(option);
-    
+    const [modalCurrentPage, setModalCurrentPage] = useState(1);
+    const modalItemsPerPage = 8;
+    const modalIndexOfLastItem = modalCurrentPage * modalItemsPerPage;
+    const modalIndexOfFirstItem = modalIndexOfLastItem - modalItemsPerPage;
+    const modalCurrentData = Array.isArray(modalCarta.filtrados)
+        ? modalCarta.filtrados.slice(modalIndexOfFirstItem, modalIndexOfLastItem)
+        : [];
+
+    const handlePreviousThreePagesModal = () => {
+        setModalCurrentPage(prev => Math.max(1, prev - 3));
+    };
+    const handleNextThreePagesModal = () => {
+        const totalPages = Math.ceil((modalCarta.filtrados?.length || 0) / modalItemsPerPage);
+        setModalCurrentPage(prev => Math.min(totalPages, prev + 3));
+    };
+        
     // Traer datos al montar
     useEffect(() => {
         async function fetchTotales() {
@@ -623,49 +638,81 @@ function Home() {
 
     // Modal de cartas con SearchBar local
     const ModalCartaDetalle = () => (
-        <div className={searchStyles.searchModalOverlay}>
-            <div className={searchStyles.modalDetalle}>
-                <button className='closeButton' onClick={closeModalCarta}>&times;</button>
-                <h2>{modalCarta.titulo}</h2>
-                {modalCarta.loading ? (
-                    <Spinner text="Cargando..." />
-                ) : (
-                    <>
-                        <div style={{ width: '100%', overflowX: 'auto', marginTop: 18, marginBottom: 10 }}>
-                            <table className={searchStyles.searchModalTable}>
-                                <thead>
+    <div className={searchStyles.searchModalOverlay}>
+        <div className={searchStyles.modalDetalle}>
+            <button className='closeButton' onClick={closeModalCarta}>&times;</button>
+            <h2>{modalCarta.titulo}</h2>
+            {modalCarta.loading ? (
+                <Spinner text="Cargando..." />
+            ) : (
+                <>
+                    <div style={{ width: '100%', overflowX: 'auto', marginTop: 18, marginBottom: 10 }}>
+                        <table className={searchStyles.searchModalTable}>
+                            <thead>
+                                <tr>
+                                    {Array.isArray(modalCarta.campos) && modalCarta.campos.map((campo, idx) => (
+                                        <th key={idx}>{titulosCamposVisual[campo] || campo.charAt(0).toUpperCase() + campo.slice(1)}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {Array.isArray(modalCurrentData) && modalCurrentData.length === 0 ? (
                                     <tr>
-                                        {Array.isArray(modalCarta.campos) && modalCarta.campos.map((campo, idx) => (
-                                            <th key={idx}>{titulosCamposVisual[campo] || campo.charAt(0).toUpperCase() + campo.slice(1)}</th>
-                                        ))}
+                                        <td colSpan={modalCarta.campos.length}>Sin resultados</td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {Array.isArray(modalCarta.filtrados) && modalCarta.filtrados.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={modalCarta.campos.length}>Sin resultados</td>
+                                ) : (
+                                    Array.isArray(modalCurrentData) && modalCurrentData.map((item, idx) => (
+                                        <tr key={item.id || idx}>
+                                            {modalCarta.campos.map((campo, cidx) => (
+                                                <td key={cidx}>{item[campo]}</td>
+                                            ))}
                                         </tr>
-                                    ) : (
-                                        Array.isArray(modalCarta.filtrados) && modalCarta.filtrados.map((item, idx) => (
-                                            <tr key={item.id || idx}>
-                                                {modalCarta.campos.map((campo, cidx) => (
-                                                    <td key={cidx}>{item[campo]}</td>
-                                                ))}
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div className='modalActions'>
-                            <button className='btn-estandar' onClick={exportToExcelCarta}>Exportar a Excel</button>
-                            <button className='btn-estandar' onClick={exportToPDFCarta}>Exportar a PDF</button>
-                        </div>
-                    </>
-                )}
-            </div>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                    {/* Pie de paginación */}
+                    <div className='tableFooter'>
+                        <img
+                            src={icon.flecha3}
+                            alt="Anterior"
+                            className='iconBack'
+                            title="Anterior"
+                            onClick={() => modalCurrentPage > 1 && setModalCurrentPage(modalCurrentPage - 1)}
+                        />
+                        <img
+                            src={icon.flecha5}
+                            alt="Retroceder 3"
+                            className='iconBack'
+                            title="Retroceder 3 páginas"
+                            onClick={handlePreviousThreePagesModal}
+                        />
+                        <span>{modalCurrentPage}</span>
+                        <img
+                            src={icon.flecha4}
+                            alt="Avanzar 3"
+                            className='iconNext'
+                            title="Avanzar 3 páginas"
+                            onClick={handleNextThreePagesModal}
+                        />
+                        <img
+                            src={icon.flecha2}
+                            alt="Siguiente"
+                            className='iconNext'
+                            title="Siguiente"
+                            onClick={() => modalIndexOfLastItem < (modalCarta.filtrados?.length || 0) && setModalCurrentPage(modalCurrentPage + 1)}
+                        />
+                    </div>
+                    <div className='modalActions'>
+                        <button className='btn-estandar' onClick={exportToExcelCarta}>Exportar a Excel</button>
+                        <button className='btn-estandar' onClick={exportToPDFCarta}>Exportar a PDF</button>
+                    </div>
+                </>
+            )}
         </div>
-    );
+    </div>
+);
 
     // Pie de la tabla (paginación)
     const PieTabla = () => (

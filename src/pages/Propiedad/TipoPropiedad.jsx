@@ -233,7 +233,7 @@ function TipoPropiedad() {
                             <div>
 
                                 <div className='formGroup'>
-                                    <label htmlFor="tipo_propiedad">Tipo de Propiedad:</label>
+                                    <label htmlFor="tipo_propiedad"><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Propiedad:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>

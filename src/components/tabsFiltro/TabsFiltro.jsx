@@ -1,7 +1,7 @@
 import React, { useState} from 'react';
 import styles from './tabsFiltro.module.css';
 
-function TabsFiltro({ tabs, activeTab, onTabClick, showTitle = true }) {
+function TabsFiltro({ tabs, activeTab, onTabClick, /*showTitle = true */}) {
     const [visible, setVisible] = useState(false);
 
     return (
@@ -14,7 +14,7 @@ function TabsFiltro({ tabs, activeTab, onTabClick, showTitle = true }) {
                 {visible ? 'Ocultar secciones' : 'Mostrar secciones'}
             </button>
             <div className={`${styles.tabsContent} ${!visible ? styles.tabsContentHidden : ''}`}>
-                {showTitle && <h3 className={styles.tabsTitle}>Apartados Principales</h3>}
+                {/* {showTitle && <h3 className={styles.tabsTitle}>Apartados Principales</h3>} */}
                 <div className={styles.tabsContainer}>
                     {tabs.map((tab, idx) => (
                         <button

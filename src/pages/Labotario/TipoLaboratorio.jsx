@@ -229,7 +229,7 @@ function TipoLaboratorio() {
                             <div className='fromColumns_mono'>
 
                                 <div className='formGroup'>
-                                    <label htmlFor="tipo_laboratorio">Tipo de Laboratorio:</label>
+                                    <label htmlFor="tipo_laboratorio"><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Laboratorio:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>

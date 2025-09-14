@@ -334,27 +334,27 @@ function Empleado() {
                         <form className='modalForm'>
                             <div className='formColumns'> 
                                 <div className='formGroup'>
-                                    <label htmlFor="cedula">Cédula:</label>
+                                    <label htmlFor="cedula"><span className='Unique' title='Campo Obligatorio'>*</span>Cédula:</label>
                                     <input type="text" id="cedula" value={formData.cedula} onChange={handleChange} className='input' placeholder='V-********'/>
                                     {errors.cedula && <span className='errorText'>{errors.cedula}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="nombre">Nombre:</label>
+                                    <label htmlFor="nombre"><span className='Unique' title='Campo Obligatorio'>*</span>Nombre:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="apellido">Apellido:</label>
+                                    <label htmlFor="apellido"><span className='Unique' title='Campo Obligatorio'>*</span>Apellido:</label>
                                     <input type="text" id="apellido" value={formData.apellido} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.apellido && <span className='errorText'>{errors.apellido}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="contacto">Contacto:</label>
+                                    <label htmlFor="contacto"><span className='Unique' title='Campo Obligatorio'>*</span>Contacto:</label>
                                     <input type="text" id="contacto" value={formData.contacto} onChange={handleChange} className='input' placeholder='04**-*******'/>
                                     {errors.contacto && <span className='errorText'>{errors.contacto}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="cargo_id">Cargo:</label>
+                                    <label htmlFor="cargo_id"><span className='Unique' title='Campo Obligatorio'>*</span>Cargo:</label>
                                     <SingleSelect
                                         options={cargos.map(cargo => ({ value: String(cargo.id), label: cargo.nombre }))}
                                         value={formData.cargo_id}

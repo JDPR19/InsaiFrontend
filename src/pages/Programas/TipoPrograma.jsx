@@ -231,7 +231,7 @@ function TipoPrograma() {
                             <div>
 
                                 <div className='formGroup'>
-                                    <label htmlFor="tipo_programa">Tipo de Programa:</label>
+                                    <label htmlFor="tipo_programa"><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Programa:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>

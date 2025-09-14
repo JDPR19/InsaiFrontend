@@ -231,7 +231,7 @@ function TipoInspeccion() {
                             <div className='formColumns_mono'>
 
                                 <div className='formGroup'>
-                                    <label htmlFor="tipo_inspeccion">Tipo de Inspección:</label>
+                                    <label htmlFor="tipo_inspeccion"><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Inspección:</label>
                                     <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>

@@ -7,7 +7,7 @@ import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
 import { useNotification } from '../../utils/NotificationContext';
-import { validateField, validationRules } from '../../utils/validation';
+import { validateField, getValidationRule } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
 
@@ -200,27 +200,27 @@ function Planificacion() {
         const { id, value } = e.target;
         setFormData(prev => ({ ...prev, [id]: value }));
 
-        if (validationRules[id]) {
-            const { regex, errorMessage } = validationRules[id];
+        // Validación universal usando getValidationRule
+        const rule = getValidationRule(id);
+        if (rule && rule.regex) {
+            const { regex, errorMessage } = rule;
             const { valid, message } = validateField(value, regex, errorMessage);
             setErrors(prev => ({ ...prev, [id]: valid ? '' : message }));
         }
     };
 
     const handleSave = async () => {
-        let newErrors = {};
-        for (const field of ['solicitud_id', 'fecha_programada', 'tipo_inspeccion_fito_id']) {
-            if (validationRules[field]) {
-                const error = validateField(field, formData[field], validationRules);
-                if (error) newErrors[field] = error;
-            } else if (!formData[field]) {
-                newErrors[field] = 'Campo obligatorio';
+        for (const field in formData) {
+            const rule = getValidationRule(field);
+            if (!rule || !rule.regex) continue;
+            const { regex, errorMessage } = rule;
+            const { valid, message } = validateField(formData[field], regex, errorMessage);
+            if (!valid) {
+                addNotification(message, 'warning');
+                setErrors(prev => ({ ...prev, [field]: message }));
+                setLoading(false);
+                return;
             }
-        }
-        setErrors(newErrors);
-        if (Object.keys(newErrors).length > 0) {
-            addNotification('Completa todos los campos obligatorios', 'warning');
-            return;
         }
         if (!formData.solicitud_id || !formData.solicitud_id.value) {
             addNotification('Debe seleccionar una solicitud', 'warning');
@@ -248,24 +248,18 @@ function Planificacion() {
             closeModal();
         } catch (error) {
             console.error('Error registrando la Planificación', error);
-            addNotification('Error al registrar planificación', 'error');
+            if (error.response && error.response.data && error.response.data.error) {
+            addNotification(error.response.data.error, 'warning'); // O muestra el error como prefieras
+        } else {
+            addNotification('Error inesperado al registrar la planificación', 'error');
+        }
         } finally {
             setLoading(false);
         }
     };
 
     const handleEdit = async () => {
-        let newErrors = {};
-        for (const field of ['solicitud_id', 'fecha_programada', 'tipo_inspeccion_fito_id']) {
-            if (validationRules[field]) {
-                const error = validateField(field, formData[field], validationRules);
-                if (error) newErrors[field] = error;
-            } else if (!formData[field]) {
-                newErrors[field] = 'Campo obligatorio';
-            }
-        }
-        setErrors(newErrors);
-        if (Object.keys(newErrors).length > 0) {
+        if (Object.keys(errors).length >= 0) {
             addNotification('Completa todos los campos obligatorios', 'warning');
             return;
         }
@@ -276,6 +270,18 @@ function Planificacion() {
         if (!formData.tipo_inspeccion_fito_id || !formData.tipo_inspeccion_fito_id.value) {
             addNotification('Debe seleccionar un tipo de inspección', 'warning');
             return;
+        }
+        for (const field in formData) {
+            const rule = getValidationRule(field);
+            if (!rule || !rule.regex) continue;
+            const { regex, errorMessage } = rule;
+            const { valid, message } = validateField(formData[field], regex, errorMessage);
+            if (!valid) {
+                addNotification(message, 'warning');
+                setErrors(prev => ({ ...prev, [field]: message }));
+                setLoading(false);
+                return;
+            }
         }
         setLoading(true);
         try {
@@ -469,17 +475,16 @@ function Planificacion() {
                         <form className='modalForm'>
                             <div className='formColumns'>
                                 <div className='formGroup'>
-                                    <label>Solicitud:</label>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Solicitud:</label>
                                     <SingleSelect
                                         options={solicitudOptions}
                                         value={formData.solicitud_id}
                                         onChange={handleSolicitudChange}
                                         placeholder="Seleccione solicitud"
                                     />
-                                    {errors.solicitud_id && <span className='errorText'>{errors.solicitud_id}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Fecha Programada:</label>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Fecha Programada:</label>
                                     <input
                                         type="date"
                                         id="fecha_programada"
@@ -487,20 +492,18 @@ function Planificacion() {
                                         onChange={handleChange}
                                         className='date'
                                     />
-                                    {errors.fecha_programada && <span className='errorText'>{errors.fecha_programada}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Tipo de Inspección:</label>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Inspección:</label>
                                     <SingleSelect
                                         options={tipoInspeccionOptions}
                                         value={formData.tipo_inspeccion_fito_id}
                                         onChange={handleTipoInspeccionChange}
                                         placeholder="Tipo de inspección"
                                     />
-                                    {errors.tipo_inspeccion_fito_id && <span className='errorText'>{errors.tipo_inspeccion_fito_id}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Empleados Responsables:</label>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Empleados Responsables:</label>
                                     <MultiSelect
                                         options={empleadosOptions}
                                         value={empleadosOptions.filter(opt => formData.empleados_ids.includes(opt.value))}
@@ -510,10 +513,9 @@ function Planificacion() {
                                     {formData.empleados_ids.length > 0 && (
                                         <button type="button" onClick={clearMultiSelect} className='btn-limpiar'>Limpiar</button>
                                     )}
-                                    {errors.empleados_ids && <span className='errorText'>{errors.empleados_ids}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Actividad:</label>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Actividad:</label>
                                     <input
                                         type="text"
                                         id="actividad"
@@ -522,9 +524,10 @@ function Planificacion() {
                                         className='input'
                                         placeholder="Actividad programada"
                                     />
+                                    {errors.actividad && <span className='errorText'>{errors.actividad}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Objetivo:</label>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Objetivo:</label>
                                     <input
                                         type="text"
                                         id="objetivo"
@@ -533,9 +536,10 @@ function Planificacion() {
                                         className='input'
                                         placeholder="Objetivo de la planificación"
                                     />
+                                    {errors.objetivo && <span className='errorText'>{errors.objetivo}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Hora:</label>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Hora:</label>
                                     <input
                                         type="time"
                                         id="hora"
@@ -545,7 +549,7 @@ function Planificacion() {
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Convocatoria:</label>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Convocatoria:</label>
                                     <input
                                         type="text"
                                         id="convocatoria"
@@ -554,9 +558,10 @@ function Planificacion() {
                                         className='input'
                                         placeholder="Convocatoria"
                                     />
+                                    {errors.convocatoria && <span className='errorText'>{errors.convocatoria}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Ubicación:</label>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Ubicación:</label>
                                     <input
                                         type="text"
                                         id="ubicacion"
@@ -565,9 +570,10 @@ function Planificacion() {
                                         className='input'
                                         placeholder="Ubicación"
                                     />
+                                    {errors.ubicacion && <span className='errorText'>{errors.ubicacion}</span>}
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Aseguramiento:</label>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Aseguramiento:</label>
                                     <input
                                         type="text"
                                         id="aseguramiento"
@@ -576,6 +582,7 @@ function Planificacion() {
                                         className='input'
                                         placeholder="Aseguramiento"
                                     />
+                                    {errors.aseguramiento && <span className='errorText'>{errors.aseguramiento}</span>}
                                 </div>
                             </div>
                             <button
