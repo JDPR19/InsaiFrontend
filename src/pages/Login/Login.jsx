@@ -87,10 +87,10 @@ function Login() {
     // Slides del carrusel
     const slides = [
         { image: Sisic, text: 'Optimiza tus procesos agrícolas' },
-        { image: inspecciones, text: 'Inspecciones sanitarias' },
-        { image: Insai, text: 'Bienvenido al sistema SIGENSAI' },
         { image: Perro, text: 'Gestión eficiente y segura' },
+        { image: inspecciones, text: 'Inspecciones sanitarias' },
         { image: Importancia, text: 'Optimiza tus procesos agrícolas' },
+        { image: Insai, text: 'Bienvenido al sistema SIGENSAI' },
     ];
 
     // Verificar si ya hay un token de autenticación y redirigir al usuario
@@ -255,6 +255,7 @@ function Login() {
                 <footer className={styles.footer}>
                     <p> Gobierno Bolivariano de Venezuela &#x1F1FB;&#x1F1EA;</p>
                     <p>© 2025  Instituto Nacional de Salud Agrícola Integral, INSAI</p>
+                    <p>Sistema de Información para el Control de Inspecciones de Campo &#x1F1FB;&#x1F1EA;</p>
                 </footer>
             </div>
 

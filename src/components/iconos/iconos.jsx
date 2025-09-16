@@ -49,6 +49,7 @@ import pdf4 from '../../../public/pdf4.svg';
 import pdf5 from '../../../public/pdf5.svg';
 import excel from '../../../public/excel.svg';
 import excel2 from '../../../public/excel2.svg';
+import question from '../../../public/question.svg';
 
 
 const Iconos = {
@@ -103,6 +104,7 @@ const Iconos = {
     lupa2,
     sun,
     moon,
+    question,
 };
 
 export default Iconos;

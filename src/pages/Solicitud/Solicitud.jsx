@@ -9,6 +9,8 @@ import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
+import CicloSolicitud from '../../components/ayudanteCiclo/Ciclo';
+import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
 
 function Solicitud() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -443,6 +445,7 @@ function Solicitud() {
                         <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
+                    <AyudaTooltip descripcion="Aquí puedes registrar una nueva solicitud. Completa todos los campos obligatorios y guarda para continuar el proceso." />
                 </div>
                 <table className='table'>
                     <thead>
@@ -501,6 +504,7 @@ function Solicitud() {
                     <img onClick={handleNextPage} src={icon.flecha2} className='iconNext' title='Siguiente' />
                 </div>
             </div>
+            <CicloSolicitud activo="solicitud" />
         </div>
     );
 }
