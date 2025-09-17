@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import styles from './AyudaTooltip.module.css';
-import icon from '../iconos/iconos'; // Usa tu propio SVG o PNG
+import styles from './ayudatooltip.module.css';
+import icon from '../iconos/iconos'; 
 
 function AyudaTooltip({ descripcion }) {
     const [visible, setVisible] = useState(false);
@@ -23,7 +23,5 @@ function AyudaTooltip({ descripcion }) {
         </div>
     );
 }
-// aplicacion comentada
-{/* <AyudaTooltip descripcion="Aquí puedes registrar una nueva solicitud. Completa todos los campos obligatorios y guarda para continuar el proceso." /> */}
 
 export default AyudaTooltip;
