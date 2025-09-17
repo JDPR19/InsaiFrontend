@@ -37,7 +37,7 @@ html, body {
 --white2: #E9ECEF;
 --grey: #DEE2E6;
 --grey2: #CED4DA;
---grey3: #ADB5BD;
+--grey3: #adb5bdd3;
 --grey4: #6C757D;
 --grey5: #495057;
 --grey6: #343A40;
@@ -899,14 +899,20 @@ html, body {
     justify-content: center;
     height: 35px; 
     width: auto;
-    padding: 4px 4px;
-    background: #a7d199dc;
-    border: 1px solid #709c73fa;
+    padding: 8px 8px;
+    background: var(--lithg-green);
     cursor: pointer;
     transition: background 0.2s, box-shadow 0.2s;
     border-radius: 30%;
     outline: none;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.438);
+}
+
+.btn-icon-Estandar img {
+    width: 22px;
+    height: 22px;
+    filter: invert(0);
+    transition: filter 0.2s;
 }
 
 .btn-icon-Estandar:hover,
@@ -1497,6 +1503,88 @@ html, body {
   margin-left: 2px;
   font-size: 1.2rem;
   color: rgba(250, 82, 82, 0.87);
+}
+
+/* CARTAS  */
+
+.cardsContainer {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    margin-right: 100px;
+    margin-left: 100px;
+    justify-content: space-between;
+}
+
+.card {
+    width: 110px;           
+    height: 110px;          
+    background-color: var(--white1);
+    border-radius: 16px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    border-bottom: 2px solid #5fb84b;
+    transition: transform 0.3s ease;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.483);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.cardNumber {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--black);
+    margin-bottom: 6px;
+}
+
+  
+.infoTipsContainer {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    justify-content: center; 
+    margin-bottom: 30px;
+    margin-right: auto;
+    margin-left: auto;
+    flex-wrap: wrap;
+    background: var(--white1);
+    border-radius: 16px;
+    border-bottom: 2px solid #5fb84b;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.483);
+    padding: 12px 18px;
+    min-height: 60px;
+    width: fit-content;
+}
+
+.infoTipsContainer span {
+    position: relative;
+    bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--black1);
+    font-weight: bold;
+    margin: 0 6px;
+    transition: color 0.2s, transform 0.2s;
+    cursor: pointer;
+}
+
+.infoTipsContainer span:hover {
+    color: var(--green-hover1);
+    transform: scale(1);
+}
+
+/* Modo oscuro: flecha blanca */
+.dark .infoTipsContainer span {
+    color: #fff;
 }
 
 @media (max-width: 700px) {

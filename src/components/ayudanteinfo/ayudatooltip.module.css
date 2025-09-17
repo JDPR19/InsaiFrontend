@@ -30,9 +30,10 @@
     transform: translateX(-50%);
     min-width: 220px;
     max-width: 320px;
-    background: #f8f9fa;
+    background: #f2faeb;
     color: #495057;
     border-radius: 10px;
+    border: 1px solid var(--green9);
     box-shadow: 0 4px 16px rgba(152,199,154,0.18);
     padding: 14px 18px;
     font-size: 1rem;
@@ -52,9 +53,9 @@
 :global(.dark) .tooltip {
     background: #23272f;
     color: #fff;
-    box-shadow: 0 4px 16px rgba(83,158,67,0.18);
+    box-shadow: 0 4px 16px rgba(84, 158, 67, 0.411);
 }
 :global(.dark) .iconoAyuda {
-    background: #444950;
+    background: #e7e7e7f6;
     border-color: #98c79a;
 }

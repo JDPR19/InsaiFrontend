@@ -11,6 +11,7 @@ import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
 import CicloSolicitud from '../../components/ayudanteCiclo/Ciclo';
 import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
+import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 
 function Solicitud() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -23,6 +24,10 @@ function Solicitud() {
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedSolicitudId, setSelectedSolicitudId] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [pdfUrl, setPdfUrl] = useState(null)
+    const [pdfFileName, setPdfFileName] = useState('');
+    const { fileName } = getPDFInfo();
+    const excelFileName = fileName.replace('.pdf', '.xlsx');
     const [formData, setFormData] = useState({
         id: '',
         descripcion: '',
@@ -41,6 +46,24 @@ function Solicitud() {
     const tipoSolicitudOptions = tipoSolicitudes.map(t => ({ value: String(t.id), label: t.nombre }));
     const propiedadOptions = propiedades.map(p => ({ value: String(p.id), label: p.nombre }));
 
+     // Cartas dinámicas
+    const [totales, setTotales] = useState({
+        solicitudesTotales: 0,
+        SolicitudesCreadas: 0,
+        SolicitudesAprobadas: 0,
+        solicitudesRechazadas: 0
+        });
+
+        // PDF y EXCEL
+    const columnsSolicitud = [
+        { header: 'Código', key: 'codigo' },
+        { header: 'Descripción', key: 'descripcion' },
+        { header: 'Fecha Solicitada', key: 'fecha_solicitada' },
+        { header: 'Estado', key: 'estado' },
+        { header: 'Tipo de Solicitud', key: 'tipo_solicitud_nombre' },
+        { header: 'Propiedad', key: 'propiedad_nombre' }
+    ];
+
     // Fetchers
     const fetchSolicitudes = async () => {
         setLoading(true);
@@ -50,6 +73,13 @@ function Solicitud() {
             });
             setDatosOriginales(response.data);
             setDatosFiltrados(response.data);
+
+            setTotales({
+                solicitudesTotales: response.data.length,
+                SolicitudesCreadas: response.data.filter(s => s.estado === 'creada').length,
+                SolicitudesAprobadas: response.data.filter(s => s.estado === 'aprobada').length,
+                solicitudesRechazadas: response.data.filter(s => s.estado === 'rechazada').length
+            });
         } catch (error) {
             console.error('Error solicitando todas las solicitudes',error);
             addNotification('Error al obtener solicitudes', 'error');
@@ -117,6 +147,52 @@ function Solicitud() {
     const handleNextThreePages = () => {
         const maxPage = Math.ceil(datosFiltrados.length / itemsPerPage);
         setCurrentPage((prev) => Math.min(prev + 3, maxPage));
+    };
+
+    function getPDFInfo() {
+        if (datosFiltrados.length === datosOriginales.length) {
+            return {
+                fileName: 'Solicitudes Todal.pdf',
+                title: 'Listado de Todas las Solicitudes'
+            };
+        }
+        if (datosFiltrados.every(s => s.estado === 'creada')) {
+            return {
+                fileName: 'Solicitudes_Creadas.pdf',
+                title: 'Listado de Solicitudes Creadas'
+            };
+        }
+        if (datosFiltrados.every(s => s.estado === 'aprobada')) {
+            return {
+                fileName: 'Solicitudes_Aprobadas.pdf',
+                title: 'Listado de Solicitudes Aprobadas'
+            };
+        }
+        if (datosFiltrados.every(s => s.estado === 'rechazada')) {
+            return {
+                fileName: 'Solicitudes_Rechazadas.pdf',
+                title: 'Listado de Solicitudes Rechazadas'
+            };
+        }
+        // Si hay mezcla, puedes poner "Filtradas"
+        return {
+            fileName: 'Solicitudes_Filtradas.pdf',
+            title: 'Listado de Solicitudes Filtradas'
+        };
+    }
+
+    const handlePreviewPDF = () => {
+        const { fileName, title } = getPDFInfo();
+        const blob = exportToPDF({
+            data: datosFiltrados,
+            columns: columnsSolicitud,
+            fileName,
+            title,
+            preview: true
+        });
+        const url = URL.createObjectURL(blob);
+        setPdfUrl(url);
+        setPdfFileName(fileName);
     };
 
     // Modal
@@ -428,24 +504,81 @@ function Solicitud() {
                 </div>
             )}
 
+            <div className='infoTipsContainer' title='Consulta información relevante'>
+                <AyudaTooltip descripcion="1. Registra una nueva solicitud completando todos los campos obligatorios." />
+                <span>→</span>
+                <AyudaTooltip descripcion="2. Filtra las solicitudes usando las cartas resumen para ver creadas, aprobadas o rechazadas." />
+                <span>→</span>
+                <AyudaTooltip descripcion="3. Haz clic en una solicitud para ver su detalle, editarla, eliminarla o exportarla." />
+                <span>→</span>
+                <AyudaTooltip descripcion="4. Usa la barra de búsqueda para encontrar solicitudes rápidamente." />
+                <span>→</span>
+                <AyudaTooltip descripcion="5. Consulta el ayudante visual de ciclo para ver el avance de tu solicitud: desde el registro, pasando por la planificación, inspección y seguimiento. El paso resaltado indica en qué etapa te encuentras." />
+            </div>
+
+            <div className='cardsContainer'>
+                <div className='card' onClick={() => setDatosFiltrados(datosOriginales)} title='Todas las Solicitudes'>
+                    <span className='cardNumber'>{totales.solicitudesTotales}</span>
+                    <p>Total</p>
+                </div>
+                <div className='card' onClick={() => setDatosFiltrados(datosOriginales.filter(s => s.estado === 'creada'))} title='Solicitudes Creadas'>
+                    <span className='cardNumber'>{totales.SolicitudesCreadas}</span>
+                    <p>Solicitudes Creadas</p>
+                </div>
+                <div className='card' onClick={() => setDatosFiltrados(datosOriginales.filter(s => s.estado === 'aprobada'))} title='Solicitudes Aprobadas'>
+                    <span className='cardNumber'>{totales.SolicitudesAprobadas}</span>
+                    <p>Solicitudes Aprobadas</p>
+                </div>
+                <div className='card' onClick={() => setDatosFiltrados(datosOriginales.filter(s => s.estado === 'rechazada'))} title='Solicitudes Rechazadas'>
+                    <span className='cardNumber'>{totales.solicitudesRechazadas}</span>
+                    <p>Solicitudes Rechazadas</p>
+                </div>
+            </div>
             {/* Tabla */}
             <div className='tableSection'>
                 <div className='filtersContainer'>
+
                     <button
                         type='button'
                         onClick={openModal}
-                        className='create'
+                        className='btn-estandar'
                         title='Registrar Solicitud'
                     >
                         <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
+                    
+                    <button
+                        type='button'
+                        onClick={handlePreviewPDF}
+                        className='btn-estandar'
+                        title='Previsualizar PDF'
+                    >
+                        <img src={icon.pdf5} alt="PDF" className='icon' />
+                        PDF
+                    </button>
+
+                    <button
+                        type='button'
+                        onClick={() => exportToExcel({
+                            data: datosFiltrados,
+                            columns: columnsSolicitud,
+                            fileName: excelFileName,
+                            count: true,
+                            totalLabel: 'TOTAL REGISTROS'
+                        })}
+                        className='btn-estandar'
+                        title='Descargar Formato Excel'
+                    >
+                        <img src={icon.excel2} alt="Excel" className='icon' />
+                        Excel
+                    </button>
+                    
                     <h2>Solicitudes</h2>
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
                     </div>
-                    <AyudaTooltip descripcion="Aquí puedes registrar una nueva solicitud. Completa todos los campos obligatorios y guarda para continuar el proceso." />
                 </div>
                 <table className='table'>
                     <thead>
@@ -505,6 +638,23 @@ function Solicitud() {
                 </div>
             </div>
             <CicloSolicitud activo="solicitud" />
+
+            {pdfUrl && (
+            <div className="modalOverlay">
+                <div className="modalDetalle">
+                    <button className="closeButton" onClick={() => setPdfUrl(null)}>&times;</button>
+                    <iframe src={pdfUrl} width="100%" height="600px" title="Vista previa PDF" />
+                    <a
+                        href={pdfUrl}
+                        download={pdfFileName}
+                        className="btn-estandar"
+                        style={{ marginTop: 16, display: 'inline-block', textDecoration: 'none' }}
+                    >
+                        Descargar PDF
+                    </a>
+                </div>
+            </div>
+        )}
         </div>
     );
 }

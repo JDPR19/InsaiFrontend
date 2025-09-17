@@ -33,7 +33,7 @@
 }
 
 :global(.dark) .icono {
-    filter: invert(1) brightness(1.2) drop-shadow(0 0 2px #42aa47) !important ;
+    filter: invert(1) brightness(1.2) drop-shadow(0 0 2px #42aa4777) !important ;
 }
 
 .flecha {
