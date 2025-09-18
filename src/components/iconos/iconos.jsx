@@ -50,6 +50,8 @@ import pdf5 from '../../../public/pdf5.svg';
 import excel from '../../../public/excel.svg';
 import excel2 from '../../../public/excel2.svg';
 import question from '../../../public/question.svg';
+import eliminar1 from '../../../public/eliminar1.svg'; 
+import flechaAbajo from '../../../public/flechaAbajo.svg'; 
 
 
 const Iconos = {
@@ -105,6 +107,8 @@ const Iconos = {
     sun,
     moon,
     question,
+    eliminar1,
+    flechaAbajo,
 };
 
 export default Iconos;

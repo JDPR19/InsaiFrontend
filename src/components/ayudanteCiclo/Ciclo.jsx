@@ -1,6 +1,7 @@
 import React from 'react';
 import styles from './ciclo.module.css';
 import icon from '../iconos/iconos';
+import AyudaTooltip from '../ayudanteinfo/AyudaTooltip';
 
 const pasos = [
     { key: 'solicitud', label: 'Solicitud', icon: icon.ver },
@@ -9,7 +10,7 @@ const pasos = [
     { key: 'seguimiento', label: 'Seguimiento', icon: icon.lupa2 }
 ];
 
-function Ciclo({ activo }) {
+function Ciclo({ activo, ayudaDescripcion }) {
     return (
         <div className={styles.cicloContainer}>
             {pasos.map((paso, idx) => (
@@ -21,6 +22,12 @@ function Ciclo({ activo }) {
                     {idx < pasos.length - 1 && <span className={styles.flecha}>→</span>}
                 </React.Fragment>
             ))}
+            <hr />
+            {ayudaDescripcion && (
+                <div className={styles.paso}>
+                    <AyudaTooltip descripcion={ayudaDescripcion} />
+                </div>
+            )}
         </div>
     );
 }

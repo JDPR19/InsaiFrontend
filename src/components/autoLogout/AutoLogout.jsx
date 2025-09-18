@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { BaseUrl } from '../../utils/constans';
 
 const API_URL = import.meta.env.VITE_API_URL || BaseUrl;
-const INACTIVITY_LIMIT = 15 * 10 * 1000; 
+const INACTIVITY_LIMIT = 15 * 60 * 1000; 
 
 const AutoLogout = () => {
     const navigate = useNavigate();
@@ -19,15 +19,17 @@ const AutoLogout = () => {
         const logout = async (msg = 'Tu sesión ha expirado. Serás redirigido al login.') => {
             const currentToken = localStorage.getItem('token');
             notifyGlobal(msg, 'warning');
+            let backendLogoutOk = false;
             if (currentToken) {
                 try {
-                    await fetch(`${API_URL}/auth/logout`, {
+                    const res = await fetch(`${API_URL}/auth/logout`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             Authorization: `Bearer ${currentToken}`,
                         },
                     });
+                    backendLogoutOk = res.ok;
                 } catch (e) {
                     console.error('Error cerrando sesión en backend:', e);
                 }
@@ -35,6 +37,9 @@ const AutoLogout = () => {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             localStorage.removeItem('permisos');
+            if(!backendLogoutOk) {
+                notifyGlobal('No se pudo cerrar sesión en el servidor. Tu sesión se cerró localmente.', 'error')
+            }
             navigate('/');
         };
 

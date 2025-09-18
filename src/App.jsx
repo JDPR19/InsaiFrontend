@@ -38,7 +38,6 @@ import Sector from './pages/Ubicacion/Sector';
 import Cargo from './pages/Cargo/Cargo';
 import TipoUsuario from './pages/Usuario/TipoUsuario';
 import Planificacion from './pages/Planificacion/Planificacion';
-import MuestraPlaga from './pages/MuestraPlaga/MuestraPlaga';
 import TipoSolicitud from './pages/Solicitud/TipoSolicitud';
 import MiUsuario from './pages/Miusuario/MiUsuario';
 import ProtectedRoute from './ProtectedRoute';
@@ -50,6 +49,7 @@ import SeccionFive from './pages/Seccion/SeccionFive';
 import SeccionSix from './pages/Seccion/SeccionSix';
 import SeccionSeven from './pages/Seccion/SeccionSeven';
 import SeguimientoInspeccion from './pages/Inspecciones/SeguimientoInspeccion';
+import Informativa from './pages/Informativa/Informativa';
 
 function AppContent() {
 
@@ -72,7 +72,7 @@ function AppContent() {
       <Routes>
         {/* Ruta pública: Login */}
         <Route path="/" element={<Login />} />
-
+        
         {/* Rutas protegidas con permisos */}
         <Route
           path="/Home"
@@ -82,6 +82,12 @@ function AppContent() {
                 <Home />
               </MainLayout>
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/informativa"
+          element={
+              <Informativa />           
           }
         />
         <Route 
@@ -239,16 +245,6 @@ function AppContent() {
             <ProtectedRoute pantalla="planificacion">
               <MainLayout>
                 <Planificacion />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/MuestraPlaga"
-          element={
-            <ProtectedRoute pantalla="muestras">
-              <MainLayout>
-                <MuestraPlaga />
               </MainLayout>
             </ProtectedRoute>
           }

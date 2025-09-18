@@ -10,6 +10,10 @@ import { useNotification } from '../../utils/NotificationContext';
 import { validateField, getValidationRule } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
+import Ciclo from '../../components/ayudanteCiclo/Ciclo';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 
 function Planificacion() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -20,6 +24,11 @@ function Planificacion() {
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [panelFecha, setPanelFecha] = useState({ abierto: false, plan: null });
+    const fechasProgramadas = datosOriginales.map(p => p.fecha_programada);
+    const [pdfUrl, setPdfUrl] = useState(null);
+    const [pdfFileName, setPdfFileName] = useState('');
     const [detalleModal, setDetalleModal] = useState({ abierto: false, planificacion: null });
     const [formData, setFormData] = useState({
         id: '',
@@ -55,6 +64,55 @@ function Planificacion() {
         label: t.nombre
     }));
 
+    // Función para marcar fechas
+    const tileClassName = ({ date, view }) => {
+        if (view === 'month') {
+            const fechaStr = date.toISOString().slice(0, 10);
+            if (fechasProgramadas.includes(fechaStr)) {
+                return 'fecha-programada';
+            }
+        }
+        return null;
+    };
+
+    // detalles del calendario
+    const tileContent = ({ date, view }) => {
+        if (view === 'month') {
+            const fechaStr = date.toISOString().slice(0, 10);
+            const plan = datosOriginales.find(p => p.fecha_programada === fechaStr);
+            if (plan) {
+                return (
+                    <span title={`Actividad: ${plan.actividad}\nEstado: ${plan.estado}`}>
+                        {plan.estado === 'pendiente' && <span style={{ fontSize: '1.1em' }}>⏳</span>}
+                        {plan.estado === 'inspeccion' && <span style={{ fontSize: '1.1em' }}>🔍</span>}
+                        {plan.estado === 'rechazada' && <span style={{ fontSize: '1.1em' }}>❌</span>}
+                        {plan.estado === 'aprobada' && <span style={{ fontSize: '1.1em' }}>✔️</span>}
+                        {/* Puedes agregar más estados si lo necesitas */}
+                        {/* <span style={{ fontSize: '1.1em', marginLeft: 2 }}>📅</span> */}
+                    </span>
+                );
+            }
+        }
+        return null;
+    };
+
+    const columnsPlanificacion = [
+        { header: 'Actividad', key: 'actividad' },
+        { header: 'Fecha Programada', key: 'fecha_programada' },
+        { header: 'Estado', key: 'estado' },
+        { header: 'Objetivo', key: 'objetivo' },
+        { header: 'Convocatoria', key: 'convocatoria' },
+        { header: 'Ubicación', key: 'ubicacion' },
+        { header: 'Aseguramiento', key: 'aseguramiento' }
+    ];
+
+    const [totales, setTotales] = useState({
+        planificacionesTotales: 0,
+        planificacionesPendientes: 0,
+        planificacionesAprobadas: 0,
+        planificacionesRechazadas: 0
+    });
+
     // Fetchers
     const fetchPlanificaciones = async () => {
         setLoading(true);
@@ -64,8 +122,15 @@ function Planificacion() {
             });
             setDatosOriginales(response.data);
             setDatosFiltrados(response.data);
+
+            setTotales({
+                planificacionesTotales: response.data.length,
+                planificacionesPendientes: response.data.filter(p => p.estado === 'pendiente').length,
+                planificacionesAprobadas: response.data.filter(p => p.estado === 'aprobada').length,
+                planificacionesRechazadas: response.data.filter(p => p.estado === 'rechazada').length
+            });
         } catch (error) {
-            console.error('Error al obtener planificaciones', error);
+            console.error('Error al obtener todas las planificaciones',error);
             addNotification('Error al obtener planificaciones', 'error');
         } finally {
             setLoading(false);
@@ -108,12 +173,16 @@ function Planificacion() {
         }
     };
 
+
     useEffect(() => {
+        setDatosFiltrados(datosOriginales);
         fetchPlanificaciones();
         fetchSolicitudes();
         fetchEmpleados();
         fetchTipoInspecciones();
     }, []);
+
+    
 
     const resetFormData = () => {
         setFormData({
@@ -345,7 +414,7 @@ function Planificacion() {
     // Buscar y filtrar
     const handleSearch = (searchTerm) => {
         const filtered = filterData(datosOriginales, searchTerm, [
-            'id', 'actividad', 'objetivo', 'convocatoria', 'ubicacion', 'aseguramiento', 'estado', 'fecha_programada'
+            'actividad', 'fecha_programada', 'estado', 'objetivo', 'convocatoria', 'ubicacion', 'aseguramiento'
         ]);
         setDatosFiltrados(filtered);
         setCurrentPage(1);
@@ -612,19 +681,270 @@ function Planificacion() {
                     </div>
                 </div>
             )}
+            
+            {pdfUrl && (
+                <div className="modalOverlay">
+                    <div className="modalDetalle">
+                        <button className="closeButton" onClick={() => setPdfUrl(null)}>&times;</button>
+                        <iframe src={pdfUrl} width="100%" height="600px" title="Vista previa PDF" />
+                        <a
+                            href={pdfUrl}
+                            download={pdfFileName}
+                            className="btn-estandar"
+                            style={{ marginTop: 16, display: 'inline-block', textDecoration: 'none' }}
+                        >
+                            Descargar PDF
+                        </a>
+                    </div>
+                </div>
+            )}
 
-            {/* Tabla */}
-            <div className='tableSection'>
-                <div className='filtersContainer'>
+            <Ciclo
+                activo="planificacion"
+                ayudaDescripcion="En esta sección puedes gestionar todas las planificaciones del sistema. Visualiza y programa actividades, inspecciones y tareas clave, consulta su estado, edita información, elimina registros y exporta los datos en formatos PDF o Excel según tus necesidades. Utiliza el calendario para identificar rápidamente las fechas programadas y acceder a los detalles de cada planificación. Las herramientas de filtrado y búsqueda te permiten encontrar fácilmente la información que necesitas, optimizando la organización y el seguimiento de tus procesos operativos."
+                />
+
+            <div style={{ margin: '30px auto', maxWidth: 700 }}>
+                <div className="titulocalendario">
+                    <h2 className="titleCalendario">
+                        <span className="Unique">*</span>Calendario de Planificaciones
+                    </h2>
                     <button
-                        type='button'
-                        onClick={openModal}
-                        className='create'
-                        title='Registrar Planificación'
+                        className="btn-deslizar"
+                        title='Ir a Programar una Planificación'
+                        onClick={() => {
+                        document.body.style.overflow = '';
+                        const tabla = document.getElementById('tablaPlanificacion');
+                        if (tabla) {
+                            tabla.scrollIntoView({ behavior: 'smooth' });
+                        }
+                        }}
                     >
-                        <img src={icon.plus} alt="Crear" className='icon' />
-                        Agregar
+                        Ir a Programar
+                        <img src={icon.flechaAbajo} alt="PDF" className='icon' />
                     </button>
+                    </div>
+                <Calendar
+                    onChange={date => {
+                        setSelectedDate(date);
+                        const fechaStr = date.toISOString().slice(0, 10);
+                        const plan = datosOriginales.find(p => p.fecha_programada === fechaStr);
+                        if (plan) {
+                            setPanelFecha({ abierto: true, plan });
+                        } else {
+                            setPanelFecha({ abierto: false, plan: null });
+                        }
+                    }}
+                    value={selectedDate}
+                    tileClassName={tileClassName}
+                    tileContent={tileContent}
+                />
+            </div>
+
+            {panelFecha.abierto && panelFecha.plan && (
+                <div className="panelOverlay">
+                    <div className="panelLateral">
+                        <button className="closeButton" onClick={() => setPanelFecha({ abierto: false, plan: null })}>&times;</button>
+                        <h2>Detalle de Planificación</h2>
+                        <ul style={{ fontSize: '1.1em', margin: '18px 0' }}>
+                            <li><strong>Actividad:</strong> {panelFecha.plan.actividad}</li>
+                            <li><strong>Estado:</strong> {panelFecha.plan.estado}</li>
+                            <li><strong>Fecha Programada:</strong> {panelFecha.plan.fecha_programada}</li>
+                            <li><strong>Objetivo:</strong> {panelFecha.plan.objetivo}</li>
+                            <li><strong>Convocatoria:</strong> {panelFecha.plan.convocatoria}</li>
+                            <li><strong>Ubicación:</strong> {panelFecha.plan.ubicacion}</li>
+                            <li><strong>Aseguramiento:</strong> {panelFecha.plan.aseguramiento}</li>
+                        </ul>
+                        <div className="panelActions">
+                            <button
+                                className="panelBtn editar"
+                                title="Editar"
+                                onClick={() => {
+                                    setPanelFecha({ abierto: false, plan: null });
+                                    openEditModal(panelFecha.plan);
+                                }}
+                            >
+                                <img src={icon.crear} alt="Editar" style={{ width: 22, marginRight: 6 }} />
+                                Reprogramar
+                            </button>
+                            <button
+                                className="panelBtn eliminar"
+                                title="Eliminar"
+                                onClick={() => {
+                                    setPanelFecha({ abierto: false, plan: null });
+                                    openConfirmDeleteModal(panelFecha.plan.id);
+                                }}
+                            >
+                                <img src={icon.eliminar1} alt="Eliminar" style={{ width: 22, marginRight: 6 }} />
+                                Eliminar
+                            </button>
+                            <button
+                                className="panelBtn eliminar"
+                                title="Exportar PDF"
+                                onClick={() => {
+                                    const blob = exportToPDF({
+                                        data: [panelFecha.plan],
+                                        columns: columnsPlanificacion,
+                                        fileName: `Planificacion_${panelFecha.plan.fecha_programada}.pdf`,
+                                        title: 'Detalle de Planificación',
+                                        preview: true
+                                    });
+                                    const url = URL.createObjectURL(blob);
+                                    setPdfUrl(url);
+                                    setPdfFileName(`Planificacion_${panelFecha.plan.fecha_programada}.pdf`);
+                                }}
+                            >
+                                <img src={icon.pdf5} alt="PDF" style={{ width: 22, marginRight: 6 }} />
+                                PDF
+                            </button>
+                            <button
+                                className="panelBtn editar"
+                                title="Exportar Excel"
+                                onClick={() => exportToExcel({
+                                    data: [panelFecha.plan],
+                                    columns: columnsPlanificacion,
+                                    fileName: `Planificacion_${panelFecha.plan.fecha_programada}.xlsx`,
+                                    count: false
+                                })}
+                            >
+                                <img src={icon.excel2} alt="Excel" style={{ width: 22, marginRight: 6 }} />
+                                Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className='leyendaCalendario'>
+                <span>
+                    <span style={{
+                        background: '#98c79a',
+                        borderRadius: '50%',
+                        padding: '2px 8px',
+                        color: '#fff',
+                        marginRight: 4,
+                    }}>📅</span>
+                    Fecha programada
+                </span>
+                <span>
+                    <span style={{
+                        background: '#539E43',
+                        borderRadius: '50%',
+                        padding: '2px 8px',
+                        color: '#fff',
+                        marginRight: 4,
+                    }}>●</span>
+                    Seleccionado
+                </span>
+                <span>
+                    <span style={{
+                        background: '#ffd466bb',
+                        borderRadius: '50%',
+                        padding: '2px 8px',
+                        color: '#444',
+                        marginRight: 4,
+                    }}>⏳</span>
+                    Pendiente
+                </span>
+                <span>
+                    <span style={{
+                        background: '#67b0fa81',
+                        borderRadius: '50%',
+                        padding: '2px 8px',
+                        color: '#444',
+                        marginRight: 4,
+                    }}>🔍</span>
+                    Inspección
+                </span>
+                <span>
+                    <span style={{
+                        background: '#f5afaee1',
+                        borderRadius: '50%',
+                        padding: '2px 8px',
+                        color: '#444',
+                        marginRight: 4,
+                    }}>❌</span>
+                    Rechazada
+                </span>
+                <span>
+                    <span style={{
+                        background: '#539E43',
+                        borderRadius: '50%',
+                        padding: '2px 8px',
+                        color: '#fff',
+                        marginRight: 4,
+                    }}>✔️</span>
+                    Aprobada
+                </span>
+            </div>
+
+            <div className='cardsContainer'>
+                <div className='card' onClick={() => setDatosFiltrados(datosOriginales)} title='Todas las Planificaciones'>
+                    <span className='cardNumber'>{totales.planificacionesTotales}</span>
+                    <p>Total</p>
+                </div>
+                <div className='card' onClick={() => setDatosFiltrados(datosOriginales.filter(p => p.estado === 'pendiente'))} title='Planificaciones Pendientes'>
+                    <span className='cardNumber'>{totales.planificacionesPendientes}</span>
+                    <p>Pendientes</p>
+                </div>
+                <div className='card' onClick={() => setDatosFiltrados(datosOriginales.filter(p => p.estado === 'aprobada'))} title='Planificaciones Aprobadas'>
+                    <span className='cardNumber'>{totales.planificacionesAprobadas}</span>
+                    <p>Aprobadas</p>
+                </div>
+                <div className='card' onClick={() => setDatosFiltrados(datosOriginales.filter(p => p.estado === 'rechazada'))} title='Planificaciones Rechazadas'>
+                    <span className='cardNumber'>{totales.planificacionesRechazadas}</span>
+                    <p>Rechazadas</p>
+                </div>
+            </div>
+            {/* Tabla */}
+            <div className='tableSection' id="tablaPlanificacion">
+                <div className='filtersContainer'>
+                    <div className='filtersButtons'>
+                        <button
+                            type='button'
+                            onClick={openModal}
+                            className='btn-estandar'
+                            title='Registrar Planificación'
+                            >
+                            <img src={icon.calendario} alt="Crear" className='icon' />
+                            Reprogramar
+                        </button>
+                        <button
+                            type='button'
+                            onClick={() => {
+                                const blob = exportToPDF({
+                                    data: datosFiltrados,
+                                    columns: columnsPlanificacion,
+                                    fileName: 'Planificaciones.pdf',
+                                    title: 'Listado de Planificaciones',
+                                    preview: true
+                                });
+                                const url = URL.createObjectURL(blob);
+                                setPdfUrl(url);
+                                setPdfFileName('Planificaciones.pdf');
+                            }}
+                            className='btn-estandar'
+                            title='Previsualizar PDF'
+                        >
+                            <img src={icon.pdf5} alt="PDF" className='icon' />
+                            PDF
+                        </button>
+                        <button
+                            type='button'
+                            onClick={() => exportToExcel({
+                                data: datosFiltrados,
+                                columns: columnsPlanificacion,
+                                fileName: 'Planificaciones.xlsx',
+                                count: true,
+                                totalLabel: 'TOTAL REGISTROS'
+                            })}
+                            className='btn-estandar'
+                            title='Descargar Formato Excel'
+                        >
+                            <img src={icon.excel2} alt="Excel" className='icon' />
+                            Excel
+                        </button>
+                    </div>
                     <h2>Planificaciones</h2>
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />

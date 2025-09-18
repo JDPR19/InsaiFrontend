@@ -9,8 +9,7 @@ import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
-import CicloSolicitud from '../../components/ayudanteCiclo/Ciclo';
-import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
+import Ciclo from '../../components/ayudanteCiclo/Ciclo';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 
 function Solicitud() {
@@ -504,18 +503,8 @@ function Solicitud() {
                 </div>
             )}
 
-            <div className='infoTipsContainer' title='Consulta información relevante'>
-                <AyudaTooltip descripcion="1. Registra una nueva solicitud completando todos los campos obligatorios." />
-                <span>→</span>
-                <AyudaTooltip descripcion="2. Filtra las solicitudes usando las cartas resumen para ver creadas, aprobadas o rechazadas." />
-                <span>→</span>
-                <AyudaTooltip descripcion="3. Haz clic en una solicitud para ver su detalle, editarla, eliminarla o exportarla." />
-                <span>→</span>
-                <AyudaTooltip descripcion="4. Usa la barra de búsqueda para encontrar solicitudes rápidamente." />
-                <span>→</span>
-                <AyudaTooltip descripcion="5. Consulta el ayudante visual de ciclo para ver el avance de tu solicitud: desde el registro, pasando por la planificación, inspección y seguimiento. El paso resaltado indica en qué etapa te encuentras." />
-            </div>
-
+            <Ciclo activo="solicitud" ayudaDescripcion="En esta sección puedes gestionar todas las solicitudes del sistema. Registra nuevas solicitudes, consulta su estado, edita información, elimina registros y exporta los datos según tus necesidades. Utiliza los filtros y la barra de búsqueda para encontrar rápidamente la información que necesitas. El ciclo visual te ayuda a identificar en qué etapa se encuentra cada solicitud."/>
+            
             <div className='cardsContainer'>
                 <div className='card' onClick={() => setDatosFiltrados(datosOriginales)} title='Todas las Solicitudes'>
                     <span className='cardNumber'>{totales.solicitudesTotales}</span>
@@ -537,42 +526,44 @@ function Solicitud() {
             {/* Tabla */}
             <div className='tableSection'>
                 <div className='filtersContainer'>
+                    <div className='filtersButtons'>
 
-                    <button
-                        type='button'
-                        onClick={openModal}
-                        className='btn-estandar'
-                        title='Registrar Solicitud'
-                    >
-                        <img src={icon.plus} alt="Crear" className='icon' />
-                        Agregar
-                    </button>
-                    
-                    <button
-                        type='button'
-                        onClick={handlePreviewPDF}
-                        className='btn-estandar'
-                        title='Previsualizar PDF'
-                    >
-                        <img src={icon.pdf5} alt="PDF" className='icon' />
-                        PDF
-                    </button>
+                        <button
+                            type='button'
+                            onClick={openModal}
+                            className='btn-estandar'
+                            title='Registrar Solicitud'
+                            >
+                            <img src={icon.plus} alt="Crear" className='icon' />
+                            Agregar
+                        </button>
+                        
+                        <button
+                            type='button'
+                            onClick={handlePreviewPDF}
+                            className='btn-estandar'
+                            title='Previsualizar PDF'
+                        >
+                            <img src={icon.pdf5} alt="PDF" className='icon' />
+                            PDF
+                        </button>
 
-                    <button
-                        type='button'
-                        onClick={() => exportToExcel({
-                            data: datosFiltrados,
-                            columns: columnsSolicitud,
-                            fileName: excelFileName,
-                            count: true,
-                            totalLabel: 'TOTAL REGISTROS'
-                        })}
-                        className='btn-estandar'
-                        title='Descargar Formato Excel'
-                    >
-                        <img src={icon.excel2} alt="Excel" className='icon' />
-                        Excel
-                    </button>
+                        <button
+                            type='button'
+                            onClick={() => exportToExcel({
+                                data: datosFiltrados,
+                                columns: columnsSolicitud,
+                                fileName: excelFileName,
+                                count: true,
+                                totalLabel: 'TOTAL REGISTROS'
+                            })}
+                            className='btn-estandar'
+                            title='Descargar Formato Excel'
+                            >
+                            <img src={icon.excel2} alt="Excel" className='icon' />
+                            Excel
+                        </button>
+                    </div>
                     
                     <h2>Solicitudes</h2>
                     <div className='searchContainer'>
@@ -637,7 +628,6 @@ function Solicitud() {
                     <img onClick={handleNextPage} src={icon.flecha2} className='iconNext' title='Siguiente' />
                 </div>
             </div>
-            <CicloSolicitud activo="solicitud" />
 
             {pdfUrl && (
             <div className="modalOverlay">

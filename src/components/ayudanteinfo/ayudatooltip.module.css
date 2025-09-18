@@ -28,7 +28,7 @@
     top: 40px;
     left: 50%;
     transform: translateX(-50%);
-    min-width: 220px;
+    min-width: 260px;
     max-width: 320px;
     background: #f2faeb;
     color: #495057;
@@ -36,7 +36,7 @@
     border: 1px solid var(--green9);
     box-shadow: 0 4px 16px rgba(152,199,154,0.18);
     padding: 14px 18px;
-    font-size: 1rem;
+    font-size: 0.80rem;
     font-family: 'Poppins', sans-serif;
     z-index: 9999;
     opacity: 0;

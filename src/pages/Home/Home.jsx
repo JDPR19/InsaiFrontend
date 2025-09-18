@@ -11,6 +11,7 @@ import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 import { useNotification } from '../../utils/NotificationContext';
 import searchStyles from '../../components/searchbart/searchmodal.module.css';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
+import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
 
 const chartFilterOptions = [
     { value: 'empleados-activos', label: 'Empleados Activos' },
@@ -751,6 +752,25 @@ function Home() {
     </div>
 );
 
+        {detalleModal.abierto && <ModalDetallePropiedad />}
+            {modalCarta.abierto && <ModalCartaDetalle />}
+            {pdfUrl && (
+            <div className="modalOverlay">
+                <div className="modalDetalle">
+                    <button className="closeButton" onClick={() => setPdfUrl(null)}>&times;</button>
+                    <iframe src={pdfUrl} width="100%" height="600px" title="Vista previa PDF" />
+                    <a
+                        href={pdfUrl}
+                        download={pdfFileName}
+                        className="btn-estandar"
+                        style={{ marginTop: 16, display: 'inline-block', textDecoration: 'none' }}
+                    >
+                        Descargar PDF
+                    </a>
+                </div>
+            </div>
+        )}
+
     // Pie de la tabla (paginación)
     const PieTabla = () => (
         <div className='tableFooter'>
@@ -872,25 +892,6 @@ function Home() {
                     )}
                 </div>
             </div>
-
-            {detalleModal.abierto && <ModalDetallePropiedad />}
-            {modalCarta.abierto && <ModalCartaDetalle />}
-            {pdfUrl && (
-            <div className="modalOverlay">
-                <div className="modalDetalle">
-                    <button className="closeButton" onClick={() => setPdfUrl(null)}>&times;</button>
-                    <iframe src={pdfUrl} width="100%" height="600px" title="Vista previa PDF" />
-                    <a
-                        href={pdfUrl}
-                        download={pdfFileName}
-                        className="btn-estandar"
-                        style={{ marginTop: 16, display: 'inline-block', textDecoration: 'none' }}
-                    >
-                        Descargar PDF
-                    </a>
-                </div>
-            </div>
-        )}
         </div>
     );
 }

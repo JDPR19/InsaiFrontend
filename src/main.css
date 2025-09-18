@@ -282,7 +282,7 @@ html, body {
     margin-right: 0;
     margin-top: 60px;
     max-width: 90vw;
-    overflow-x: hidden;
+    /* overflow-x: hidden; */
 }
 /* Estilos para el modal /////////////////////////*/
 .modalOverlay {
@@ -599,6 +599,13 @@ html, body {
   align-items: center;
   justify-content: space-around; 
   margin-bottom: 20px; 
+  flex-wrap: wrap;
+}
+
+.filtersButtons {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Menos separación entre botones */
 }
 
 /* Contenedor de búsqueda */
@@ -1509,22 +1516,21 @@ html, body {
 
 .cardsContainer {
     display: flex;
-    gap: 10px;
     margin-bottom: 30px;
-    margin-right: 100px;
-    margin-left: 100px;
-    justify-content: space-between;
+    margin-right: auto;
+    margin-left: auto;
+    justify-content: space-evenly;
 }
 
 .card {
-    width: 110px;           
-    height: 110px;          
+    width: 160px;           
+    height: 120px;          
     background-color: var(--white1);
     border-radius: 16px;
     padding: 10px;
     text-align: center;
     cursor: pointer;
-    border-bottom: 2px solid #5fb84b;
+    border-bottom: 2px solid #5fb84bce;
     transition: transform 0.3s ease;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.483);
     display: flex;
@@ -1547,17 +1553,17 @@ html, body {
   
 .infoTipsContainer {
     display: flex;
-    gap: 18px;
+    gap: 15px;
     align-items: center;
-    justify-content: center; 
+    justify-content: left; 
     margin-bottom: 30px;
-    margin-right: auto;
-    margin-left: auto;
+    /* margin-right: auto;
+    margin-left: auto; */
     flex-wrap: wrap;
     background: var(--white1);
     border-radius: 16px;
-    border-bottom: 2px solid #5fb84b;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.483);
+    /* border-bottom: 2px solid #5fb84b; */
+    /* box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.483); */
     padding: 12px 18px;
     min-height: 60px;
     width: fit-content;
@@ -1586,6 +1592,365 @@ html, body {
 .dark .infoTipsContainer span {
     color: #fff;
 }
+
+/* Calendario */
+
+.titulocalendario {
+  display: flex;
+  align-items: center;
+  justify-content: space-around; 
+  gap: 24px;
+  width: 100%;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.titleCalendario {
+  margin-bottom: 0; 
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.btn-deslizar {
+  display: flex;
+  background: var(--grey);
+  color: var(--black);
+  border: none;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 0.80rem;
+  font-weight: bold;
+  cursor: pointer;
+  opacity: 0.7;
+  box-shadow: 0 2px 8px #98c79a33;
+  transition: background 0.2s ease-in-out, opacity 0.3s ease-in-out;
+  margin: 0; 
+}
+
+.btn-deslizar img {
+  position: relative;
+  left: 5px;
+}
+.btn-deslizar:hover{
+  opacity: 1;
+}
+.react-calendar {
+    width: 100%;
+    max-width: 800px;    
+    min-width: 750px;
+    height: 380px;       
+    margin: 0 auto;
+    background: var(--white2);
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(83,158,67,0.13);
+    border: 1.5px solid var(--lithg-green);
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    padding: 14px 5px 10px 5px;
+    transition: background 0.3s, color 0.3s;
+}
+
+.react-calendar__navigation {
+    margin-bottom: 12px;
+    margin-top: 5px;
+    margin-left: auto ;
+    margin-right: auto;
+    gap: 25px;
+}
+
+.react-calendar__navigation button {
+    background: var(--lithg-green);
+    color: var(--black1);
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 2px 2px;
+    margin: 0 2px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.react-calendar__navigation button:disabled {
+    background: var(--grey3);
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+.react-calendar__navigation button:hover {
+    background: #539E43;
+}
+
+.react-calendar__month-view__weekdays {
+    text-align: center;
+    font-weight: 600;
+    color: #539E43;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+}
+
+.react-calendar__tile {
+    background: none;
+    border-radius: 15px;
+    transition: background 0.2s, color 0.2s;
+    font-size: 1.1rem;
+    min-height: 48px;
+    cursor: pointer;
+    position: relative;
+}
+
+.react-calendar__tile--active {
+    background: #539E43 !important;
+    color: #fff !important;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(83,158,67,0.13);
+}
+
+.react-calendar__tile--now {
+    background: #98c79a33 !important;
+    color: #539E43 !important;
+    border: 1.5px solid #98c79a;
+}
+
+.react-calendar__tile:enabled:hover,
+.react-calendar__tile:enabled:focus {
+    background: #98c79a !important;
+    color: #fff !important;
+    font-weight: 600;
+}
+
+.fecha-programada {
+    background: #98c79a !important;
+    color: #fff !important;
+    border-radius:20%;
+    font-weight: bold;
+    box-shadow: 0 2px 8px #98c79a33;
+    position: relative;
+    width: 38px;           
+    height: 60px;          
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-size: 1.25em;    
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    border: 2.5px solid #539E43;
+}
+
+.fecha-programada::after {
+    content: '📅';
+    position: absolute;
+    right: 20px;
+    top: 5px;
+    font-size: 0.90em;
+}
+
+/* Modo oscuro */
+.dark .react-calendar {
+    background: #23272f;
+    color: #fff;
+    border: 1.5px solid #98c79a;
+    box-shadow: 0 4px 24px rgba(83,158,67,0.23);
+}
+
+.dark .react-calendar__navigation button {
+    background: #444950;
+    color: #98c79a;
+}
+
+.dark .react-calendar__navigation button:hover {
+    background: #98c79a;
+    color: #23272f;
+}
+
+.dark .react-calendar__month-view__weekdays {
+    color: #98c79a;
+}
+
+.dark .react-calendar__tile {
+    background: none;
+    color: #fff;
+}
+
+.dark .react-calendar__tile--active {
+    background: #98c79a !important;
+    color: #23272f !important;
+}
+
+.dark .react-calendar__tile--now {
+    background: #444950 !important;
+    color: #98c79a !important;
+    border: 1.5px solid #98c79a;
+}
+
+.dark .react-calendar__tile:enabled:hover,
+.dark .react-calendar__tile:enabled:focus {
+    background: #98c79a !important;
+    color: #23272f !important;
+}
+
+.dark .fecha-programada {
+    background: #98c79a !important;
+    color: #23272f !important;
+    box-shadow: 0 2px 8px #98c79a33;
+}
+
+.leyendaCalendario {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin-top: 20px;
+  margin-bottom: 40px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.90rem;
+  font-weight: bold;
+  flex-wrap: wrap;
+}
+
+.panelOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(40, 40, 40, 0.18);
+    z-index: 9999;
+    display: flex;
+    justify-content: flex-end;
+    align-items: stretch;
+}
+
+.panelLateral {
+    width: 370px;
+    max-width: 95vw;
+    height: 100%;
+    background: var(--white1);
+    box-shadow: -4px 0 18px rgba(83,158,67,0.13);
+    border-top-left-radius: 18px;
+    border-bottom-left-radius: 18px;
+    padding: 32px 28px 24px 28px;
+    animation: slideInPanel 0.35s cubic-bezier(.77,.2,.18,1.01);
+    overflow-y: auto;
+    position: relative;
+}
+
+@keyframes slideInPanel {
+    from {
+        transform: translateX(100%);
+        opacity: 0.2;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.panelLateral h2 {
+    margin-top: 0;
+    color: #539E43;
+    font-size: 1.4em;
+    font-weight: 600;
+    margin-bottom: 18px;
+}
+
+.panelLateral ul {
+    padding-left: 0;
+    list-style: none;
+}
+
+.panelLateral li {
+    margin-bottom: 12px;
+    font-size: 1.05em;
+    color: #444;
+    background: #f6f6f6;
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+.panelActions {
+    display: flex;
+    gap: 18px;
+    margin-top: 12px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.panelBtn {
+    display: flex;
+    align-items: center;
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(83,158,67,0.08);
+    outline: none;
+}
+
+.panelBtn.editar {
+    background: #98c79a;
+    color: #fff;
+}
+
+.panelBtn.editar:hover {
+    background: #539E43;
+}
+
+.panelBtn.eliminar {
+    background: #f5afaee1;
+    color: #fff;
+}
+
+.panelBtn.eliminar:hover {
+    background: #fa5252;
+}
+
+/* Modo oscuro */
+.dark .panelBtn.editar {
+    background: #539E43;
+    color: #fff;
+}
+.dark .panelBtn.eliminar {
+    background: #fa5252;
+    color: #fff;
+}
+
+.closeButton {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    background: none;
+    border: none;
+    font-size: 1.6em;
+    color: #539E43;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.closeButton:hover {
+    color: #2e6c23;
+}
+
+/* Modo oscuro */
+.dark .panelLateral {
+    background: #23272f;
+    color: #fff;
+    box-shadow: -4px 0 18px rgba(83,158,67,0.23);
+}
+.dark .panelLateral li {
+    background: #2c313a;
+    color: #fff;
+}
+.dark .panelLateral h2 {
+    color: #98c79a;
+}
+.dark .closeButton {
+    color: #98c79a;
+}
+
+
 
 @media (max-width: 700px) {
     .ss-center {

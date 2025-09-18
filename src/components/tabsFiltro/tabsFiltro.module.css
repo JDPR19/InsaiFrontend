@@ -116,15 +116,21 @@
 
 .toggleTabsButton{
     margin-bottom: 10px;
-    background: var(--lithg-green);
-    color: var(--white);
+    background: var(--grey);
+    color: var(--black2);
     border: none;
     border-radius: 6px;
+    opacity: 0.7;
     padding: 6px 14px;
     cursor: pointer;
     font-family: 'Poppins', sans-serif;
     font-weight: 500;
     align-self: flex;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.toggleTabsButton:hover {
+    opacity: 1;
 }
 
 .tabsContent {

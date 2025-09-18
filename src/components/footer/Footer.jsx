@@ -1,9 +1,22 @@
 import styles from './footer.module.css';
+import { useNavigate } from 'react-router-dom';
 
-function Footer(){
-    return(
+function Footer() {
+    const navigate = useNavigate();
+    return (
         <div className={styles.footer}>
-            <p> ¿Necesitas ayuda? consulta el <a href="">Soporte de Usuario S.I.G.E.N.S.A.I</a> </p>
+            <p>
+                ¿Necesitas ayuda? consulta el{' '}
+                <a
+                    href="#"
+                    onClick={e => {
+                        e.preventDefault();
+                        navigate('/informativa');
+                    }}
+                >
+                    Soporte de Usuario SICIC-INSAI
+                </a>
+            </p>
         </div>
     );
 }

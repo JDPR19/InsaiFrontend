@@ -3,11 +3,12 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 import styles from './header.module.css';
 import icon from '../../components/iconos/iconos';
-import insai from '../../../public/assets/image.png';
+import sicic from '../../../public/assets/logo-sisic5.png';
 import NotificationDropdown from './NotificationDropdown';
 import { BaseUrl } from '../../utils/constans';
 import { useTheme } from 'next-themes'; 
 import SearchModal from '../searchbart/SearchModal';
+import { useNavigate } from 'react-router-dom';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || `${BaseUrl}`;
 const socket = io(SOCKET_URL);
@@ -20,6 +21,7 @@ function Header() {
     const [showSearchModal, setShowSearchModal] = useState(false);
     const audioRef = useRef(null);
     const { theme, setTheme } = useTheme(); 
+    const navigate = useNavigate();
 
     useEffect(() => {
         const storedUser = JSON.parse(localStorage.getItem('user'));
@@ -79,12 +81,13 @@ function Header() {
     return (
         <header className={styles.header}>
             <div className={styles.logoContainer}>
-                <img src={insai} alt="Logo Institucional" className={styles.logo} />
+                <img src={sicic} alt="Logo Institucional" className={styles.logo} />
             </div>
             <div className={styles.titleContainer}>
                 <h1 className={styles.title}>{getPanelTitle()}</h1>
             </div>
             <div className={styles.userMenu}>
+
                 <div className={styles.campanaWrapper}>
                     <img 
                         src={icon.lupa2} 
@@ -116,7 +119,17 @@ function Header() {
                     )}
                     <audio ref={audioRef} src="/assets/notification.mp3" preload="auto" />
                 </div>
-                
+
+                <div className={styles.campanaWrapper}>
+                    <img 
+                        src={icon.question} 
+                        alt='¿Necesitas Ayuda? Sobre Nosotros'
+                        title='¿Necesitas Ayuda? Sobre Nosotros'
+                        className={styles.lupaIcon}
+                        onClick={() => navigate('/informativa')}
+                    />
+                </div>
+
                 <div className={styles.campanaWrapper}>
                     <img 
                         src={isDark ? icon.sun : icon.moon}
