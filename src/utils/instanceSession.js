@@ -1,11 +1,11 @@
 import axios from "axios";
 import { notifyGlobal } from './globalNotification';
+import { BaseUrl } from "./constans";
 
 let sessionExpired = false;
 
 const API_URL =
-    import.meta.env.VITE_API_URL ||
-    'http://localhost:4000';
+    import.meta.env.VITE_API_URL || BaseUrl;
 
 axios.interceptors.response.use(
     response => response,

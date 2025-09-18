@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { BaseUrl } from '../../utils/constans';
 
 const API_URL = import.meta.env.VITE_API_URL || BaseUrl;
-const INACTIVITY_LIMIT = 15 * 60 * 1000; 
+const INACTIVITY_LIMIT = 2 * 10 * 1000; 
 
 const AutoLogout = () => {
     const navigate = useNavigate();
