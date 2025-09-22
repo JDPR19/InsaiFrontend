@@ -9,7 +9,7 @@ import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
-import Ciclo from '../../components/ayudanteCiclo/Ciclo';
+// import Ciclo from '../../components/ayudanteCiclo/Ciclo';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 
 function Solicitud() {
@@ -30,7 +30,6 @@ function Solicitud() {
     const [formData, setFormData] = useState({
         id: '',
         descripcion: '',
-        fecha_solicitada: '',
         tipo_solicitud_id: null,
         propiedad_id: null,
         fecha_programada: '',
@@ -121,10 +120,8 @@ function Solicitud() {
     setFormData({
         id: '',
         descripcion: '',
-        fecha_solicitada: '',
         tipo_solicitud_id: null,
         propiedad_id: null,
-        fecha_programada: '',
         estado: '',
     });
     setErrors({});
@@ -240,63 +237,50 @@ function Solicitud() {
 
     
     const handleSave = async () => {
-        if (!formData.tipo_solicitud_id || !formData.tipo_solicitud_id.value) {
-            newErrors.tipo_solicitud_id = 'Debe seleccionar un tipo de solicitud';
-        }
-        if (!formData.propiedad_id || !formData.propiedad_id.value) {
-            newErrors.propiedad_id = 'Debe seleccionar una propiedad';
-        }
+    let newErrors = {};
+    if (!formData.descripcion) {
+        newErrors.descripcion = 'La descripción es obligatoria';
+    }
+    if (!formData.tipo_solicitud_id || !formData.tipo_solicitud_id.value) {
+        newErrors.tipo_solicitud_id = 'Debe seleccionar un tipo de solicitud';
+    }
+    if (!formData.propiedad_id || !formData.propiedad_id.value) {
+        newErrors.propiedad_id = 'Debe seleccionar una propiedad';
+    }
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) {
+        addNotification('Completa todos los campos obligatorios', 'warning');
+        return;
+    }
+    setLoading(true);
+    try {
+        const cleanFormData = {
+            descripcion: formData.descripcion,
+            tipo_solicitud_id: formData.tipo_solicitud_id.value,
+            propiedad_id: formData.propiedad_id.value,
+            fecha_resolucion: formData.fecha_resolucion || null,
+            estado: formData.estado || 'creada',
+            usuario_id
+        };
 
-        let newErrors = {};
-        for (const field of ['descripcion', 'fecha_solicitada', 'tipo_solicitud_id', 'propiedad_id']) {
-            if (validationRules[field]) {
-                const error = validateField(field, formData[field], validationRules);
-                if (error) newErrors[field] = error;
-            } else if (!formData[field]) {
-                newErrors[field] = 'Campo obligatorio';
-            }
-        }
-        setErrors(newErrors);
-        if (Object.keys(newErrors).length > 0) {
-            addNotification('Completa todos los campos obligatorios', 'warning');
-            return;
-        }
-        setLoading(true);
-        try {
-            const cleanFormData = {
-                ...formData,
-                tipo_solicitud_id: formData.tipo_solicitud_id?.value || '',
-                propiedad_id: formData.propiedad_id?.value || '',
-                fecha_solicitada: formData.fecha_solicitada || null,
-                fecha_resolucion: formData.fecha_resolucion || null,
-                estado: formData.estado || 'creada',
-            };
-            await axios.post(`${BaseUrl}/solicitud`,{ ...cleanFormData, usuario_id }, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            addNotification('Solicitud registrada con éxito', 'success');
-            fetchSolicitudes();
-            closeModal();
-        } catch (error) {
-            console.error('Error registrando la solicitud',error);
-            addNotification('Error al registrar solicitud', 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
+        await axios.post(`${BaseUrl}/solicitud`, cleanFormData, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        addNotification('Solicitud registrada con éxito', 'success');
+        fetchSolicitudes();
+        closeModal();
+    } catch (error) {
+        console.error('Error registrando la solicitud', error);
+        addNotification('Error al registrar solicitud', 'error');
+    } finally {
+        setLoading(false);
+    }
+};
 
     
     const handleEdit = async () => {
-
-        if (!formData.tipo_solicitud_id || !formData.tipo_solicitud_id.value) {
-            newErrors.tipo_solicitud_id = 'Debe seleccionar un tipo de solicitud';
-        }
-        if (!formData.propiedad_id || !formData.propiedad_id.value) {
-            newErrors.propiedad_id = 'Debe seleccionar una propiedad';
-        }
-
         let newErrors = {};
-        for (const field of ['descripcion', 'fecha_solicitada', 'tipo_solicitud_id', 'propiedad_id']) {
+        for (const field of ['descripcion', 'tipo_solicitud_id', 'propiedad_id']) {
             if (validationRules[field]) {
                 const error = validateField(field, formData[field], validationRules);
                 if (error) newErrors[field] = error;
@@ -311,22 +295,28 @@ function Solicitud() {
         }
         setLoading(true);
         try {
+            // Construye el objeto limpio
             const cleanFormData = {
-                ...formData,
-                tipo_solicutd_id: formData.tipo_solicitud_id?.value || '',
+                descripcion: formData.descripcion,
+                tipo_solicitud_id: formData.tipo_solicitud_id?.value || '',
                 propiedad_id: formData.propiedad_id?.value || '',
-                fecha_solicitada: formData.fecha_solicitada || null,
                 fecha_resolucion: formData.fecha_resolucion || null,
                 estado: formData.estado || 'creada',
+                usuario_id
             };
-            await axios.put(`${BaseUrl}/solicitud/${formData.id}`,{ ...cleanFormData, usuario_id }, {
+            // Solo agrega fecha_solicitada si tiene valor
+            if (formData.fecha_solicitada) {
+                cleanFormData.fecha_solicitada = formData.fecha_solicitada;
+            }
+
+            await axios.put(`${BaseUrl}/solicitud/${formData.id}`, cleanFormData, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Solicitud actualizada con éxito', 'success');
             fetchSolicitudes();
             closeModal();
         } catch (error) {
-            console.error('Error editando la solicitud',error);
+            console.error('Error editando la solicitud', error);
             addNotification('Error al actualizar solicitud', 'error');
         } finally {
             setLoading(false);
@@ -382,20 +372,20 @@ function Solicitud() {
                         <form className='modalForm'>
                             <div className='formColumns'>
                                 <div className='formGroup'>
-                                    <label>Código:</label>
+                                    <label>Fecha Solicitada:</label>
                                     <input
-                                        type="inpu"
-                                        value={detalleModal.solicitud.codigo|| ''}
+                                        type="text"
+                                        value={detalleModal.solicitud.fecha_solicitada || ''}
                                         className='input'
                                         disabled
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Fecha Solicitada:</label>
+                                    <label>Código:</label>
                                     <input
-                                        type="date"
-                                        value={detalleModal.solicitud.fecha_solicitada || ''}
-                                        className='date'
+                                        type="inpu"
+                                        value={detalleModal.solicitud.codigo|| ''}
+                                        className='input'
                                         disabled
                                     />
                                 </div>
@@ -446,11 +436,6 @@ function Solicitud() {
                         <h2>{formData.id ? 'Editar Solicitud' : 'Registrar Solicitud'}</h2>
                         <form className='modalForm'>
                             <div className='formColumns'>
-                                <div className='formGroup'>
-                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Fecha Solicitada:</label>
-                                    <input type="date" id='fecha_solicitada' value={formData.fecha_solicitada} onChange={handleChange} className='date' />
-                                    {errors.fecha_solicitada && <span className='errorText'>{errors.fecha_solicitada}</span>}
-                                </div>
                                 <div className='formGroup'>
                                     <label><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Solicitud:</label>
                                     <SingleSelect
@@ -503,7 +488,7 @@ function Solicitud() {
                 </div>
             )}
 
-            <Ciclo activo="solicitud" ayudaDescripcion="En esta sección puedes gestionar todas las solicitudes del sistema. Registra nuevas solicitudes, consulta su estado, edita información, elimina registros y exporta los datos según tus necesidades. Utiliza los filtros y la barra de búsqueda para encontrar rápidamente la información que necesitas. El ciclo visual te ayuda a identificar en qué etapa se encuentra cada solicitud."/>
+            {/* <Ciclo activo="solicitud" ayudaDescripcion="En esta sección puedes gestionar todas las solicitudes del sistema. Registra nuevas solicitudes, consulta su estado, edita información, elimina registros y exporta los datos según tus necesidades. Utiliza los filtros y la barra de búsqueda para encontrar rápidamente la información que necesitas. El ciclo visual te ayuda a identificar en qué etapa se encuentra cada solicitud."/> */}
             
             <div className='cardsContainer'>
                 <div className='card' onClick={() => setDatosFiltrados(datosOriginales)} title='Todas las Solicitudes'>
@@ -575,9 +560,9 @@ function Solicitud() {
                     <thead>
                         <tr>
                             <th>N°</th>
+                            <th>Fecha Solicitada</th>
                             <th>Código</th>
                             <th>Descripción</th>
-                            <th>Fecha Solicitada</th>
                             <th>Estado</th>
                             <th>Acción</th>
                         </tr>
@@ -586,9 +571,9 @@ function Solicitud() {
                         {currentData.map((item, idx) => (
                             <tr key={item.id}>
                                 <td>{indexOfFirstItem + idx + 1}</td>
+                                <td>{item.fecha_solicitada}</td>
                                 <td>{item.codigo}</td>
                                 <td>{item.descripcion}</td>
-                                <td>{item.fecha_solicitada}</td>
                                 <td>
                                     <span className={`badge-estado badge-${item.estado}`}>
                                         {item.estado}

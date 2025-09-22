@@ -3,8 +3,9 @@ import TabsNotificaciones from '../../components/tabsFiltro/TabsNotificaciones';
 import styles from './header.module.css';
 import icon from '../../components/iconos/iconos'; 
 import '../../main.css';
+import { BaseUrl } from '../../utils/constans';
 
-const BaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const API_URL = import.meta.env.VITE_API_URL || BaseUrl;
 
 function NotificationDropdown({ notificaciones, marcarLeida, tabActivo, setTabActivo, open }) {
     const [showAllModal, setShowAllModal] = useState(false);
@@ -55,9 +56,9 @@ function NotificationDropdown({ notificaciones, marcarLeida, tabActivo, setTabAc
         setTipoDetalle(n.tipo);
         let url = '';
         if (n.tipo === 'solicitud' && n.solicitud_id) {
-            url = `${BaseUrl}/notificaciones/solicitud/${n.solicitud_id}`;
+            url = `${API_URL}/notificaciones/solicitud/${n.solicitud_id}`;
         } else if (n.tipo === 'planificacion' && n.planificacion_id) {
-            url = `${BaseUrl}/notificaciones/planificacion/${n.planificacion_id}`;
+            url = `${API_URL}/notificaciones/planificacion/${n.planificacion_id}`;
         } else {
             setLoadingDetalle(false);
             setDetalleEntidad({ error: 'No se puede mostrar el detalle.' });

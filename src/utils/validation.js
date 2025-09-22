@@ -4,8 +4,8 @@ export const validateField = (value, regex, errorMessage) => {
     if (!value.trim()) {
         return { valid: false, message: 'No Puede Dejar El Campo Vacío' };
     }
-    if (typeof value === 'string' && value.length > 40) {
-        return { valid: false, message: 'No puede ingresar más de 40 caracteres' };
+    if (typeof value === 'string' && value.length > 100) {
+        return { valid: false, message: 'No puede ingresar más de 100 caracteres' };
     }
     // if (!regex.test(value)) {
     //     return { valid: false, message: 'El formato ingresado no es válido' };

@@ -21,28 +21,41 @@
 .card {
     flex: 1;
     background-color: var(--white1);
-    border-radius: 8px;
-    padding: 20px;
-    height: 20vh;
+    border-radius: 14px;
+    padding: 18px 12px;
+    min-height: 110px;
     text-align: center;
     cursor: pointer;
-    border-bottom: 2px solid #5fb84bc0;
-    /* border-top: 2px solid #5fb84b; */
-    transition: transform 0.3s ease;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.483);
+    border-bottom: 3px solid var(--black1);
+    transition: transform 0.25s, box-shadow 0.25s;
+    box-shadow: 0px 6px 18px rgba(83, 158, 67, 0.10), 0px 2px 8px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
-
-
 .card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-8px) scale(1);
+    box-shadow: 0px 12px 32px rgba(83, 158, 67, 0.18), 0px 4px 16px rgba(0,0,0,0.12);
+    opacity: 0.8;
 }
 
 .cardNumber {
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: bold;
     color: var(--black);
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+    margin-top: 2px;
+    letter-spacing: 1px;
+}
+
+.card p {
+    font-size: 1.08rem;
+    color: var(--black1);
+    margin: 0;
+    font-weight: 500;
+    letter-spacing: 0.5px;
 }
 
 /* Gráficas */
@@ -59,28 +72,203 @@
     gap: 5px;
     margin-bottom: 18px;
     flex-wrap: nowrap;
-    width: 85%;
+    width: 100%;
     border-radius: 20px;
     padding: 15px 15px;
     margin-left: auto;
     margin-right: auto;
     background-color: var(--white1);
-    box-shadow: 0px 4px 18px rgba(0, 0, 0, 0.479);
+    box-shadow: 0px 4px 18px rgba(0, 0, 0, 0.103);
 }
 
 
 .chartContainer {
     background-color: var(--white1);
     border-radius: 16px;
-    box-shadow: 0px 4px 18px rgba(0, 0, 0, 0.479);
+    box-shadow: 0px 4px 18px rgba(0, 0, 0, 0.103);
     padding: 30px 5px;
-    width: 80%;
-    max-width: 900px;
+    width: 100%;
+    max-width: 100%;
     margin: 30px auto;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: box-shadow 0.3s;
 }
+
+/* Estructura principal: calendario y tabla lado a lado */
+.mainSection {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    background-color: transparent;
+    margin-top: 60px;
+    box-shadow: 0px 4px 18px rgba(0, 0, 0, 0.103);
+    border-radius: 10px;
+    padding: 30px;
+    gap: 5px
+}
+
+.calendarSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    max-width: 820px;
+    width: 100%;
+}
+
+.calendarContainer {
+    width: 100%;
+    max-width: 340px;
+    min-width: 240px;
+    margin-bottom: 20px;
+    margin-left: -80px;
+}
+
+.leyendaCalendario {
+    margin-top: 18px;
+    margin-bottom: 0;
+    font-size: 0.8rem;
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.tableSectionSmall {
+    background: var(--white1);
+    border-radius: 12px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0);
+    padding: 18px 14px;
+    min-width: 640px;
+    max-width: 780px;
+    width: 100%;
+    margin-top: 10px; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.tableSectionSmall .table {
+    font-size: 1rem;
+    width: 100%;
+    max-width: 440px;
+}
+.tableSectionSmall th, .tableSectionSmall td {
+    padding: 10px 10px;
+    font-size: 1em;
+}
+
+
+
+/* Leyenda del calendario */
+.leyendaCalendario {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    margin-right: 20px;
+    margin-left: 20px;
+    font-size: 0.90rem;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Estilo para los iconos de la leyenda */
+.iconLeyenda {
+    border-radius: 50%;
+    padding: 1px 5px;      
+    margin-right: 4px;
+    font-weight: bold;
+    display: inline-block;
+    font-size: 0.80em;     
+    line-height: 1;
+}
+
+/* Colores específicos para cada estado */
+.iconLeyenda-fecha {
+    background: #98c79a;
+    color: #fff;
+}
+.iconLeyenda-seleccionado {
+    background: #539E43;
+    color: #fff;
+}
+.iconLeyenda-pendiente {
+    background: #ffd466bb;
+    color: #444;
+}
+.iconLeyenda-inspeccion {
+    background: #67b0fa81;
+    color: #444;
+}
+.iconLeyenda-rechazada {
+    background: #f5afaee1;
+    color: #444;
+}
+.iconLeyenda-aprobada {
+    background: #539E43;
+    color: #fff;
+}
+
+.filtersContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.filtersRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 24px;
+}
+
+.searchContainer {
+    position: relative;
+    max-width: 300px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.tituloH{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 50px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.11);
+    padding: 20px;
+    border-radius: 20px;
+}
+
+
+/* Responsive para pantallas pequeñas */
+@media (max-width: 900px) {
+    .mainSection {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 18px;
+    }
+    .calendarSection, .tableSectionSmall {
+        max-width: 100%;
+        min-width: 0;
+    }
+    .calendarContainer {
+        max-width: 100%;
+        min-width: 0;
+    }
+}
+
 
 

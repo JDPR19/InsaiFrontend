@@ -1,6 +1,6 @@
 export const filterData = (data, searchTerm, keys) => {
     if (!searchTerm.trim()) {
-        return data; // Si no hay término de búsqueda, devuelve los datos originales
+        return data; 
     }
 
     const lowerCaseTerm = searchTerm.toLowerCase();

@@ -11,17 +11,21 @@ import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 import { useNotification } from '../../utils/NotificationContext';
 import searchStyles from '../../components/searchbart/searchmodal.module.css';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
-import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
 
 const chartFilterOptions = [
+    { value: 'planificaciones-por-inspector', label: 'Planificaciones por Inspector' },
+    { value: 'planificaciones-por-estado', label: 'Planificaciones por Estado' },
+    { value: 'total-programas-activos', label: 'Total Programas Activos' },
+    { value: 'total-programas-por-tipo', label: 'Total Programas por Tipo' },
+    { value: 'programas-por-tipo', label: 'Programas por Tipo' },
     { value: 'empleados-activos', label: 'Empleados Activos' },
     { value: 'empleados-por-cargo', label: 'Empleados por Cargo' },
     { value: 'empleados-por-estado', label: 'Empleados por Estado' }, 
     { value: 'inspecciones-realizadas', label: 'Inspecciones Realizadas' },
     { value: 'inspecciones-por-tipo', label: 'Inspecciones por Tipo' }, 
-    { value: 'inspecciones-por-estado', label: 'Inspecciones por Estado' }, 
-    { value: 'planificaciones-por-estado', label: 'Planificaciones por Estado' },
-    { value: 'planificaciones-por-inspector', label: 'Planificaciones por Inspector' }, 
+    { value: 'inspecciones-por-estado', label: 'Inspecciones por Estado' },  
     { value: 'solicitudes-por-estado', label: 'Solicitudes por Estado' },
     { value: 'solicitudes-por-tipo', label: 'Solicitudes por Tipo' },
     { value: 'propiedades-registradas', label: 'Propiedades Registradas' },
@@ -30,9 +34,6 @@ const chartFilterOptions = [
     { value: 'propiedades-por-municipio', label: 'Propiedades por Municipio' }, 
     { value: 'propiedades-por-parroquia', label: 'Propiedades por Parroquia' }, 
     { value: 'productores-registrados', label: 'Productores Registrados' },
-    { value: 'programas-por-tipo', label: 'Programas por Tipo' },
-    { value: 'total-programas-activos', label: 'Total Programas Activos' },
-    { value: 'total-programas-por-tipo', label: 'Total Programas por Tipo' },
     { value: 'bitacora-por-usuario', label: 'Bitácora por Usuario' },
     { value: 'permisos-por-tipo', label: 'Permisos por Tipo' },
     { value: 'permisos-por-estado', label: 'Permisos por Estado' }
@@ -109,8 +110,12 @@ function Home() {
     const [empleadosHoy, setEmpleadosHoy] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [searchTabla, setSearchTabla] = useState('');
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [panelFecha, setPanelFecha] = useState({ abierto: false, planes: [], seleccionada: null });
+    const [datosOriginales, setDatosOriginales] = useState([]);
+    const fechasProgramadas = datosOriginales.map(p => p.fecha_programada);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
+    const itemsPerPage = 4;
     const [loadingTabla, setLoadingTabla] = useState(false);
     const [loadingTotales, setLoadingTotales] = useState(false);
     const [detalleModal, setDetalleModal] = useState({ abierto: false, propiedad: null, loading: false });
@@ -128,6 +133,48 @@ function Home() {
         titulo: '',
         loading: false
     });
+
+    // Calendario
+
+    // Función para marcar fechas
+    const tileClassName = ({ date, view }) => {
+        if (view === 'month') {
+            const fechaStr = date.toISOString().slice(0, 10);
+            if (fechasProgramadas.includes(fechaStr)) {
+                return 'fecha-programada';
+            }
+        }
+        return null;
+    };
+
+    // detalles del calendario
+    const tileContent = ({ date, view }) => {
+        if (view === 'month') {
+            const fechaStr = date.toISOString().slice(0, 10);
+            const plan = datosOriginales.find(p => p.fecha_programada === fechaStr);
+            if (plan) {
+                // Ejemplo: icono según estado
+                let icono = '📅';
+                if (plan.estado === 'aprobada') icono = '✔️';
+                if (plan.estado === 'rechazada') icono = '❌';
+                if (plan.estado === 'pendiente') icono = '⏳';
+                if (plan.estado === 'inspeccionando') icono = '🔍';
+                return <span className="calendario-icono">{icono}</span>;
+            }
+        }
+        return null;
+    };
+
+    // Panel lateral de detalle
+    const columnsPlanificacion = [
+        { header: 'Actividad', key: 'actividad' },
+        { header: 'Fecha Programada', key: 'fecha_programada' },
+        { header: 'Estado', key: 'estado' },
+        { header: 'Objetivo', key: 'objetivo' },
+        { header: 'Convocatoria', key: 'convocatoria' },
+        { header: 'Ubicación', key: 'ubicacion' },
+        { header: 'Aseguramiento', key: 'aseguramiento' }
+    ];
 
     // Gráfica
     const [chartFilter, setChartFilter] = useState(chartFilterOptions[0]);
@@ -189,6 +236,23 @@ function Home() {
         fetchEmpleadosHoy();
     }, []);
 
+       // Traer planificaciones para el calendario
+    useEffect(() => {
+        async function fetchPlanificaciones() {
+            try {
+                const res = await axios.get(`${BaseUrl}/planificacion`, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+                setDatosOriginales(res.data);
+            } catch (error) {
+                console.error('Error al obtener planificaciones', error);
+                addNotification('Error al obtener planificaciones', 'error');
+                setDatosOriginales([]);
+            }
+        }
+        fetchPlanificaciones();
+    }, []);
+
     // --- Gráficas dinámicas ---
     useEffect(() => {
         async function fetchChartData() {
@@ -202,6 +266,14 @@ function Home() {
             let endpoint = '';
             let title = '';
             switch (chartFilter.value) {
+                case 'planificaciones-por-estado':
+                    endpoint = '/graficas/planificaciones-por-estado';
+                    title = 'Planificaciones por Estado';
+                    break;
+                case 'planificaciones-por-inspector':
+                    endpoint = '/graficas/planificaciones-por-inspector';
+                    title = 'Planificaciones por Inspector';
+                    break;
                 case 'empleados-activos':
                     endpoint = '/graficas/empleados-activos';
                     title = 'Empleados Activos';
@@ -225,14 +297,6 @@ function Home() {
                 case 'inspecciones-por-estado':
                     endpoint = '/graficas/inspecciones-por-estado';
                     title = 'Inspecciones por Estado';
-                    break;
-                case 'planificaciones-por-estado':
-                    endpoint = '/graficas/planificaciones-por-estado';
-                    title = 'Planificaciones por Estado';
-                    break;
-                case 'planificaciones-por-inspector':
-                    endpoint = '/graficas/planificaciones-por-inspector';
-                    title = 'Planificaciones por Inspector';
                     break;
                 case 'solicitudes-por-estado':
                     endpoint = '/graficas/solicitudes-por-estado';
@@ -291,8 +355,8 @@ function Home() {
                     title = 'Permisos por Estado';
                     break;
                 default:
-                    endpoint = '/graficas/empleados-activos';
-                    title = 'Empleados Activos';
+                    endpoint = '/graficas/planificaciones-por-estado';
+                    title = 'Planificaciones por Estado';
             }
 
             try {
@@ -351,8 +415,8 @@ function Home() {
                         data = rows.map(r => Number(r.cantidad) || 0);
                         break;
                     case 'total-programas-activos':
-                        labels = ['Activos'];
-                        data = [Number(rows.total) || 0];
+                        labels = rows.map(r => r.nombre || 'Sin nombre');
+                        data = rows.map(r => Number(r.cantidad) || 0);
                         break;
                     case 'total-programas-por-tipo':
                         labels = rows.map(r => r.tipo || 'Sin tipo');
@@ -401,6 +465,7 @@ function Home() {
 
     // Modal para cartas usando SearchBar local
     const handleCardClick = async (tipo) => {
+        console.log('Carta pulsada:', tipo);
         let campos, titulo, url;
         if (tipo === 'empleadosActivos') {
             url = `${BaseUrl}/home/inspectores-activos`;
@@ -752,24 +817,6 @@ function Home() {
     </div>
 );
 
-        {detalleModal.abierto && <ModalDetallePropiedad />}
-            {modalCarta.abierto && <ModalCartaDetalle />}
-            {pdfUrl && (
-            <div className="modalOverlay">
-                <div className="modalDetalle">
-                    <button className="closeButton" onClick={() => setPdfUrl(null)}>&times;</button>
-                    <iframe src={pdfUrl} width="100%" height="600px" title="Vista previa PDF" />
-                    <a
-                        href={pdfUrl}
-                        download={pdfFileName}
-                        className="btn-estandar"
-                        style={{ marginTop: 16, display: 'inline-block', textDecoration: 'none' }}
-                    >
-                        Descargar PDF
-                    </a>
-                </div>
-            </div>
-        )}
 
     // Pie de la tabla (paginación)
     const PieTabla = () => (
@@ -815,34 +862,210 @@ function Home() {
                 </div>
             </div>
 
-            {/* Tabla */}
-            <div className='tableSection'>
-                <div className='filtersContainer'>
-                    <h2>Operaciones Del Día</h2>
-                    <div className='searchContainer'>
-                        <SearchBar
-                            value={searchTabla}
-                            onSearch={handleSearchTabla}
-                            placeholder="Buscar en operaciones del día..."
-                        />
-                        <img src={icon.lupa} alt="Buscar" className='iconlupa' />
-                    </div>
+            {/* Modales de cartas */}
+            {detalleModal.abierto && <ModalDetallePropiedad />}
+            {modalCarta.abierto && <ModalCartaDetalle />}
+            {pdfUrl && (
+            <div className="modalOverlay">
+                <div className="modalDetalle">
+                    <button className="closeButton" onClick={() => setPdfUrl(null)}>&times;</button>
+                    <iframe src={pdfUrl} width="100%" height="600px" title="Vista previa PDF" />
+                    <a
+                        href={pdfUrl}
+                        download={pdfFileName}
+                        className="btn-estandar"
+                        style={{ marginTop: 16, display: 'inline-block', textDecoration: 'none' }}
+                    >
+                        Descargar PDF
+                    </a>
                 </div>
-                <table className='table'>
-                    <EncabezadoTabla />
-                    {loadingTabla ? (
-                        <tbody>
-                            <tr>
-                                <td colSpan={6}>Cargando...</td>
-                            </tr>
-                        </tbody>
-                    ) : (
-                        <CuerpoTabla datos={currentData} />
-                    )}
-                </table>
-                <PieTabla />
             </div>
+        )}
 
+        <div className={styles.tituloH}>
+            <img src={icon.calendario} alt="" className='iconTwo'/>
+            <h1 className='title' title='Operaciones Planificadas'>Operaciones Planificadas</h1>
+        </div>
+
+        <div className={styles.mainSection}>
+            {/* Calendario pequeño a la izquierda */}
+            <div className={styles.calendarSection}>
+                <div className={styles.calendarContainer}>
+                    <div className="titulocalendario">
+                        <h2 className="titleCalendario">
+                            Calendario de Planificaciones
+                        </h2>
+                    </div>
+                    <Calendar
+                        className="react-calendar calendarHome"
+                        onChange={date => {
+                            setSelectedDate(date);
+                            const fechaStr = date.toISOString().slice(0, 10);
+                            const planes = datosOriginales.filter(p => p.fecha_programada === fechaStr);
+                            setPanelFecha({
+                                abierto: planes.length > 0,
+                                planes,
+                                seleccionada: planes.length > 0 ? planes[0] : null
+                            });
+                        }}
+                        value={selectedDate}
+                        tileClassName={tileClassName}
+                        tileContent={tileContent}
+                    />
+                </div>
+
+        {/* Panel lateral de detalle */}
+        {panelFecha.abierto && panelFecha.planes && panelFecha.planes.length > 0 && (
+            <div className="panelOverlay">
+                <div className="panelLateral">
+                    <button className="closeButton" onClick={() => setPanelFecha({ abierto: false, planes: [], seleccionada: null })}>&times;</button>
+                    <h2>Planificaciones del {selectedDate.toLocaleDateString()}</h2>
+                    <div className="panelListaPlanificaciones">
+                        {panelFecha.planes.map((plan, idx) => (
+                            <div
+                                key={plan.id || idx}
+                                className={`panelPlanificacionResumen${panelFecha.seleccionada && panelFecha.seleccionada.id === plan.id ? ' seleccionada' : ''}`}
+                                onClick={() => setPanelFecha(prev => ({ ...prev, seleccionada: plan }))}
+                            >
+                                <strong>{plan.actividad}</strong> — <span>{plan.estado}</span>
+                                <br />
+                                <small>{plan.objetivo}</small>
+                            </div>
+                        ))}
+                    </div>
+                    {/* Detalle de la planificación seleccionada */}
+                    {panelFecha.seleccionada && (
+                        <div className="panelPlanificacion">
+                            <ul style={{ fontSize: '1rem', margin: '18px 0' }}>
+                                <li><strong>Actividad:</strong> {panelFecha.seleccionada.actividad}</li>
+                                <li><strong>Estado:</strong> {panelFecha.seleccionada.estado}</li>
+                                <li><strong>Fecha Programada:</strong> {panelFecha.seleccionada.fecha_programada}</li>
+                                <li><strong>Objetivo:</strong> {panelFecha.seleccionada.objetivo}</li>
+                                <li><strong>Convocatoria:</strong> {panelFecha.seleccionada.convocatoria}</li>
+                                <li><strong>Ubicación:</strong> {panelFecha.seleccionada.ubicacion}</li>
+                                <li><strong>Aseguramiento:</strong> {panelFecha.seleccionada.aseguramiento}</li>
+                            </ul>
+                            <div className="panelActions">
+                                <button
+                                    className="panelBtn editar"
+                                    title="Editar"
+                                    onClick={() => setPanelFecha({ abierto: false, plan: null })}
+                                >
+                                    <img src={icon.crear} alt="Editar" style={{ width: 22, marginRight: 6 }} />
+                                    Reprogramar
+                                </button>
+                                <button
+                                    className="panelBtn eliminar"
+                                    title="Eliminar"
+                                    onClick={() => setPanelFecha({ abierto: false, plan: null })}
+                                >
+                                    <img src={icon.eliminar1} alt="Eliminar" style={{ width: 22, marginRight: 6 }} />
+                                    Eliminar
+                                </button>
+                                <button
+                                    className="panelBtn eliminar"
+                                    title="Exportar PDF"
+                                    onClick={() => {
+                                        const blob = exportToPDF({
+                                            data: [panelFecha.plan],
+                                            columns: columnsPlanificacion,
+                                            fileName: `Planificacion_${panelFecha.plan.fecha_programada}.pdf`,
+                                            title: 'Detalle de Planificación',
+                                            preview: true
+                                        });
+                                        const url = URL.createObjectURL(blob);
+                                        setPdfUrl(url);
+                                        setPdfFileName(`Planificacion_${panelFecha.plan.fecha_programada}.pdf`);
+                                    }}
+                                >
+                                    <img src={icon.pdf5} alt="PDF" style={{ width: 22, marginRight: 6 }} />
+                                    PDF
+                                </button>
+                                <button
+                                    className="panelBtn editar"
+                                    title="Exportar Excel"
+                                    onClick={() => exportToExcel({
+                                        data: [panelFecha.plan],
+                                        columns: columnsPlanificacion,
+                                        fileName: `Planificacion_${panelFecha.plan.fecha_programada}.xlsx`,
+                                        count: false
+                                    })}
+                                >
+                                    <img src={icon.excel2} alt="Excel" style={{ width: 22, marginRight: 6 }} />
+                                    Excel
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        )}
+
+        {/* Leyenda del calendario */}
+        <div className={styles.leyendaCalendario}>
+            <span>
+                <span className={`${styles.iconLeyenda} ${styles['iconLeyenda-fecha']}`}>📅</span>
+                Fecha programada
+            </span>
+            <span>
+                <span className={`${styles.iconLeyenda} ${styles['iconLeyenda-seleccionado']}`}>●</span>
+                Seleccionado
+            </span>
+            <span>
+                <span className={`${styles.iconLeyenda} ${styles['iconLeyenda-pendiente']}`}>⏳</span>
+                Pendiente
+            </span>
+            <span>
+                <span className={`${styles.iconLeyenda} ${styles['iconLeyenda-inspeccion']}`}>🔍</span>
+                Inspección
+            </span>
+            <span>
+                <span className={`${styles.iconLeyenda} ${styles['iconLeyenda-rechazada']}`}>❌</span>
+                Rechazada
+            </span>
+            <span>
+                <span className={`${styles.iconLeyenda} ${styles['iconLeyenda-aprobada']}`}>✔️</span>
+                Aprobada
+            </span>
+        </div>
+    </div>
+
+    {/* Tabla pequeña a la derecha */}
+    
+    <div className={styles.tableSectionSmall}>
+        
+        <div className={styles.filtersContainer}>
+            <div className={styles.filtersRow}>
+            <h2>Operaciones Del Día</h2>
+                <div className={styles.searchContainer}>
+                    <SearchBar
+                        value={searchTabla}
+                        onSearch={handleSearchTabla}
+                        placeholder="Buscar en operaciones del día..."
+                    />
+                    <img src={icon.lupa} alt="Buscar" className='iconlupa' />
+                </div>
+            </div>
+        </div>
+        <table className='table'>
+            <EncabezadoTabla />
+            {loadingTabla ? (
+                <tbody>
+                    <tr>
+                        <td colSpan={6}>Cargando...</td>
+                    </tr>
+                </tbody>
+            ) : (
+                <CuerpoTabla datos={currentData} />
+            )}
+        </table>
+        <PieTabla />
+    </div>
+</div>
+            <div className={styles.tituloH}>
+                <img src={icon.pie} alt="" className='iconTwo'/>
+                <h1 className='title' title='Sección De Estadisticas y Reportes'>Estadisticas Y Reportes</h1>
+            </div>
             {/* Gráficas  */}
             <div className={styles.chartSection}>
                 <div className={styles.chartFilter}>

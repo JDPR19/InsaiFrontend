@@ -52,6 +52,7 @@ import excel2 from '../../../public/excel2.svg';
 import question from '../../../public/question.svg';
 import eliminar1 from '../../../public/eliminar1.svg'; 
 import flechaAbajo from '../../../public/flechaAbajo.svg'; 
+import pie from '../../../public/pie.svg'; 
 
 
 const Iconos = {
@@ -109,6 +110,7 @@ const Iconos = {
     question,
     eliminar1,
     flechaAbajo,
+    pie
 };
 
 export default Iconos;

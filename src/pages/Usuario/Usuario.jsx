@@ -164,6 +164,13 @@ function Usuario() {
                 }
             }
         }
+        const existeUsuario = datosOriginales.some(
+                usuario => usuario.username.trim().toLowerCase() === formData.username.trim().toLowerCase()
+            );
+            if (existeUsuario) {
+                addNotification('Ya existe un usuario con ese nombre. Por favor elija otro.', 'warning');
+                return;
+            }
         setLoading(true);
 
         try {
@@ -326,6 +333,12 @@ function Usuario() {
         setCurrentModal('usuario');
     };
 
+    // modal de eliminar
+    const openConfirmDeleteModal = (id) => {
+    setSelectedEmpleadoId(id);
+    setConfirmDeleteModal(true);
+};
+
     const closeConfirmDeleteModal = () => {
         setSelectedEmpleadoId(null);
         setConfirmDeleteModal(false);
@@ -336,6 +349,9 @@ function Usuario() {
         setDetalleModal({ abierto: true, usuario: null });
         setLoading(true);
         try {
+            // Asegúrate de tener los datos necesarios
+            await fetchCedulas();
+            await fetchTiposUsuario();
             const response = await axios.get(`${BaseUrl}/usuarios/${usuario.id}`, {
                 headers: {
                     Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -350,6 +366,7 @@ function Usuario() {
             setLoading(false);
         }
     };
+    
     const closeDetalleModal = () => setDetalleModal({ abierto: false, usuario: null });
 
     const empleadoSeleccionado = cedulas.find(
@@ -372,7 +389,14 @@ function Usuario() {
                                     <label htmlFor="empleado_id">Cédula:</label>
                                     <SingleSelect
                                         options={cedulas.map(cedula => ({ value: String(cedula.id), label: cedula.cedula }))}
-                                        value={detalleModal.usuario.empleado_id}
+                                        value={
+                                            detalleModal.usuario.empleado_id
+                                                ? {
+                                                    value: String(detalleModal.usuario.empleado_id),
+                                                    label: cedulas.find(c => String(c.id) === String(detalleModal.usuario.empleado_id))?.cedula || ''
+                                                }
+                                                : null
+                                        }
                                         isDisabled={true}
                                     />
                                     <div className='text_empleado'>
@@ -405,7 +429,14 @@ function Usuario() {
                                     <label htmlFor="tipo_usuario_id">Tipo de Usuario:</label>
                                     <SingleSelect
                                         options={tiposUsuario.map(roles => ({ value: String(roles.id), label: roles.nombre }))}
-                                        value={detalleModal.usuario.roles_id}
+                                        value={
+                                            detalleModal.usuario.roles_id
+                                                ? {
+                                                    value: String(detalleModal.usuario.roles_id),
+                                                    label: tiposUsuario.find(r => String(r.id) === String(detalleModal.usuario.roles_id))?.nombre || ''
+                                                }
+                                                : null
+                                        }
                                         isDisabled={true}
                                     />
                                 </div>
@@ -576,14 +607,13 @@ function Usuario() {
                                                 title='Editar'
                                             />
                                         )}
-                                        {/* {tienePermiso('usuarios','eliminar') && user.id === usuario.id &&( 
                                             <img 
                                             onClick={() => openConfirmDeleteModal(usuario.id)} 
                                             src={icon.eliminar} 
                                             className='iconeliminar' 
                                             title='eliminar'
                                             />
-                                        )} */}
+                                       
                                         {tienePermiso('usuarios', 'deshabilitar') && user.id !== usuario.id && usuario.estado && (
                                             <img 
                                                 onClick={() => disableUser(usuario.id, false)} 

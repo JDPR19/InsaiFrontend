@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid'; // Importa uuid para ids únicos
 export const useNotification = () => {
     const [notifications, setNotifications] = useState([]);
 
-    const addNotification = (message, type, duration = 8000) => {
+    const addNotification = (message, type, duration = 5000) => {
         const id = uuidv4(); 
         setNotifications((prev) => [
             ...prev,

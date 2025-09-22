@@ -117,7 +117,7 @@ function Header() {
                             setTabActivo={setTabActivo}
                         />
                     )}
-                    <audio ref={audioRef} src="/assets/notification.mp3" preload="auto" />
+                    <audio ref={audioRef} src="/sicic/assets/notification.mp3" preload="auto" />
                 </div>
 
                 <div className={styles.campanaWrapper}>

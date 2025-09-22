@@ -10,9 +10,6 @@ import { useNotification } from '../../utils/NotificationContext';
 import { validateField, getValidationRule } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
-import Ciclo from '../../components/ayudanteCiclo/Ciclo';
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 
 function Planificacion() {
@@ -24,9 +21,6 @@ function Planificacion() {
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [selectedDate, setSelectedDate] = useState(new Date());
-    const [panelFecha, setPanelFecha] = useState({ abierto: false, plan: null });
-    const fechasProgramadas = datosOriginales.map(p => p.fecha_programada);
     const [pdfUrl, setPdfUrl] = useState(null);
     const [pdfFileName, setPdfFileName] = useState('');
     const [detalleModal, setDetalleModal] = useState({ abierto: false, planificacion: null });
@@ -63,38 +57,6 @@ function Planificacion() {
         value: String(t.id),
         label: t.nombre
     }));
-
-    // Función para marcar fechas
-    const tileClassName = ({ date, view }) => {
-        if (view === 'month') {
-            const fechaStr = date.toISOString().slice(0, 10);
-            if (fechasProgramadas.includes(fechaStr)) {
-                return 'fecha-programada';
-            }
-        }
-        return null;
-    };
-
-    // detalles del calendario
-    const tileContent = ({ date, view }) => {
-        if (view === 'month') {
-            const fechaStr = date.toISOString().slice(0, 10);
-            const plan = datosOriginales.find(p => p.fecha_programada === fechaStr);
-            if (plan) {
-                return (
-                    <span title={`Actividad: ${plan.actividad}\nEstado: ${plan.estado}`}>
-                        {plan.estado === 'pendiente' && <span style={{ fontSize: '1.1em' }}>⏳</span>}
-                        {plan.estado === 'inspeccion' && <span style={{ fontSize: '1.1em' }}>🔍</span>}
-                        {plan.estado === 'rechazada' && <span style={{ fontSize: '1.1em' }}>❌</span>}
-                        {plan.estado === 'aprobada' && <span style={{ fontSize: '1.1em' }}>✔️</span>}
-                        {/* Puedes agregar más estados si lo necesitas */}
-                        {/* <span style={{ fontSize: '1.1em', marginLeft: 2 }}>📅</span> */}
-                    </span>
-                );
-            }
-        }
-        return null;
-    };
 
     const columnsPlanificacion = [
         { header: 'Actividad', key: 'actividad' },
@@ -139,7 +101,7 @@ function Planificacion() {
 
     const fetchSolicitudes = async () => {
         try {
-            const response = await axios.get(`${BaseUrl}/solicitud`, {
+            const response = await axios.get(`${BaseUrl}/planificacion/solicitudes`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             setSolicitudes(response.data);
@@ -299,6 +261,12 @@ function Planificacion() {
             addNotification('Debe seleccionar un tipo de inspección', 'warning');
             return;
         }
+        const fecha = formData.fecha_programada;
+            const añoActual = new Date().getFullYear();
+            if (!fecha || new Date(fecha).getFullYear() !== añoActual) {
+                addNotification('Solo puedes registrar fechas en el año actual.', 'warning');
+                return;
+            }
         setLoading(true);
         try {
             const cleanFormData = {
@@ -328,10 +296,6 @@ function Planificacion() {
     };
 
     const handleEdit = async () => {
-        if (Object.keys(errors).length >= 0) {
-            addNotification('Completa todos los campos obligatorios', 'warning');
-            return;
-        }
         if (!formData.solicitud_id || !formData.solicitud_id.value) {
             addNotification('Debe seleccionar una solicitud', 'warning');
             return;
@@ -391,6 +355,19 @@ function Planificacion() {
             setLoading(false);
         }
     };
+
+    function getEmpleadosDisponibles(fechaSeleccionada) {
+    // Busca todas las planificaciones en esa fecha
+    const planificacionesEnFecha = datosOriginales.filter(
+        p => p.fecha_programada === fechaSeleccionada
+    );
+    // Obtén los IDs de empleados ya asignados ese día
+    const empleadosOcupados = planificacionesEnFecha
+        .flatMap(p => (p.empleados || []).map(e => String(e.id)));
+
+    // Filtra empleados que NO estén ocupados ese día
+    return empleadosOptions.filter(opt => !empleadosOcupados.includes(opt.value));
+}
 
     // Paginación
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -514,7 +491,7 @@ function Planificacion() {
                                 <div className='formGroup'>
                                     <label>Empleados Responsables:</label>
                                     <MultiSelect
-                                        options={empleadosOptions}
+                                        options={getEmpleadosDisponibles(formData.fecha_programada)}
                                         value={empleadosOptions.filter(opt =>
                                             (detalleModal.planificacion.empleados || []).map(e => String(e.id)).includes(opt.value)
                                         )}
@@ -560,6 +537,18 @@ function Planificacion() {
                                         value={formData.fecha_programada}
                                         onChange={handleChange}
                                         className='date'
+                                        min={`${new Date().getFullYear()}-01-01`}
+                                        max={`${new Date().getFullYear()}-12-31`}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Hora:</label>
+                                    <input
+                                        type="time"
+                                        id="hora"
+                                        value={formData.hora}
+                                        onChange={handleChange}
+                                        className='input'
                                     />
                                 </div>
                                 <div className='formGroup'>
@@ -574,13 +563,19 @@ function Planificacion() {
                                 <div className='formGroup'>
                                     <label><span className='Unique' title='Campo Obligatorio'>*</span>Empleados Responsables:</label>
                                     <MultiSelect
-                                        options={empleadosOptions}
+                                        options={getEmpleadosDisponibles(formData.fecha_programada)}
                                         value={empleadosOptions.filter(opt => formData.empleados_ids.includes(opt.value))}
                                         onChange={handleEmpleadosChange}
                                         placeholder="Selecciona empleados..."
                                     />
                                     {formData.empleados_ids.length > 0 && (
                                         <button type="button" onClick={clearMultiSelect} className='btn-limpiar'>Limpiar</button>
+                                    )}
+                                    {/* Aquí va el mensaje de empleados disponibles */}
+                                    {getEmpleadosDisponibles(formData.fecha_programada).length === 0 && (
+                                        <span className='errorText'>
+                                            No hay empleados disponibles para la fecha seleccionada.
+                                        </span>
                                     )}
                                 </div>
                                 <div className='formGroup'>
@@ -606,16 +601,6 @@ function Planificacion() {
                                         placeholder="Objetivo de la planificación"
                                     />
                                     {errors.objetivo && <span className='errorText'>{errors.objetivo}</span>}
-                                </div>
-                                <div className='formGroup'>
-                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Hora:</label>
-                                    <input
-                                        type="time"
-                                        id="hora"
-                                        value={formData.hora}
-                                        onChange={handleChange}
-                                        className='input'
-                                    />
                                 </div>
                                 <div className='formGroup'>
                                     <label><span className='Unique' title='Campo Obligatorio'>*</span>Convocatoria:</label>
@@ -699,185 +684,6 @@ function Planificacion() {
                 </div>
             )}
 
-            <Ciclo
-                activo="planificacion"
-                ayudaDescripcion="En esta sección puedes gestionar todas las planificaciones del sistema. Visualiza y programa actividades, inspecciones y tareas clave, consulta su estado, edita información, elimina registros y exporta los datos en formatos PDF o Excel según tus necesidades. Utiliza el calendario para identificar rápidamente las fechas programadas y acceder a los detalles de cada planificación. Las herramientas de filtrado y búsqueda te permiten encontrar fácilmente la información que necesitas, optimizando la organización y el seguimiento de tus procesos operativos."
-                />
-
-            <div style={{ margin: '30px auto', maxWidth: 700 }}>
-                <div className="titulocalendario">
-                    <h2 className="titleCalendario">
-                        <span className="Unique">*</span>Calendario de Planificaciones
-                    </h2>
-                    <button
-                        className="btn-deslizar"
-                        title='Ir a Programar una Planificación'
-                        onClick={() => {
-                        document.body.style.overflow = '';
-                        const tabla = document.getElementById('tablaPlanificacion');
-                        if (tabla) {
-                            tabla.scrollIntoView({ behavior: 'smooth' });
-                        }
-                        }}
-                    >
-                        Ir a Programar
-                        <img src={icon.flechaAbajo} alt="PDF" className='icon' />
-                    </button>
-                    </div>
-                <Calendar
-                    onChange={date => {
-                        setSelectedDate(date);
-                        const fechaStr = date.toISOString().slice(0, 10);
-                        const plan = datosOriginales.find(p => p.fecha_programada === fechaStr);
-                        if (plan) {
-                            setPanelFecha({ abierto: true, plan });
-                        } else {
-                            setPanelFecha({ abierto: false, plan: null });
-                        }
-                    }}
-                    value={selectedDate}
-                    tileClassName={tileClassName}
-                    tileContent={tileContent}
-                />
-            </div>
-
-            {panelFecha.abierto && panelFecha.plan && (
-                <div className="panelOverlay">
-                    <div className="panelLateral">
-                        <button className="closeButton" onClick={() => setPanelFecha({ abierto: false, plan: null })}>&times;</button>
-                        <h2>Detalle de Planificación</h2>
-                        <ul style={{ fontSize: '1.1em', margin: '18px 0' }}>
-                            <li><strong>Actividad:</strong> {panelFecha.plan.actividad}</li>
-                            <li><strong>Estado:</strong> {panelFecha.plan.estado}</li>
-                            <li><strong>Fecha Programada:</strong> {panelFecha.plan.fecha_programada}</li>
-                            <li><strong>Objetivo:</strong> {panelFecha.plan.objetivo}</li>
-                            <li><strong>Convocatoria:</strong> {panelFecha.plan.convocatoria}</li>
-                            <li><strong>Ubicación:</strong> {panelFecha.plan.ubicacion}</li>
-                            <li><strong>Aseguramiento:</strong> {panelFecha.plan.aseguramiento}</li>
-                        </ul>
-                        <div className="panelActions">
-                            <button
-                                className="panelBtn editar"
-                                title="Editar"
-                                onClick={() => {
-                                    setPanelFecha({ abierto: false, plan: null });
-                                    openEditModal(panelFecha.plan);
-                                }}
-                            >
-                                <img src={icon.crear} alt="Editar" style={{ width: 22, marginRight: 6 }} />
-                                Reprogramar
-                            </button>
-                            <button
-                                className="panelBtn eliminar"
-                                title="Eliminar"
-                                onClick={() => {
-                                    setPanelFecha({ abierto: false, plan: null });
-                                    openConfirmDeleteModal(panelFecha.plan.id);
-                                }}
-                            >
-                                <img src={icon.eliminar1} alt="Eliminar" style={{ width: 22, marginRight: 6 }} />
-                                Eliminar
-                            </button>
-                            <button
-                                className="panelBtn eliminar"
-                                title="Exportar PDF"
-                                onClick={() => {
-                                    const blob = exportToPDF({
-                                        data: [panelFecha.plan],
-                                        columns: columnsPlanificacion,
-                                        fileName: `Planificacion_${panelFecha.plan.fecha_programada}.pdf`,
-                                        title: 'Detalle de Planificación',
-                                        preview: true
-                                    });
-                                    const url = URL.createObjectURL(blob);
-                                    setPdfUrl(url);
-                                    setPdfFileName(`Planificacion_${panelFecha.plan.fecha_programada}.pdf`);
-                                }}
-                            >
-                                <img src={icon.pdf5} alt="PDF" style={{ width: 22, marginRight: 6 }} />
-                                PDF
-                            </button>
-                            <button
-                                className="panelBtn editar"
-                                title="Exportar Excel"
-                                onClick={() => exportToExcel({
-                                    data: [panelFecha.plan],
-                                    columns: columnsPlanificacion,
-                                    fileName: `Planificacion_${panelFecha.plan.fecha_programada}.xlsx`,
-                                    count: false
-                                })}
-                            >
-                                <img src={icon.excel2} alt="Excel" style={{ width: 22, marginRight: 6 }} />
-                                Excel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <div className='leyendaCalendario'>
-                <span>
-                    <span style={{
-                        background: '#98c79a',
-                        borderRadius: '50%',
-                        padding: '2px 8px',
-                        color: '#fff',
-                        marginRight: 4,
-                    }}>📅</span>
-                    Fecha programada
-                </span>
-                <span>
-                    <span style={{
-                        background: '#539E43',
-                        borderRadius: '50%',
-                        padding: '2px 8px',
-                        color: '#fff',
-                        marginRight: 4,
-                    }}>●</span>
-                    Seleccionado
-                </span>
-                <span>
-                    <span style={{
-                        background: '#ffd466bb',
-                        borderRadius: '50%',
-                        padding: '2px 8px',
-                        color: '#444',
-                        marginRight: 4,
-                    }}>⏳</span>
-                    Pendiente
-                </span>
-                <span>
-                    <span style={{
-                        background: '#67b0fa81',
-                        borderRadius: '50%',
-                        padding: '2px 8px',
-                        color: '#444',
-                        marginRight: 4,
-                    }}>🔍</span>
-                    Inspección
-                </span>
-                <span>
-                    <span style={{
-                        background: '#f5afaee1',
-                        borderRadius: '50%',
-                        padding: '2px 8px',
-                        color: '#444',
-                        marginRight: 4,
-                    }}>❌</span>
-                    Rechazada
-                </span>
-                <span>
-                    <span style={{
-                        background: '#539E43',
-                        borderRadius: '50%',
-                        padding: '2px 8px',
-                        color: '#fff',
-                        marginRight: 4,
-                    }}>✔️</span>
-                    Aprobada
-                </span>
-            </div>
-
             <div className='cardsContainer'>
                 <div className='card' onClick={() => setDatosFiltrados(datosOriginales)} title='Todas las Planificaciones'>
                     <span className='cardNumber'>{totales.planificacionesTotales}</span>
@@ -904,10 +710,10 @@ function Planificacion() {
                             type='button'
                             onClick={openModal}
                             className='btn-estandar'
-                            title='Registrar Planificación'
+                            title='Programar Planificación'
                             >
                             <img src={icon.calendario} alt="Crear" className='icon' />
-                            Reprogramar
+                            Programar
                         </button>
                         <button
                             type='button'
@@ -966,7 +772,7 @@ function Planificacion() {
                         {currentData.map((item, idx) => (
                             <tr key={item.id}>
                                 <td>{indexOfFirstItem + idx + 1}</td>
-                                <td>{solicitudOptions.find(opt => opt.value === String(item.solicitud_id))?.label || item.solicitud_id}</td>
+                                <td>{item.solicitud_codigo || item.solicitud_id}</td>
                                 <td>{item.fecha_programada}</td>
                                 <td>{item.actividad}</td>
                                 <td>

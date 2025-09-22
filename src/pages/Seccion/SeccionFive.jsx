@@ -3,7 +3,6 @@ import TabsFiltro from '../../components/tabsFiltro/TabsFiltro';
 import { usePermiso } from '../../hooks/usePermiso';
 import '../../main.css';
 import Permiso from '../Permiso/Permisos';
-import TipoPermiso from '../Permiso/TipoPermiso';
 
 
 function SeccionFive () {
@@ -12,7 +11,6 @@ function SeccionFive () {
     // Tabs principales
         const tabs = [
         tienePermiso('permiso', 'ver') && { key: 'permiso', label: 'Permisos' },
-        tienePermiso('tipo_permiso', 'ver') && { key: 'tipo_permiso', label: 'Tipos de Permiso' }
     ].filter(Boolean);
 
      // Obtiene el tab guardado y verifica que exista en los tabs permitidos
@@ -32,9 +30,7 @@ function SeccionFive () {
     let tablaRenderizada;
     if (activeTab === 'permiso') {
         tablaRenderizada = <Permiso />;
-    } else if (activeTab === 'tipo_permiso') {
-        tablaRenderizada = <TipoPermiso />;
-    }
+    } 
 
     return (
         <div>

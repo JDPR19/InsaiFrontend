@@ -1,19 +1,19 @@
-import React, { useState} from 'react';
+// import React, { useState} from 'react';
 import styles from './tabsFiltro.module.css';
 
 function TabsFiltro({ tabs, activeTab, onTabClick, /*showTitle = true */}) {
-    const [visible, setVisible] = useState(false);
+    // const [visible, setVisible] = useState(false);
 
     return (
         <div className={styles.tabsGeneralContainer}>
-            <button
+            {/* <button
                 className={styles.toggleTabsButton}
                 onClick={() => setVisible(v => !v)}
                 type="button"
             >
                 {visible ? 'Ocultar secciones' : 'Mostrar secciones'}
-            </button>
-            <div className={`${styles.tabsContent} ${!visible ? styles.tabsContentHidden : ''}`}>
+            </button> */}
+            {/* <div className={`${styles.tabsContent} ${!visible ? styles.tabsContentHidden : ''}`}> */}
                 {/* {showTitle && <h3 className={styles.tabsTitle}>Apartados Principales</h3>} */}
                 <div className={styles.tabsContainer}>
                     {tabs.map((tab, idx) => (
@@ -27,7 +27,7 @@ function TabsFiltro({ tabs, activeTab, onTabClick, /*showTitle = true */}) {
                         </button>
                     ))}
                 </div>
-            </div>
+            {/* </div> */}
         </div>
     );
 }

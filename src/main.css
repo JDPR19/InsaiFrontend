@@ -277,12 +277,10 @@ html, body {
 .mainContainer {
     padding: 20px;
     background-color: var(--white);
-    /* min-height: calc(100vh - 300px);  */
     margin-left: 6.5vw;
     margin-right: 0;
-    margin-top: 60px;
+    margin-top: 100px;
     max-width: 90vw;
-    /* overflow-x: hidden; */
 }
 /* Estilos para el modal /////////////////////////*/
 .modalOverlay {
@@ -295,7 +293,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999;
 }
 
 .modal_mono {
@@ -348,6 +346,14 @@ html, body {
 .modal_tree,
 .modal_i {
     overflow: auto;
+}
+.modalOverlay,
+.modal,
+.modal_mono,
+.modal_tree,
+.modal_i,
+.modalDetalle {
+    pointer-events: auto;
 }
 
 .modal::-webkit-scrollbar,
@@ -696,14 +702,17 @@ html, body {
 }
 /* para botones */
 .iconTwo{
-  width: 20px;
-  height: 20px;
+  width: 30px;
+  height: 30px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   right: 5px;
+}
+.dark .iconTwo {
+    filter: invert(1) brightness(1.2);
 }
 
 .searchInput:focus {
@@ -1447,6 +1456,14 @@ html, body {
     font-size: 1.3rem;
     margin: 0;
 }
+
+.title{
+  font-family: 'Poppins', sans-serif;
+  font-size: 2rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--black1);
+}
 /* seccion en seguimiento */
 .SectionSeguimiento {
     display: flex;
@@ -1530,7 +1547,7 @@ html, body {
     padding: 10px;
     text-align: center;
     cursor: pointer;
-    border-bottom: 2px solid #5fb84bce;
+    /* border-bottom: 2px solid #5fb84bce; */
     transition: transform 0.3s ease;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.483);
     display: flex;
@@ -1599,16 +1616,18 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-around; 
-  gap: 24px;
   width: 100%;
+  min-width: 450px;
   margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
-.titleCalendario {
-  margin-bottom: 0; 
-  font-size: 1.4rem;
-  font-weight: 600;
+.titleCalendario { 
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-left: 50%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .btn-deslizar {
@@ -1636,26 +1655,27 @@ html, body {
 }
 .react-calendar {
     width: 100%;
-    max-width: 800px;    
-    min-width: 750px;
-    height: 380px;       
-    margin: 0 auto;
+    max-width: 340px;  
+    min-width: 420px;   
+    height: 300px;      
+    margin: 0;
     background: var(--white2);
-    border-radius: 18px;
-    box-shadow: 0 4px 24px rgba(83,158,67,0.13);
+    border-radius: 14px;
+    box-shadow: 0 4px 18px rgba(83,158,67,0.13);
     border: 1.5px solid var(--lithg-green);
     font-family: 'Poppins', sans-serif;
-    font-size: 1rem;
-    padding: 14px 5px 10px 5px;
+    font-size: 0.95rem; 
+    padding: 8px 2px 8px 2px;
     transition: background 0.3s, color 0.3s;
 }
+
 
 .react-calendar__navigation {
     margin-bottom: 12px;
     margin-top: 5px;
     margin-left: auto ;
     margin-right: auto;
-    gap: 25px;
+    gap: 4px;
 }
 
 .react-calendar__navigation button {
@@ -1664,7 +1684,7 @@ html, body {
     border-radius: 8px;
     border: none;
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 0.69rem;
     padding: 2px 2px;
     margin: 0 2px;
     cursor: pointer;
@@ -1693,8 +1713,8 @@ html, body {
     background: none;
     border-radius: 15px;
     transition: background 0.2s, color 0.2s;
-    font-size: 1.1rem;
-    min-height: 48px;
+    font-size: 1rem;
+    min-height: 10px;
     cursor: pointer;
     position: relative;
 }
@@ -1727,7 +1747,7 @@ html, body {
     box-shadow: 0 2px 8px #98c79a33;
     position: relative;
     width: 38px;           
-    height: 60px;          
+    height: 30px;          
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1740,9 +1760,18 @@ html, body {
 .fecha-programada::after {
     content: '📅';
     position: absolute;
-    right: 20px;
-    top: 5px;
-    font-size: 0.90em;
+    right: 10px;
+    top: -2px;
+    font-size: 0.60em;
+}
+.calendario-icono {
+    font-size: 0.85em;     
+    padding: 0px 2px;      
+    margin: 0;
+    border-radius: 50%;
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1;
 }
 
 /* Modo oscuro */
@@ -1821,7 +1850,7 @@ html, body {
 }
 
 .panelLateral {
-    width: 370px;
+    width: 500px;
     max-width: 95vw;
     height: 100%;
     background: var(--white1);
@@ -1833,6 +1862,20 @@ html, body {
     overflow-y: auto;
     position: relative;
 }
+.panelPlanificacionResumen {
+    cursor: pointer;
+    background: var(--white1);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--black1);
+    transition: background 0.2s;
+}
+
+.panelPlanificacionResumen.seleccionada {
+    background: var(--badge-border);
+}
+
 
 @keyframes slideInPanel {
     from {
@@ -1917,21 +1960,6 @@ html, body {
     color: #fff;
 }
 
-.closeButton {
-    position: absolute;
-    top: 18px;
-    right: 18px;
-    background: none;
-    border: none;
-    font-size: 1.6em;
-    color: #539E43;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-
-.closeButton:hover {
-    color: #2e6c23;
-}
 
 /* Modo oscuro */
 .dark .panelLateral {
@@ -1949,7 +1977,6 @@ html, body {
 .dark .closeButton {
     color: #98c79a;
 }
-
 
 
 @media (max-width: 700px) {

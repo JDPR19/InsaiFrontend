@@ -10,9 +10,10 @@
     flex-direction: column; 
     align-items: flex-start; 
     min-width: 260px;
-    max-width: 450px;
+    max-width: 350px;
     animation: fadeIn 0.3s ease-in-out;
     margin-bottom: 0;
+    pointer-events: auto; 
 }
 
 .notification.success {
@@ -38,21 +39,32 @@
     background: none;
     border: none;
     color: var(--white);
-    font-size: 25px;
+    width: 28px;
+    height: 28px;
+    font-size: 1.2rem;
     cursor: pointer;
-    z-index: 2;
+    z-index: 700;
 }
 
 .notificationContainer {
     position: fixed;
     bottom: 20px;
     right: 25px;
-    z-index: 8000;
+    z-index: 3000;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 12px;
     max-width: 450px;
+    pointer-events: none;
+}
+.notification {
+    pointer-events: none;
+}
+
+
+.notification .closeButton {
+    pointer-events: auto;
 }
 
 .progressBarContainer {

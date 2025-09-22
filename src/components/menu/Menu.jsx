@@ -70,47 +70,47 @@ function Menu() {
             label: "Panel Principal",
             linkTo: "/Home"
         },
+        rol === 'Administrador' && {
+            id: "procesosid",
+            iconSrc: icon.cubo,
+            label: "A trabajar",
+            linkTo: "/procesosid"
+        },
         ['Administrador', 'Moderador', 'User'].includes(rol) && {
             id: "seccionOne",
             iconSrc: icon.farmer2,
-            label: "Productores",
+            label: "Productores y Propiedades",
             linkTo: "/SeccionOne"
         },
         ['Administrador', 'Moderador', 'User'].includes(rol) && {
             id: "SeccionTwo",
-            iconSrc: icon.altavoz,
-            label: "Solicitudes y Planificaciones",
+            iconSrc: icon.calendario,
+            label: "Protección Fitosanitaria",
             linkTo: "/SeccionTwo"
         },
         ['Administrador', 'Moderador', 'User'].includes(rol) && {
             id: "SeccionThree",
             iconSrc: icon.escudobien,
-            label: "Protección Fitosanitaria",
+            label: "Programas Fitosanitarios",
             linkTo: "/SeccionThree"
         },
         ['Administrador', 'Moderador'].includes(rol) && {
             id: "SeccionFour",
             iconSrc: icon.hormiga,
-            label: "Datos Epidemiologicos",
+            label: "Catalogos y Tipos",
             linkTo: "/SeccionFour"
-        },
-        ['Administrador', 'Moderador'].includes(rol) && {
-            id: "SeccionFive",
-            iconSrc: icon.grafica,
-            label: "Permisos",
-            linkTo: "/SeccionFive"
-        },
-        ['Administrador', 'Moderador'].includes(rol) && {
-            id: "SeccionFive",
-            iconSrc: icon.folder,
-            label: "Reportes",
-            linkTo: ""
         },
         rol === 'Administrador' && {
             id: "SeccionSix",
             iconSrc: icon.mundo,
             label: "Áreas de Ubicación",
             linkTo: "/SeccionSix"
+        },
+        ['Administrador', 'Moderador'].includes(rol) && {
+            id: "SeccionFive",
+            iconSrc: icon.grafica,
+            label: "Permisos",
+            linkTo: "/SeccionFive"
         },
         rol === 'Administrador' && {
             id: "SeccionSeven",

@@ -50,6 +50,7 @@ import SeccionSix from './pages/Seccion/SeccionSix';
 import SeccionSeven from './pages/Seccion/SeccionSeven';
 import SeguimientoInspeccion from './pages/Inspecciones/SeguimientoInspeccion';
 import Informativa from './pages/Informativa/Informativa';
+import CicloId from './pages/cicloid/CicloId';
 
 function AppContent() {
 
@@ -66,7 +67,7 @@ function AppContent() {
         notifications={notifications}
         removeNotification={removeNotification}
       />
-    <BrowserRouter>
+    <BrowserRouter basename="/sicic/">
       {/*AutoLogout cerrar session por tiempo  */}
         <AutoLogout />
       <Routes>
@@ -88,6 +89,12 @@ function AppContent() {
           path="/informativa"
           element={
               <Informativa />           
+          }
+        />
+        <Route
+          path="/procesosid"
+          element={
+              <CicloId />           
           }
         />
         <Route 

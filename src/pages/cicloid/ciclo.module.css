@@ -1,0 +1,180 @@
+/* ciclo.module.css */
+
+.cicloMain {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #e6f7ea 0%, #539E43 100%);
+    padding: 32px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.btnVolver {
+    background: #e6f7ea;
+    color: #539E43;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(83,158,67,0.08);
+    transition: background 0.2s;
+}
+.btnVolver:hover {
+    background: #d0f2d8;
+}
+
+.cicloTitulo {
+    font-size: 2.3rem;
+    font-weight: 700;
+    color: #1a2c1a;
+    margin-bottom: 28px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.cicloCardsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    justify-content: center;
+    margin-bottom: 38px;
+}
+
+.cicloCard {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 18px rgba(83,158,67,0.13), 0 2px 8px rgba(0,0,0,0.08);
+    padding: 24px 18px 18px 18px;
+    min-width: 220px;
+    max-width: 240px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.18s, box-shadow 0.18s, border 0.18s;
+    border: 2px solid transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+.cicloCardSelected {
+    border: 2px solid #539E43;
+    box-shadow: 0 8px 24px rgba(83,158,67,0.18);
+    transform: scale(1.04);
+}
+
+.cicloCardIcon {
+    width: 54px;
+    height: 54px;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 2px 6px #e6f7ea);
+}
+
+.cicloCardTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a2c1a;
+    margin-bottom: 6px;
+}
+
+.cicloCardActions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.cicloCardActionBtn {
+    background: #e6f7ea;
+    border: none;
+    border-radius: 50%;
+    padding: 7px;
+    cursor: pointer;
+    transition: background 0.18s;
+    box-shadow: 0 2px 6px rgba(83,158,67,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.cicloCardActionBtn:hover {
+    background: #539E43;
+}
+.cicloCardActionIcon {
+    width: 22px;
+    height: 22px;
+    filter: invert(0.2) sepia(0.3) saturate(1.2) hue-rotate(80deg);
+}
+
+.cicloSeguimiento {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 18px rgba(83,158,67,0.13), 0 2px 8px rgba(0,0,0,0.08);
+    padding: 28px 22px 22px 22px;
+    max-width: 680px;
+    width: 100%;
+    margin-bottom: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.cicloSeguimientoHeader {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 18px;
+    width: 100%;
+    justify-content: center;
+}
+
+.cicloSeguimientoIcon {
+    width: 38px;
+    height: 38px;
+    filter: invert(0.2) sepia(0.3) saturate(1.2) hue-rotate(80deg);
+}
+
+.cicloSeguimientoFiltros {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.cicloFiltroSelect,
+.cicloFiltroDate {
+    border: 1.5px solid #539E43;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 1rem;
+    background: #e6f7ea;
+    color: #1a2c1a;
+    outline: none;
+    transition: border 0.18s;
+}
+.cicloFiltroSelect:focus,
+.cicloFiltroDate:focus {
+    border: 2px solid #3B82F6;
+}
+
+.cicloFiltroBtn {
+    background: #539E43;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background 0.18s;
+}
+.cicloFiltroBtn:hover {
+    background: #3B82F6;
+}
+.cicloFiltroBtn img {
+    width: 22px;
+    height: 22px;
+    filter: invert(1);
+}

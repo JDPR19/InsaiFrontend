@@ -4,18 +4,16 @@ import { usePermiso } from '../../hooks/usePermiso';
 import '../../main.css';
 import Solicitud from '../Solicitud/Solicitud';
 import Planificacion from '../Planificacion/Planificacion';
-import TipoSolicitud from '../Solicitud/TipoSolicitud';
-import TablaAsociadaTwo from '../Seccion/TablaAsociadaTwo';
+import Inspecciones from '../Inspecciones/Inspecciones';
 
 function SeccionTwo () {
     const tienePermiso = usePermiso();
     
     // Tabs principales
     const tabs = [
-        // { key: 'asociados', label: 'Catalago' },
         tienePermiso('solicitud', 'ver') && { key: 'solicitud', label: 'Solicitudes' },
         tienePermiso('planificacion', 'ver') && { key: 'planificacion', label: 'Planificaciones' },
-        tienePermiso('tipo_solicitud', 'ver') && { key: 'tipo_solicitud', label: 'Tipos de Solicitud' }
+        tienePermiso('inspecciones', 'ver') && { key: 'inspecciones', label: 'Inspecciones' },
     ].filter(Boolean);
 
     // Obtiene el tab guardado y verifica que exista en los tabs permitidos
@@ -33,15 +31,13 @@ function SeccionTwo () {
         };
 
     let tablaRenderizada;
-    if (activeTab === 'asociados') {
-        tablaRenderizada = <TablaAsociadaTwo />;
-    } else if (activeTab === 'solicitud') {
+    if (activeTab === 'solicitud') {
         tablaRenderizada = <Solicitud />;
     } else if (activeTab === 'planificacion') {
         tablaRenderizada = <Planificacion />;
-    } else if (activeTab === 'tipo_solicitud') {
-        tablaRenderizada = <TipoSolicitud/>;
-    }
+    } else if (activeTab === 'inspecciones'){
+        tablaRenderizada = <Inspecciones/>;
+    } 
 
     return (
         <div>

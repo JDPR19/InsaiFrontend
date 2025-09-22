@@ -272,7 +272,7 @@ function TipoUsuario() {
                                     {PANTALLAS.map((pantalla) => (
                                         <div key={pantalla.key} className={styles.permisoPantalla}>
                                             <strong>{pantalla.label}</strong>
-                                            {ACCIONES.map((accion) => (
+                                            {ACCIONES.filter(a => pantalla.acciones.includes(a.key)).map((accion) => (
                                                 <label key={accion.key} className={styles.permisoCheckbox}>
                                                     <input
                                                         type="checkbox"
@@ -310,7 +310,7 @@ function TipoUsuario() {
                             {PANTALLAS.map((pantalla) => (
                                 <div key={pantalla.key} className={styles.permisoPantalla}>
                                     <strong>{pantalla.label}</strong>
-                                    {ACCIONES.map((accion) => (
+                                    {ACCIONES.filter(a => pantalla.acciones.includes(a.key)).map((accion) => (
                                         <label key={accion.key} className={styles.permisoCheckbox}>
                                             <input
                                                 type="checkbox"

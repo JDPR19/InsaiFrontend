@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './login.module.css';
 import Insai from '../../../public/assets/insai.png';
@@ -69,6 +69,7 @@ function Login() {
     const [isHovered, setIsHovered] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showRecuperar, setShowRecuperar] = useState(false);
+    const audioRef = useRef(null);
     const navigate = useNavigate();
 
     const phrases = useMemo(() => [
@@ -157,15 +158,6 @@ function Login() {
 
                 localStorage.setItem('permisos', JSON.stringify(data.user.permisos));
 
-                // Reproducir sonido de bienvenida
-                try {
-                    const audio = new Audio('/assets/notification.mp3');
-                    audio.play();
-                } catch (err) {
-                    // Si el navegador bloquea el audio, no detiene el flujo
-                    console.warn('No se pudo reproducir el sonido de bienvenida:', err);
-                }
-
                 // Consultar notificaciones pendientes del usuario
                 try {
                     const token = data.token;
@@ -184,11 +176,19 @@ function Login() {
                     addNotification('No se pudo consultar tus notificaciones pendientes', 'error');
                 }
 
+                // Reproducir sonido de bienvenida usando ref
+                if (audioRef.current) {
+                    audioRef.current.currentTime = 0;
+                    audioRef.current.play().catch(error => {
+                        console.warn('No se pudo reproducir el sonido de bienvenida:', error);
+                    });
+                }
+
                 addNotification('Inicio de sesión exitoso', 'success');
                 addNotification('Bienvenido al Sistema SIGENSAI', 'success');
                 setTimeout(() => {
                     navigate('/Home');
-                }, 500);
+                }, 800);
             } else {
                 addNotification(data.message || 'Error al iniciar sesión ', 'error');
             }
@@ -199,10 +199,10 @@ function Login() {
             setLoading(false);
         }
     };
-
     return (
         <div className={styles.loginContainer}>
             {loading && <Spinner text="Procesando..." />}
+            <audio ref={audioRef} src="/sicic/assets/notification.mp3" preload="auto" style={{ display: 'none' }} />
             {showRecuperar && <RecuperarModal onClose={() => setShowRecuperar(false)} />}
 
             {/* Formulario */}
