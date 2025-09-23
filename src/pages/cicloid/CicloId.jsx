@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styles from './ciclo.module.css';
 import icon from '../../components/iconos/iconos';
 // import Chart from '../../components/chart/Chart';
-import escudoLogo from '../../../public/assets/logo-sisic3.png';
+// import escudoLogo from '../../../public/assets/logo-sisic3.png';
 
 const procesos = [
     { key: 'productor', label: 'Productor', icon: icon.farmer },
@@ -43,7 +43,7 @@ export default function CicloId() {
     return (
         <div className={styles.cicloBg}>
             {/* Marca de agua escudo */}
-            <img src={escudoLogo} alt="Marca de agua" className={styles.bgEscudo} />
+            {/* <img src={escudoLogo} alt="Marca de agua" className={styles.bgEscudo} /> */}
 
             {/* Botón volver fijo lateral */}
             <div className={styles.volverLateral}>
