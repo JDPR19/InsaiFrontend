@@ -202,7 +202,7 @@ function Login() {
     return (
         <div className={styles.loginContainer}>
             {loading && <Spinner text="Procesando..." />}
-            <audio ref={audioRef} src="/sicic/assets/notification.mp3" preload="auto" style={{ display: 'none' }} />
+            <audio ref={audioRef} src="/assets/notification.mp3" preload="auto" style={{ display: 'none' }} />
             {showRecuperar && <RecuperarModal onClose={() => setShowRecuperar(false)} />}
 
             {/* Formulario */}

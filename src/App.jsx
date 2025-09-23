@@ -67,8 +67,8 @@ function AppContent() {
         notifications={notifications}
         removeNotification={removeNotification}
       />
-      {/* basename="/sicic/" */}
-    <BrowserRouter >
+      
+    <BrowserRouter>
       {/*AutoLogout cerrar session por tiempo  */}
         <AutoLogout />
       <Routes>
