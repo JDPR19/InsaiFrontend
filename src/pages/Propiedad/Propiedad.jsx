@@ -581,7 +581,7 @@ function Propiedad() {
                                     <label>Estado:</label>
                                     <SingleSelect
                                         options={estadosOptions}
-                                        value={tiposOptions.find(opt => String(opt.value) === String(detalleModal.propiedad.tipo_propiedad_id)) || null}
+                                        value={estadosOptions.find(opt => String(opt.value) === String(detalleModal.propiedad.estado_id)) || null}
                                         isDisabled={true}
                                     />
                                 </div>

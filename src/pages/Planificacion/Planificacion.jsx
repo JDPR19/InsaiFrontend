@@ -262,11 +262,28 @@ function Planificacion() {
             return;
         }
         const fecha = formData.fecha_programada;
-            const añoActual = new Date().getFullYear();
-            if (!fecha || new Date(fecha).getFullYear() !== añoActual) {
-                addNotification('Solo puedes registrar fechas en el año actual.', 'warning');
-                return;
-            }
+        const hoy = new Date();
+        const fechaIngresada = new Date(fecha);
+
+        const añoActual = hoy.getFullYear();
+        const mesActual = hoy.getMonth(); 
+        const diaActual = hoy.getDate();
+
+        if (!fecha || fechaIngresada.getFullYear() !== añoActual) {
+            addNotification('Solo puedes registrar fechas en el año actual.', 'warning');
+            return;
+        }
+        if (fechaIngresada.getMonth() < mesActual) {
+            addNotification('No puedes registrar en meses que ya pasaron.', 'warning');
+            return;
+        }
+        if (
+            fechaIngresada.getMonth() === mesActual &&
+            fechaIngresada.getDate() < diaActual
+        ) {
+            addNotification('No puedes registrar en días que ya pasaron.', 'warning');
+            return;
+        }
         setLoading(true);
         try {
             const cleanFormData = {
@@ -315,6 +332,29 @@ function Planificacion() {
                 setLoading(false);
                 return;
             }
+        }
+        const fecha = formData.fecha_programada;
+        const hoy = new Date();
+        const fechaIngresada = new Date(fecha);
+
+        const añoActual = hoy.getFullYear();
+        const mesActual = hoy.getMonth(); // 0-indexed
+        const diaActual = hoy.getDate();
+
+        if (!fecha || fechaIngresada.getFullYear() !== añoActual) {
+            addNotification('Solo puedes registrar fechas en el año actual.', 'warning');
+            return;
+        }
+        if (fechaIngresada.getMonth() < mesActual) {
+            addNotification('No puedes registrar en meses que ya pasaron.', 'warning');
+            return;
+        }
+        if (
+            fechaIngresada.getMonth() === mesActual &&
+            fechaIngresada.getDate() < diaActual
+        ) {
+            addNotification('No puedes registrar en días que ya pasaron.', 'warning');
+            return;
         }
         setLoading(true);
         try {
@@ -537,7 +577,7 @@ function Planificacion() {
                                         value={formData.fecha_programada}
                                         onChange={handleChange}
                                         className='date'
-                                        min={`${new Date().getFullYear()}-01-01`}
+                                        min={new Date().toISOString().slice(0, 10)} 
                                         max={`${new Date().getFullYear()}-12-31`}
                                     />
                                 </div>
@@ -571,7 +611,6 @@ function Planificacion() {
                                     {formData.empleados_ids.length > 0 && (
                                         <button type="button" onClick={clearMultiSelect} className='btn-limpiar'>Limpiar</button>
                                     )}
-                                    {/* Aquí va el mensaje de empleados disponibles */}
                                     {getEmpleadosDisponibles(formData.fecha_programada).length === 0 && (
                                         <span className='errorText'>
                                             No hay empleados disponibles para la fecha seleccionada.

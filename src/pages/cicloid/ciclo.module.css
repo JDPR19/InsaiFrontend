@@ -1,49 +1,75 @@
 /* ciclo.module.css */
 
-.cicloMain {
+.cicloBg {
     min-height: 100vh;
-    background: linear-gradient(135deg, #e6f7ea 0%, #539E43 100%);
-    padding: 32px 0 0 0;
+    width: 100vw;
+    background: var(--white1); /* Fondo general del proyecto */
+    position: relative;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-start;
 }
 
-.btnVolver {
-    background: #e6f7ea;
-    color: #539E43;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 18px;
-    font-size: 1.1rem;
-    font-weight: 500;
-    margin-bottom: 18px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(83,158,67,0.08);
-    transition: background 0.2s;
+.bgEscudo {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    width: 420px;
+    height: 420px;
+    opacity: 0.08;
+    z-index: 0;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    /* user-select: none; */
 }
-.btnVolver:hover {
-    background: #d0f2d8;
+
+.volverLateral {
+    position: fixed;
+    left: 32px;
+    top: 40%;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.cicloMain {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 60px;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .cicloTitulo {
     font-size: 2.3rem;
     font-weight: 700;
     color: #1a2c1a;
-    margin-bottom: 28px;
+    margin-bottom: 38px;
     text-align: center;
     letter-spacing: 1px;
 }
 
-.cicloCardsContainer {
+.cicloCardsGrid {
+    width: 100%;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 32px;
+    align-items: center;
+    justify-content: center;
+}
+
+.cicloCardsRow {
+    display: flex;
     gap: 32px;
     justify-content: center;
-    margin-bottom: 38px;
+    width: 100%;
 }
 
 .cicloCard {
@@ -110,14 +136,15 @@
     filter: invert(0.2) sepia(0.3) saturate(1.2) hue-rotate(80deg);
 }
 
-.cicloSeguimiento {
+/* Seguimiento más ancho y alineado */
+.cicloSeguimientoWide {
     background: #fff;
     border-radius: 18px;
     box-shadow: 0 4px 18px rgba(83,158,67,0.13), 0 2px 8px rgba(0,0,0,0.08);
-    padding: 28px 22px 22px 22px;
-    max-width: 680px;
+    padding: 28px 32px 22px 32px;
+    max-width: 900px;
     width: 100%;
-    margin-bottom: 32px;
+    margin: 48px auto 32px auto;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -177,4 +204,30 @@
     width: 22px;
     height: 22px;
     filter: invert(1);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .cicloMain {
+        max-width: 98vw;
+        padding-top: 40px;
+    }
+    .cicloCardsRow {
+        flex-direction: column;
+        gap: 24px;
+        align-items: center;
+    }
+    .cicloSeguimientoWide {
+        max-width: 98vw;
+        padding: 18px 8px;
+    }
+    .bgEscudo {
+        width: 260px;
+        height: 260px;
+    }
+    .volverLateral {
+        left: 8px;
+        top: 16px;
+        position: absolute;
+    }
 }
