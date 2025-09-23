@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styles from './ciclo.module.css';
 import icon from '../../components/iconos/iconos';
 // import Chart from '../../components/chart/Chart';
-import escudoLogo from '../../../public/escudobien.svg'; // Ajusta la ruta si tu logo está en otra carpeta
+import escudoLogo from '../../../public/assets/logo-sisic3.png';
 
 const procesos = [
     { key: 'productor', label: 'Productor', icon: icon.farmer },
