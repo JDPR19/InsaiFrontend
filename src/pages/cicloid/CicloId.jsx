@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styles from './ciclo.module.css';
 import icon from '../../components/iconos/iconos';
-import Chart from '../../components/chart/Chart';
+// import Chart from '../../components/chart/Chart';
 import escudoLogo from '../../../public/escudobien.svg'; // Ajusta la ruta si tu logo está en otra carpeta
 
 const procesos = [
