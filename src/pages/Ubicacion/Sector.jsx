@@ -25,6 +25,7 @@ function Sector() {
         estado_id: null,
         municipio_id: null,
         parroquia_id: null,
+        codigo: '' 
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedSectorId, setSelectedSectorId] = useState(null);
@@ -36,9 +37,7 @@ function Sector() {
         setLoading(true);
         try {
             const response = await axios.get(`${BaseUrl}/sector`, {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
             setDatosOriginales(response.data);
             setDatosFiltrados(response.data);
@@ -54,9 +53,7 @@ function Sector() {
         setLoading(true);
         try {
             const response = await axios.get(`${BaseUrl}/sector/estados/all`, {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
             setEstados(response.data);
         } catch (error) {
@@ -75,9 +72,7 @@ function Sector() {
                 return;
             }
             const response = await axios.get(`${BaseUrl}/sector/municipios/all`, {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
             setMunicipios(response.data.filter(m => String(m.estado_id) === String(estadoId)));
         } catch (error) {
@@ -97,9 +92,7 @@ function Sector() {
                 return;
             }
             const response = await axios.get(`${BaseUrl}/sector/parroquias/all`, {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
             setParroquias(response.data.filter(p => String(p.municipio_id) === String(municipioId)));
         } catch (error) {
@@ -123,9 +116,11 @@ function Sector() {
             estado_id: null,
             municipio_id: null,
             parroquia_id: null,
+            codigo: ''
         });
         setMunicipios([]);
         setParroquias([]);
+        setErrors({});
     };
 
     // Handlers para selects dependientes
@@ -168,6 +163,15 @@ function Sector() {
     // Handler para input de texto
     const handleInputChange = (e) => {
         const { id, value } = e.target;
+
+        if (id === 'codigo') {
+            const onlyDigits = value.replace(/\D/g, '').slice(0, 3);
+            setFormData(prev => ({ ...prev, codigo: onlyDigits }));
+            const isValid = onlyDigits === '' || /^\d{3}$/.test(onlyDigits);
+            setErrors(prev => ({ ...prev, codigo: isValid ? '' : 'El código debe tener 3 dígitos (ej: 001)' }));
+            return;
+        }
+
         setFormData(prev => ({ ...prev, [id]: value }));
 
         if (validationRules[id]) {
@@ -179,55 +183,57 @@ function Sector() {
 
     const handleSearch = (searchTerm) => {
         const filtered = filterData(datosOriginales, searchTerm, [
-            'id','nombre','parroquia_nombre','municipio_nombre','estado_nombre'
+            'id','nombre','codigo','parroquia_nombre','parroquia_codigo','municipio_nombre','municipio_codigo','estado_nombre','estado_codigo'
         ]);
         setDatosFiltrados(filtered);
+        setCurrentPage(1);
     };
 
     const handleSave = async () => {
         if (!formData.estado_id || !formData.estado_id.value) {
             addNotification('Debe seleccionar un estado', 'warning');
-            setLoading(false);
             return;
         }
         if (!formData.municipio_id || !formData.municipio_id.value) {
             addNotification('Debe seleccionar un municipio', 'warning');
-            setLoading(false);
             return;
         }
         if (!formData.parroquia_id || !formData.parroquia_id.value) {
             addNotification('Debe seleccionar una parroquia', 'warning');
-            setLoading(false);
             return;
         }
-        for (const field of ['nombre', 'parroquia_id']) {
-            if (!validationRules[field]) continue;
-            const { regex, errorMessage } = validationRules[field];
-            if (regex) {
-                const { valid, message } = validateField(formData[field], regex, errorMessage);
-                if (!valid) {
-                    addNotification(message, 'warning');
-                    setLoading(false);
-                    return;
-                }
-            }
+        if (!formData.nombre?.trim()) {
+            addNotification('El nombre es obligatorio', 'warning');
+            return;
         }
+        if (formData.codigo && !/^\d{3}$/.test(formData.codigo)) {
+            addNotification('El código debe tener 3 dígitos (ej: 001)', 'warning');
+            return;
+        }
+
         setLoading(true);
         try {
-            await axios.post(`${BaseUrl}/sector`, {
-                nombre: formData.nombre,
-                parroquia_id: formData.parroquia_id?.value || '',
-            }, {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
+            const payload = {
+                nombre: formData.nombre.trim(),
+                parroquia_id: formData.parroquia_id?.value || ''
+            };
+            if (formData.codigo) {
+                payload.codigo = String(formData.codigo).padStart(3, '0');
+            }
+
+            await axios.post(`${BaseUrl}/sector`, payload, {
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Sector registrado con éxito', 'success');
             fetchSectores();
             closeModal();
         } catch (error) {
             console.error('error registrando sector',error);
-            addNotification('Error al registrar sector', 'error');
+            if (error?.response?.status === 409) {
+                addNotification('Nombre o código ya existen en la parroquia', 'error');
+            } else {
+                addNotification('Error al registrar sector', 'error');
+            }
         } finally {
             setLoading(false);
         }
@@ -236,45 +242,48 @@ function Sector() {
     const handleEdit = async () => {
         if (!formData.estado_id || !formData.estado_id.value) {
             addNotification('Debe seleccionar un estado', 'warning');
-            setLoading(false);
             return;
         }
         if (!formData.municipio_id || !formData.municipio_id.value) {
             addNotification('Debe seleccionar un municipio', 'warning');
-            setLoading(false);
             return;
         }
         if (!formData.parroquia_id || !formData.parroquia_id.value) {
             addNotification('Debe seleccionar una parroquia', 'warning');
-            setLoading(false);
             return;
         }
-        for (const field of ['nombre', 'parroquia_id']) {
-            if (!validationRules[field]) continue;
-            const { regex, errorMessage } = validationRules[field];
-            const { valid, message } = validateField(formData[field], regex, errorMessage);
-            if (!valid) {
-                addNotification(message, 'warning');
-                setLoading(false);
-                return;
-            }
+        if (!formData.nombre?.trim()) {
+            addNotification('El nombre es obligatorio', 'warning');
+            return;
         }
+        if (formData.codigo && !/^\d{3}$/.test(formData.codigo)) {
+            addNotification('El código debe tener 3 dígitos (ej: 001)', 'warning');
+            return;
+        }
+
         setLoading(true);
         try {
-            await axios.put(`${BaseUrl}/sector/${formData.id}`, {
-                nombre: formData.nombre,
-                parroquia_id: formData.parroquia_id?.value || '',
-            }, {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
+            const payload = {
+                nombre: formData.nombre.trim(),
+                parroquia_id: formData.parroquia_id?.value || ''
+            };
+            if (formData.codigo !== '') {
+                payload.codigo = String(formData.codigo).padStart(3, '0');
+            }
+
+            await axios.put(`${BaseUrl}/sector/${formData.id}`, payload, {
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Sector actualizado con éxito', 'success');
             fetchSectores();
             closeModal();
         } catch (error) {
             console.error('error actualizando sector',error);
-            addNotification('Error al actualizar sector', 'error');
+            if (error?.response?.status === 409) {
+                addNotification('Nombre o código ya existen en la parroquia', 'error');
+            } else {
+                addNotification('Error al actualizar sector', 'error');
+            }
         } finally {
             setLoading(false);
         }
@@ -284,9 +293,7 @@ function Sector() {
         setLoading(true);
         try {
             await axios.delete(`${BaseUrl}/sector/${id}`, {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
 
             fetchSectores();
@@ -344,6 +351,7 @@ function Sector() {
             estado_id: estadoObj,
             municipio_id: municipioObj,
             parroquia_id: parroquiaObj,
+            codigo: sector.codigo || ''
         });
         fetchMunicipios(sector.estado_id);
         fetchParroquias(sector.municipio_id);
@@ -414,8 +422,29 @@ function Sector() {
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="nombre"><span className='Unique' title='Campo Obligatorio'>*</span>Sector:</label>
-                                    <input type="text" id="nombre" value={formData.nombre} onChange={handleInputChange} className='input' placeholder='Rellene el Campo'/>
+                                    <input
+                                        type="text"
+                                        id="nombre"
+                                        value={formData.nombre}
+                                        onChange={handleInputChange}
+                                        className='input'
+                                        placeholder='Rellene el Campo'
+                                    />
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
+                                </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="codigo">Código (UBIGEO 3 dígitos):</label>
+                                    <input
+                                        type="text"
+                                        id="codigo"
+                                        value={formData.codigo}
+                                        onChange={handleInputChange}
+                                        className='input'
+                                        placeholder='Ej: 001 (vacío para autogenerar)'
+                                        maxLength={3}
+                                        inputMode="numeric"
+                                    />
+                                    {errors.codigo && <span className='errorText'>{errors.codigo}</span>}
                                 </div>
                             </div>
                             <button 
@@ -467,6 +496,7 @@ function Sector() {
                     <thead>
                         <tr>
                             <th>N°</th>
+                            <th>Código</th>
                             <th>Sector</th>
                             <th>Parroquia</th>
                             <th>Municipio</th>
@@ -478,6 +508,7 @@ function Sector() {
                         {currentData.map((sector, idx) => (
                             <tr key={sector.id} >
                                 <td>{indexOfFirstItem + idx + 1}</td>
+                                <td>{sector.codigo}</td>
                                 <td>{sector.nombre}</td>
                                 <td>{sector.parroquia_nombre}</td>
                                 <td>{sector.municipio_nombre}</td>

@@ -372,19 +372,19 @@ function Solicitud() {
                         <form className='modalForm'>
                             <div className='formColumns'>
                                 <div className='formGroup'>
-                                    <label>Fecha Solicitada:</label>
+                                    <label>Código:</label>
                                     <input
-                                        type="text"
-                                        value={detalleModal.solicitud.fecha_solicitada || ''}
+                                        type="inpu"
+                                        value={detalleModal.solicitud.codigo|| ''}
                                         className='input'
                                         disabled
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Código:</label>
+                                    <label>Fecha Solicitada:</label>
                                     <input
-                                        type="inpu"
-                                        value={detalleModal.solicitud.codigo|| ''}
+                                        type="text"
+                                        value={detalleModal.solicitud.fecha_solicitada || ''}
                                         className='input'
                                         disabled
                                     />

@@ -21,6 +21,7 @@ function Municipio() {
         id: '',
         nombre: '',
         estado_id: null,
+        codigo: '' // NUEVO: código territorial (2 dígitos, opcional para autogenerar)
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedMunicipioId, setSelectedMunicipioId] = useState(null);
@@ -33,16 +34,14 @@ function Municipio() {
         setLoading(true);
         try {
             const response = await axios.get(`${BaseUrl}/municipio`, {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
             setDatosOriginales(response.data);
             setDatosFiltrados(response.data);
         } catch (error) {
             console.error('Error obteniendo municipios:', error);
             addNotification('Error al obtener municipios', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -51,15 +50,13 @@ function Municipio() {
         setLoading(true);
         try {
             const response = await axios.get(`${BaseUrl}/municipio/estados/all`, {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
             setEstados(response.data);
         } catch (error) {
             console.error('Error obteniendo estados:', error);
             addNotification('Error al obtener estados', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -74,11 +71,22 @@ function Municipio() {
             id: '',
             nombre: '',
             estado_id: null,
+            codigo: ''
         });
+        setErrors({});
     };
 
     const handleChange = (e) => {
         const { id, value } = e.target;
+
+        if (id === 'codigo') {
+            const onlyDigits = value.replace(/\D/g, '').slice(0, 2);
+            setFormData(prev => ({ ...prev, codigo: onlyDigits }));
+            const isValid = onlyDigits === '' || /^\d{2}$/.test(onlyDigits);
+            setErrors(prev => ({ ...prev, codigo: isValid ? '' : 'El código debe tener 2 dígitos (ej: 01)' }));
+            return;
+        }
+
         setFormData(prev => ({ ...prev, [id]: value }));
 
         if (validationRules[id]) {
@@ -89,83 +97,93 @@ function Municipio() {
     };
 
     const handleSearch = (searchTerm) => {
-        const filtered = filterData(datosOriginales, searchTerm, ['id','nombre','estado_nombre']);
+        const filtered = filterData(datosOriginales, searchTerm, ['id','nombre','estado_nombre','codigo','estado_codigo']);
         setDatosFiltrados(filtered);
+        setCurrentPage(1);
     };
 
     const handleSave = async () => {
-        
         if (!formData.estado_id || !formData.estado_id.value) {
             addNotification('Debe seleccionar un estado', 'warning');
-            setLoading(false);
             return;
         }
-        for (const field in formData) {
-            if (!validationRules[field]) continue;
-            const { regex, errorMessage } = validationRules[field];
-            if (regex) {
-                const { valid, message } = validateField(formData[field], regex, errorMessage);
-                if (!valid) {
-                    addNotification(message, 'warning');
-                    return;
-                }
-            }
+        if (!formData.nombre?.trim()) {
+            addNotification('El nombre es obligatorio', 'warning');
+            return;
         }
+        if (formData.codigo && !/^\d{2}$/.test(formData.codigo)) {
+            addNotification('El código debe tener 2 dígitos (ej: 01)', 'warning');
+            return;
+        }
+
         setLoading(true);
         try {
-            await axios.post(`${BaseUrl}/municipio`, {
-                nombre: formData.nombre,
-                estado_id: formData.estado_id?.value || '',
-            }, {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
+            const payload = {
+                nombre: formData.nombre.trim(),
+                estado_id: formData.estado_id?.value
+            };
+            if (formData.codigo) {
+                payload.codigo = String(formData.codigo).padStart(2, '0');
+            }
+
+            await axios.post(`${BaseUrl}/municipio`, payload, {
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
+
             addNotification('Municipio registrado con éxito', 'success');
             fetchMunicipios();
             closeModal();
         } catch (error) {
             console.error('Error creando Municipio:', error);
-            addNotification('Error al registrar municipio', 'error');
-        }finally{
+            if (error?.response?.status === 409) {
+                addNotification('Nombre o código ya existen en el estado', 'error');
+            } else {
+                addNotification('Error al registrar municipio', 'error');
+            }
+        } finally {
             setLoading(false);
         }
     };
 
     const handleEdit = async () => {
-
         if (!formData.estado_id || !formData.estado_id.value) {
             addNotification('Debe seleccionar un estado', 'warning');
-            setLoading(false);
             return;
         }
-        const camposObligatorios = ['nombre', 'estado_id'];
-        for (const field of camposObligatorios) {
-            if (!validationRules[field]) continue;
-            const { regex, errorMessage } = validationRules[field];
-            const { valid, message } = validateField(formData[field], regex, errorMessage);
-            if (!valid) {
-                addNotification(message, 'warning');
-                return;
-            }
+        if (!formData.nombre?.trim()) {
+            addNotification('El nombre es obligatorio', 'warning');
+            return;
         }
+        if (formData.codigo && !/^\d{2}$/.test(formData.codigo)) {
+            addNotification('El código debe tener 2 dígitos (ej: 01)', 'warning');
+            return;
+        }
+
         setLoading(true);
         try {
-            await axios.put(`${BaseUrl}/municipio/${formData.id}`, {
-                nombre: formData.nombre,
-                estado_id: formData.estado_id?.value || '',
-            }, {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
+            const payload = {
+                nombre: formData.nombre.trim(),
+                estado_id: formData.estado_id?.value
+            };
+            if (formData.codigo !== '') {
+                payload.codigo = String(formData.codigo).padStart(2, '0');
+            }
+
+            await axios.put(`${BaseUrl}/municipio/${formData.id}`, payload, {
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
+
             addNotification('Municipio actualizado con éxito', 'success');
             fetchMunicipios();
             closeModal();
         } catch (error) {
             console.error('Error editando Municipio:', error);
-            addNotification('Error al actualizar municipio', 'error');
-        }finally{
+            if (error?.response?.status === 409) {
+                addNotification('Nombre o código ya existen en el estado', 'error');
+            } else {
+                addNotification('Error al actualizar municipio', 'error');
+            }
+        } finally {
             setLoading(false);
         }
     };
@@ -174,9 +192,7 @@ function Municipio() {
         setLoading(true);
         try {
             await axios.delete(`${BaseUrl}/municipio/${id}`, {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
 
             fetchMunicipios();
@@ -184,11 +200,12 @@ function Municipio() {
         } catch (error) {
             console.error('Error eliminando Municipio:', error);
             addNotification('Error al eliminar municipio', 'error');
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
 
+    // Paginación
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentData = datosFiltrados.slice(indexOfFirstItem, indexOfLastItem);
@@ -196,25 +213,22 @@ function Municipio() {
     const handlePreviousPage = () => {
         if (currentPage > 1) setCurrentPage(currentPage - 1);
     };
-
     const handleNextPage = () => {
         if (indexOfLastItem < datosFiltrados.length) setCurrentPage(currentPage + 1);
     };
-
     const handlePreviousThreePages = () => {
         setCurrentPage((prev) => Math.max(prev - 3, 1));
     };
-
     const handleNextThreePages = () => {
         const maxPage = Math.ceil(datosFiltrados.length / itemsPerPage);
         setCurrentPage((prev) => Math.min(prev + 3, maxPage));
     };
 
+    // Modales
     const openModal = () => {
         resetFormData();
         setCurrentModal('municipio');
     };
-
     const closeModal = () => setCurrentModal(null);
 
     const openEditModal = (municipio) => {
@@ -222,9 +236,11 @@ function Municipio() {
             id: municipio.id,
             nombre: municipio.nombre || '',
             estado_id: municipio.estado_id
-            ? { value: String(municipio.estado_id), label: estados.find(e => String(e.id) === String(municipio.estado_id))?.nombre || '' }
-            : null,
+                ? { value: String(municipio.estado_id), label: estados.find(e => String(e.id) === String(municipio.estado_id))?.nombre || '' }
+                : null,
+            codigo: municipio.codigo || ''
         });
+        setErrors({});
         setCurrentModal('municipio');
     };
 
@@ -253,23 +269,44 @@ function Municipio() {
                                         options={estados.map(estado => ({ value: String(estado.id), label: estado.nombre }))}
                                         value={formData.estado_id}
                                         onChange={val => setFormData(prev => ({ ...prev, estado_id: val }))}
-                                        placeholder="Seleccione un tipo"
-                                        />
+                                        placeholder="Seleccione un estado"
+                                    />
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="nombre"><span className='Unique' title='Campo Obligatorio'>*</span>Municipio:</label>
-                                    <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
+                                    <input
+                                        type="text"
+                                        id="nombre"
+                                        value={formData.nombre}
+                                        onChange={handleChange}
+                                        className='input'
+                                        placeholder='Rellene el Campo'
+                                    />
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="codigo">Código (UBIGEO 2 dígitos):</label>
+                                    <input
+                                        type="text"
+                                        id="codigo"
+                                        value={formData.codigo}
+                                        onChange={handleChange}
+                                        className='input'
+                                        placeholder='Ej: 01 (vacío para autogenerar)'
+                                        maxLength={2}
+                                        inputMode="numeric"
+                                    />
+                                    {errors.codigo && <span className='errorText'>{errors.codigo}</span>}
+                                </div>
                             </div>
-                            <button 
-                                type="button" 
-                                className='saveButton' 
+                            <button
+                                type="button"
+                                className='saveButton'
                                 onClick={formData.id ? handleEdit : handleSave}
                                 title={formData.id ? 'Actualizar Municipio' : 'Registrar Municipio'}
-                                disabled={loading}    
+                                disabled={loading}
                             >
-                                    {loading ? 'Procesando...' : 'Guardar'}
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>
@@ -291,9 +328,9 @@ function Municipio() {
 
             <div className='tableSection'>
                 <div className='filtersContainer'>
-                    <button 
+                    <button
                         type='button'
-                        onClick={openModal} 
+                        onClick={openModal}
                         className='create'
                         title='Registrar Municipio'>
                         <img src={icon.plus} alt="Crear" className='icon' />
@@ -311,6 +348,7 @@ function Municipio() {
                     <thead>
                         <tr>
                             <th>N°</th>
+                            <th>Código</th>
                             <th>Municipio</th>
                             <th>Estado</th>
                             <th>Acción</th>
@@ -320,6 +358,7 @@ function Municipio() {
                         {currentData.map((municipio, idx) => (
                             <tr key={municipio.id} >
                                 <td>{indexOfFirstItem + idx + 1}</td>
+                                <td>{municipio.codigo}</td>
                                 <td>{municipio.nombre}</td>
                                 <td>{municipio.estado_nombre}</td>
                                 <td>
@@ -330,10 +369,10 @@ function Municipio() {
                                             className='iconeditar'
                                             title='Editar'
                                         />
-                                        <img 
-                                            onClick={() => openConfirmDeleteModal(municipio.id)} 
-                                            src={icon.eliminar} 
-                                            className='iconeliminar' 
+                                        <img
+                                            onClick={() => openConfirmDeleteModal(municipio.id)}
+                                            src={icon.eliminar}
+                                            className='iconeliminar'
                                             title='eliminar'
                                         />
                                     </div>

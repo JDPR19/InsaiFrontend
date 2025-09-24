@@ -23,6 +23,7 @@ function Parroquia() {
         nombre: '',
         estado_id: null,
         municipio_id: null,
+        codigo: '' // NUEVO: 2 dígitos, opcional (autogenera en backend)
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedParroquiaId, setSelectedParroquiaId] = useState(null);
@@ -35,14 +36,12 @@ function Parroquia() {
         setLoading(true);
         try {
             const response = await axios.get(`${BaseUrl}/parroquia`, {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
             setDatosOriginales(response.data);
             setDatosFiltrados(response.data);
         } catch (error) {
-                console.error('error al obtener las parroquias',error);
+            console.error('error al obtener las parroquias',error);
             addNotification('Error al obtener parroquias', 'error');
         } finally {
             setLoading(false);
@@ -54,9 +53,7 @@ function Parroquia() {
         setLoading(true);
         try {
             const response = await axios.get(`${BaseUrl}/parroquia/estados/all`, {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
             setEstados(response.data);
         } catch (error) {
@@ -76,9 +73,7 @@ function Parroquia() {
                 return;
             }
             const response = await axios.get(`${BaseUrl}/parroquia/municipios/all`, {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
             setMunicipios(response.data.filter(m => String(m.estado_id) === String(estadoId)));
         } catch (error) {
@@ -101,13 +96,24 @@ function Parroquia() {
             nombre: '',
             estado_id: null,
             municipio_id: null,
+            codigo: ''
         });
         setMunicipios([]);
+        setErrors({});
     };
 
     // Handler para inputs de texto
     const handleInputChange = (e) => {
         const { id, value } = e.target;
+
+        if (id === 'codigo') {
+            const onlyDigits = value.replace(/\D/g, '').slice(0, 2);
+            setFormData(prev => ({ ...prev, codigo: onlyDigits }));
+            const isValid = onlyDigits === '' || /^\d{2}$/.test(onlyDigits);
+            setErrors(prev => ({ ...prev, codigo: isValid ? '' : 'El código debe tener 2 dígitos (ej: 01)' }));
+            return;
+        }
+
         setFormData(prev => ({ ...prev, [id]: value }));
 
         if (validationRules[id]) {
@@ -140,83 +146,102 @@ function Parroquia() {
     };
 
     const handleSearch = (searchTerm) => {
-        const filtered = filterData(datosOriginales, searchTerm, ['id','nombre','municipio_nombre','estado_nombre']);
+        const filtered = filterData(
+            datosOriginales,
+            searchTerm,
+            ['id','nombre','codigo','municipio_nombre','estado_nombre','municipio_codigo','estado_codigo']
+        );
         setDatosFiltrados(filtered);
+        setCurrentPage(1);
     };
 
     const handleSave = async () => {
-
         if (!formData.estado_id || !formData.estado_id.value) {
             addNotification('Debe seleccionar un estado', 'warning');
-            setLoading(false);
             return;
         }
         if (!formData.municipio_id || !formData.municipio_id.value) {
             addNotification('Debe seleccionar un municipio', 'warning');
-            setLoading(false);
             return;
         }
-        for (const field in formData) {
-            if (!validationRules[field]) continue;
-            const { regex, errorMessage } = validationRules[field];
-            if (regex) {
-                const { valid, message } = validateField(formData[field], regex, errorMessage);
-                if (!valid) {
-                    addNotification(message, 'warning');
-                    setLoading(false);
-                    return;
-                }
-            }
+        if (!formData.nombre?.trim()) {
+            addNotification('El nombre es obligatorio', 'warning');
+            return;
         }
+        if (formData.codigo && !/^\d{2}$/.test(formData.codigo)) {
+            addNotification('El código debe tener 2 dígitos (ej: 01)', 'warning');
+            return;
+        }
+
         setLoading(true);
         try {
-            await axios.post(`${BaseUrl}/parroquia`, {
-                nombre: formData.nombre,
-                municipio_id: formData.municipio_id?.value || '',
-            }, {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
+            const payload = {
+                nombre: formData.nombre.trim(),
+                municipio_id: formData.municipio_id?.value
+            };
+            if (formData.codigo) {
+                payload.codigo = String(formData.codigo).padStart(2, '0');
+            }
+
+            await axios.post(`${BaseUrl}/parroquia`, payload, {
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Parroquia registrada con éxito', 'success');
             fetchParroquias();
             closeModal();
         } catch (error) {
             console.error('error registrando la parroquia',error);
-            addNotification('Error al registrar parroquia', 'error');
+            if (error?.response?.status === 409) {
+                addNotification('Nombre o código ya existen en el municipio', 'error');
+            } else {
+                addNotification('Error al registrar parroquia', 'error');
+            }
         } finally {
             setLoading(false);
         }
     };
 
     const handleEdit = async () => {
-        const camposObligatorios = ['nombre', 'municipio_id'];
-        for (const field of camposObligatorios) {
-            if (!validationRules[field]) continue;
-            const { regex, errorMessage } = validationRules[field];
-            const { valid, message } = validateField(formData[field], regex, errorMessage);
-            if (!valid) {
-                addNotification(message, 'warning');
-                setLoading(false);
-                return;
-            }
+        if (!formData.estado_id || !formData.estado_id.value) {
+            addNotification('Debe seleccionar un estado', 'warning');
+            return;
         }
+        if (!formData.municipio_id || !formData.municipio_id.value) {
+            addNotification('Debe seleccionar un municipio', 'warning');
+            return;
+        }
+        if (!formData.nombre?.trim()) {
+            addNotification('El nombre es obligatorio', 'warning');
+            return;
+        }
+        if (formData.codigo && !/^\d{2}$/.test(formData.codigo)) {
+            addNotification('El código debe tener 2 dígitos (ej: 01)', 'warning');
+            return;
+        }
+
         setLoading(true);
         try {
-            await axios.put(`${BaseUrl}/parroquia/${formData.id}`, {
-                nombre: formData.nombre,
-                municipio_id: formData.municipio_id?.value || '',
-            }, {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
+            const payload = {
+                nombre: formData.nombre.trim(),
+                municipio_id: formData.municipio_id?.value
+            };
+            if (formData.codigo !== '') {
+                payload.codigo = String(formData.codigo).padStart(2, '0');
+            }
+
+            await axios.put(`${BaseUrl}/parroquia/${formData.id}`, payload, {
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Parroquia actualizada con éxito', 'success');
             fetchParroquias();
             closeModal();
         } catch (error) {
             console.error('error actualizando la parroquia',error);
-            addNotification('Error al actualizar parroquia', 'error');
+            if (error?.response?.status === 409) {
+                addNotification('Nombre o código ya existen en el municipio', 'error');
+            } else {
+                addNotification('Error al actualizar parroquia', 'error');
+            }
         } finally {
             setLoading(false);
         }
@@ -226,9 +251,7 @@ function Parroquia() {
         setLoading(true);
         try {
             await axios.delete(`${BaseUrl}/parroquia/${id}`, {
-                headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
-                }
+                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
 
             fetchParroquias();
@@ -270,7 +293,6 @@ function Parroquia() {
     const closeModal = () => setCurrentModal(null);
 
     const openEditModal = (parroquia) => {
-        
         const estadoObj = parroquia.estado_id
             ? { value: String(parroquia.estado_id), label: estados.find(e => String(e.id) === String(parroquia.estado_id))?.nombre || '' }
             : null;
@@ -282,6 +304,7 @@ function Parroquia() {
             nombre: parroquia.nombre || '',
             estado_id: estadoObj,
             municipio_id: municipioObj,
+            codigo: parroquia.codigo || ''
         });
         fetchMunicipios(parroquia.estado_id);
         setCurrentModal('parroquia');
@@ -337,6 +360,20 @@ function Parroquia() {
                                     />
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                 </div>
+                                <div className='formGroup'>
+                                    <label htmlFor="codigo">Código (UBIGEO 2 dígitos):</label>
+                                    <input
+                                        type="text"
+                                        id="codigo"
+                                        value={formData.codigo}
+                                        onChange={handleInputChange}
+                                        className='input'
+                                        placeholder='Ej: 01 (vacío para autogenerar)'
+                                        maxLength={2}
+                                        inputMode="numeric"
+                                    />
+                                    {errors.codigo && <span className='errorText'>{errors.codigo}</span>}
+                                </div>
                             </div>
                             <button
                                 type="button"
@@ -387,6 +424,7 @@ function Parroquia() {
                     <thead>
                         <tr>
                             <th>N°</th>
+                            <th>Código</th>
                             <th>Parroquia</th>
                             <th>Municipio</th>
                             <th>Estado</th>
@@ -397,6 +435,7 @@ function Parroquia() {
                         {currentData.map((parroquia, idx) => (
                             <tr key={parroquia.id} >
                                 <td>{indexOfFirstItem + idx + 1}</td>
+                                <td>{parroquia.codigo}</td>
                                 <td>{parroquia.nombre}</td>
                                 <td>{parroquia.municipio_nombre}</td>
                                 <td>{parroquia.estado_nombre}</td>

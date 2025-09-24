@@ -582,6 +582,15 @@ function Planificacion() {
                                     />
                                 </div>
                                 <div className='formGroup'>
+                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Inspección:</label>
+                                    <SingleSelect
+                                        options={tipoInspeccionOptions}
+                                        value={formData.tipo_inspeccion_fito_id}
+                                        onChange={handleTipoInspeccionChange}
+                                        placeholder="Tipo de inspección"
+                                    />
+                                </div>
+                                <div className='formGroup'>
                                     <label><span className='Unique' title='Campo Obligatorio'>*</span>Hora:</label>
                                     <input
                                         type="time"
@@ -589,15 +598,6 @@ function Planificacion() {
                                         value={formData.hora}
                                         onChange={handleChange}
                                         className='input'
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Inspección:</label>
-                                    <SingleSelect
-                                        options={tipoInspeccionOptions}
-                                        value={formData.tipo_inspeccion_fito_id}
-                                        onChange={handleTipoInspeccionChange}
-                                        placeholder="Tipo de inspección"
                                     />
                                 </div>
                                 <div className='formGroup'>

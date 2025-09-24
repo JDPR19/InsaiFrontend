@@ -18,85 +18,99 @@ function Estados() {
     const [formData, setFormData] = useState({
         id: '',
         nombre: '',
+        codigo: '',    // NUEVO: código territorial (2 dígitos)
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedEstadoId, setSelectedEstadoId] = useState(null);
     const { addNotification } = useNotification();
     const itemsPerPage = 8;
 
+    const [errors, setErrors] = useState({});
+
     // Reiniciar el modal luego de cerrar
     const resetFormData = () => {
         setFormData({
             id: '',
             nombre: '',
+            codigo: '',
         });
+        setErrors({});
     };
-
-    const [errors, setErrors] = useState({});
 
     // Manejar cambios en el formulario
     const handleChange = (e) => {
         const { id, value } = e.target;
-        setFormData({ ...formData, [id]: value });
+
+        // Sanitizar y limitar el código a 2 dígitos
+        if (id === 'codigo') {
+            const onlyDigits = value.replace(/\D/g, '').slice(0, 2);
+            setFormData(prev => ({ ...prev, codigo: onlyDigits }));
+
+            // Validación local de 2 dígitos
+            const isValid = /^\d{2}$/.test(onlyDigits);
+            setErrors(prev => ({ ...prev, codigo: onlyDigits && !isValid ? 'El código debe tener 2 dígitos (ej: 01)' : '' }));
+            return;
+        }
+
+        setFormData(prev => ({ ...prev, [id]: value }));
 
         if (validationRules[id]) {
             const { regex, errorMessage } = validationRules[id];
             const { valid, message } = validateField(value, regex, errorMessage);
-            setErrors({ ...errors, [id]: valid ? '' : message });
+            setErrors(prev => ({ ...prev, [id]: valid ? '' : message }));
         }
     };
 
-    // Filtrar datos en la barra de búsqueda
+    // Filtrar datos en la barra de búsqueda (incluye código)
     const handleSearch = (searchTerm) => {
-        const filtered = filterData(datosOriginales, searchTerm, ['id','nombre']);
+        const filtered = filterData(datosOriginales, searchTerm, ['id', 'nombre', 'codigo']);
         setDatosFiltrados(filtered);
     };
 
-    // obterner o listar los cargos
+    // Obtener estados
     const fetchEstados = async () => {
         setLoading(true);
         try {
             const response = await axios.get(`${BaseUrl}/estado`, {
                 headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
             setDatosOriginales(response.data);
             setDatosFiltrados(response.data);
         } catch (error) {
-            console.error('Error obteniendo cargos:', error);
-            addNotification('Error al obtener cargos', 'error');
-        }finally{
+            console.error('Error obteniendo estados:', error);
+            addNotification('Error al obtener estados', 'error');
+        } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
         fetchEstados();
-    },[]);
+    }, []);
 
-
-    // Crear cargo
+    // Crear estado
     const handleSave = async () => {
-        setLoading(true);
-        for (const field in formData) {
-            if (!validationRules[field]) continue;
-            const { regex, errorMessage } = validationRules[field];
-            if (regex) {
-                const { valid, message } = validateField(formData[field], regex, errorMessage);
-                if (!valid) {
-                    addNotification(message, 'warning');
-                    return;
-                }
-            }
+        // Validaciones antes de setLoading
+        if (!formData.nombre?.trim()) {
+            addNotification('El nombre es obligatorio', 'warning');
+            return;
+        }
+        if (!/^\d{2}$/.test(String(formData.codigo || '').trim())) {
+            addNotification('El código debe tener 2 dígitos (ej: 01)', 'warning');
+            return;
         }
 
+        setLoading(true);
         try {
-            const response = await axios.post(`${BaseUrl}/estado`, {
-                ...formData,
-            }, {
+            const payload = {
+                nombre: formData.nombre.trim(),
+                codigo: String(formData.codigo).padStart(2, '0')
+            };
+            const response = await axios.post(`${BaseUrl}/estado`, payload, {
                 headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
             setDatosOriginales([response.data, ...datosOriginales]);
@@ -105,31 +119,37 @@ function Estados() {
             fetchEstados();
             closeModal();
         } catch (error) {
-            console.error('Error creando Estado:', error);
-            addNotification('Error al registrar cargo', 'error');
-        }finally{
+            console.error('Error creando estado:', error);
+            if (error?.response?.status === 409) {
+                addNotification('Nombre o código ya existen', 'error');
+            } else {
+                addNotification('Error al registrar estado', 'error');
+            }
+        } finally {
             setLoading(false);
         }
     };
 
     const handleEdit = async () => {
-        setLoading(true);
-        const camposObligatorios = ['nombre'];
-        for (const field of camposObligatorios) {
-            const { regex, errorMessage } = validationRules[field];
-            const { valid, message } = validateField(formData[field], regex, errorMessage);
-            if (!valid) {
-                addNotification(message, 'warning');
-                return;
-            }
+        // Validaciones antes de setLoading
+        if (!formData.nombre?.trim()) {
+            addNotification('El nombre es obligatorio', 'warning');
+            return;
+        }
+        if (!/^\d{2}$/.test(String(formData.codigo || '').trim())) {
+            addNotification('El código debe tener 2 dígitos (ej: 01)', 'warning');
+            return;
         }
 
+        setLoading(true);
         try {
-            const response = await axios.put(`${BaseUrl}/estado/${formData.id}`, {
-                ...formData,
-            }, {
+            const payload = {
+                nombre: formData.nombre.trim(),
+                codigo: String(formData.codigo).padStart(2, '0')
+            };
+            const response = await axios.put(`${BaseUrl}/estado/${formData.id}`, payload, {
                 headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
             const updatedData = datosOriginales.map((estado) =>
@@ -140,9 +160,13 @@ function Estados() {
             closeModal();
             addNotification('Estado actualizado con éxito', 'success');
         } catch (error) {
-            console.error('Error editando Estado:', error);
-            addNotification('Error al actualizar Estado', 'error');
-        }finally{
+            console.error('Error editando estado:', error);
+            if (error?.response?.status === 409) {
+                addNotification('Nombre o código ya existen', 'error');
+            } else {
+                addNotification('Error al actualizar estado', 'error');
+            }
+        } finally {
             setLoading(false);
         }
     };
@@ -152,7 +176,7 @@ function Estados() {
         try {
             await axios.delete(`${BaseUrl}/estado/${id}`, {
                 headers: {
-                    Authorization : `Bearer ${localStorage.getItem('token')}`
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
 
@@ -160,9 +184,9 @@ function Estados() {
             setDatosFiltrados(datosFiltrados.filter((estado) => estado.id !== id));
             addNotification('Estado eliminado con éxito', 'success');
         } catch (error) {
-            console.error('Error eliminando Estado:', error);
-            addNotification('Error al eliminar Estado', 'error');
-        }finally{
+            console.error('Error eliminando estado:', error);
+            addNotification('Error al eliminar estado', 'error');
+        } finally {
             setLoading(false);
         }
     };
@@ -181,7 +205,7 @@ function Estados() {
     };
 
     const handlePreviousThreePages = () => {
-    setCurrentPage((prev) => Math.max(prev - 3, 1));
+        setCurrentPage((prev) => Math.max(prev - 3, 1));
     };
 
     const handleNextThreePages = () => {
@@ -202,8 +226,9 @@ function Estados() {
         setFormData({
             id: estado.id,
             nombre: estado.nombre || '',
-            
+            codigo: estado.codigo || ''
         });
+        setErrors({});
         setCurrentModal('estado');
     };
 
@@ -216,7 +241,6 @@ function Estados() {
         setSelectedEstadoId(null);
         setConfirmDeleteModal(false);
     };
-
 
     return (
         <div className='mainContainer'>
@@ -231,21 +255,43 @@ function Estados() {
                             <div className='formColumns_mono'>
 
                                 <div className='formGroup'>
-                                    <label htmlFor="estado"><span className='Unique' title='Campo Obligatorio'>*</span>Estado:</label>
-                                    <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Rellene el Campo'/>
+                                    <label htmlFor="nombre"><span className='Unique' title='Campo Obligatorio'>*</span>Estado:</label>
+                                    <input
+                                        type="text"
+                                        id="nombre"
+                                        value={formData.nombre}
+                                        onChange={handleChange}
+                                        className='input'
+                                        placeholder='Nombre del estado'
+                                    />
                                     {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
+                                </div>
+
+                                <div className='formGroup'>
+                                    <label htmlFor="codigo"><span className='Unique' title='Campo Obligatorio'>*</span>Código (UBIGEO 2 dígitos):</label>
+                                    <input
+                                        type="text"
+                                        id="codigo"
+                                        value={formData.codigo}
+                                        onChange={handleChange}
+                                        className='input'
+                                        placeholder='Ej: 01'
+                                        maxLength={2}
+                                        inputMode="numeric"
+                                    />
+                                    {errors.codigo && <span className='errorText'>{errors.codigo}</span>}
                                 </div>
 
                             </div>
 
-                            <button 
-                                type="button" 
-                                className='saveButton' 
+                            <button
+                                type="button"
+                                className='saveButton'
                                 onClick={formData.id ? handleEdit : handleSave}
                                 title={formData.id ? 'Actualizar Estado' : 'Registrar Estado'}
-                                disabled={loading}    
+                                disabled={loading}
                             >
-                                    {loading ? 'Procesando...' : 'Guardar'}
+                                {loading ? 'Procesando...' : 'Guardar'}
                             </button>
                         </form>
                     </div>
@@ -268,9 +314,9 @@ function Estados() {
 
             <div className='tableSection'>
                 <div className='filtersContainer'>
-                    <button 
+                    <button
                         type='button'
-                        onClick={openModal} 
+                        onClick={openModal}
                         className='create'
                         title='Registrar Estado'>
                         <img src={icon.plus} alt="Crear" className='icon' />
@@ -288,7 +334,8 @@ function Estados() {
                     <thead>
                         <tr>
                             <th>N°</th>
-                            <th>nombre</th>
+                            <th>Código</th>
+                            <th>Nombre</th>
                             <th>Acción</th>
                         </tr>
                     </thead>
@@ -296,6 +343,7 @@ function Estados() {
                         {currentData.map((estado, idx) => (
                             <tr key={estado.id} >
                                 <td>{indexOfFirstItem + idx + 1}</td>
+                                <td>{estado.codigo}</td>
                                 <td>{estado.nombre}</td>
                                 <td>
                                     <div className='iconContainer'>
@@ -305,11 +353,11 @@ function Estados() {
                                             className='iconeditar'
                                             title='Editar'
                                         />
-                                        <img 
-                                            onClick={() => openConfirmDeleteModal(estado.id)} 
-                                            src={icon.eliminar} 
-                                            className='iconeliminar' 
-                                            title='eliminar'
+                                        <img
+                                            onClick={() => openConfirmDeleteModal(estado.id)}
+                                            src={icon.eliminar}
+                                            className='iconeliminar'
+                                            title='Eliminar'
                                         />
                                     </div>
                                 </td>
@@ -318,11 +366,11 @@ function Estados() {
                     </tbody>
                 </table>
                 <div className='tableFooter'>
-                    <img onClick={handlePreviousPage} src={icon.flecha3} className='iconBack' title='Anterior'/>
+                    <img onClick={handlePreviousPage} src={icon.flecha3} className='iconBack' title='Anterior' />
                     <img onClick={handlePreviousThreePages} src={icon.flecha5} className='iconBack' title='Anterior' />
                     <span>{currentPage}</span>
                     <img onClick={handleNextThreePages} src={icon.flecha4} className='iconNext' title='Siguiente' />
-                    <img onClick={handleNextPage} src={icon.flecha2} className='iconNext' title='Siguiente'/>
+                    <img onClick={handleNextPage} src={icon.flecha2} className='iconNext' title='Siguiente' />
                 </div>
             </div>
         </div>

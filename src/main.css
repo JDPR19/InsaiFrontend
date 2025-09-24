@@ -1409,6 +1409,10 @@ html, body {
 .badge-aprobada      { background: var(--badge-aprobada-bg); color: var(--badge-text); border: 1px solid var(--badge-aprobada-border);}
 .badge-rechazada     { background: var(--badge-rechazada-bg); color: var(--badge-text); border: 1px solid var(--badge-rechazada-border);}
 
+.badge-registrada  { background: var(--badge-bg);              color: var(--badge-text); border: 1px solid var(--badge-border); }            
+.badge-solicitada  { background: var(--badge-pendiente-bg);    color: var(--badge-text); border: 1px solid var(--badge-pendiente-border); }  
+.badge-seguimiento { background: var(--badge-diagnosticada-bg);color: var(--badge-text); border: 1px solid var(--badge-diagnosticada-border);}
+.badge-cuarentena  { background: var(--badge-rechazada-bg);    color: var(--badge-text); border: 1px solid var(--badge-rechazada-border); }  
 /* Graficas ///////////////777*/
 
 .chartSection {
