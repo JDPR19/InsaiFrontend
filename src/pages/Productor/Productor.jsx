@@ -30,7 +30,12 @@ function Productor() {
     const [selectedProductorId, setSelectedProductorId] = useState(null);
     const { addNotification } = useNotification();
     const itemsPerPage = 8;
-
+    const [totales, setTotales] = useState({
+        total: 0,
+        sinPropiedad: 0,
+        maxPropiedades: 0,
+        topProducers: [] 
+    });
 
     const fetchProductores = async () => {
         setLoading(true);
@@ -38,8 +43,26 @@ function Productor() {
             const response = await axios.get(`${BaseUrl}/productor`, {
                 headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
             });
-            setDatosOriginales(response.data);
-            setDatosFiltrados(response.data);
+            const data = Array.isArray(response.data) ? response.data : [];
+
+            setDatosOriginales(data);
+            setDatosFiltrados(data);
+            setCurrentPage(1);
+
+            const sinPropiedad = data.filter(p => (p.total_propiedades || 0) === 0);
+            const maxProp = data.length
+                ? Math.max(...data.map(p => p.total_propiedades || 0))
+                : 0;
+            const topProducers = maxProp > 0
+                ? data.filter(p => (p.total_propiedades || 0) === maxProp)
+                : [];
+
+            setTotales({
+                total: data.length,
+                sinPropiedad: sinPropiedad.length,
+                maxPropiedades: maxProp,
+                topProducers
+            });
         } catch (error) {
             console.error('Error obteniendo todos los productores', error);
             addNotification('Error al obtener productores', 'error');
@@ -47,6 +70,7 @@ function Productor() {
             setLoading(false);
         }
     };
+
 
     useEffect(() => {
         fetchProductores();
@@ -213,6 +237,46 @@ function Productor() {
     return (
         <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
+            {/* cartas */}
+            <div className='cardsContainer'>
+                <div
+                    className='card'
+                    title='Todos los Productores'
+                    onClick={() => setDatosFiltrados(datosOriginales)}
+                >
+                    <span className='cardNumber'>{totales.total}</span>
+                    <p>Total</p>
+                </div>
+
+                <div
+                    className='card'
+                    title='Productores sin propiedades asociadas'
+                    onClick={() => setDatosFiltrados(datosOriginales.filter(p => (p.total_propiedades || 0) === 0))}
+                >
+                    <span className='cardNumber'>{totales.sinPropiedad}</span>
+                    <p>Sin Propiedad</p>
+                </div>
+
+                <div
+                    className='card'
+                    title={
+                        totales.topProducers.length
+                            ? `Máx: ${totales.maxPropiedades} propiedades\n` +
+                            totales.topProducers
+                                .map(tp => `${tp.codigo || tp.id} - ${tp.nombre} ${tp.apellido || ''}`.trim())
+                                .join('\n')
+                            : 'Sin productores con propiedades'
+                    }
+                    onClick={() => setDatosFiltrados(totales.topProducers)}
+                    style={{ cursor: totales.topProducers.length ? 'pointer' : 'default' }}
+                >
+                    <span className='cardNumber'>
+                        {totales.maxPropiedades}
+                    </span>
+                    <p>Top Propiedades</p>
+                </div>
+            </div>
+            {/* modal detalle */}
             {detalleModal.abierto && detalleModal.productor && (
                 <div className='modalOverlay'>
                     <div className='modal'>
@@ -376,8 +440,7 @@ function Productor() {
                             <th>Cédula</th>
                             <th>Nombre</th>
                             <th>Apellido</th>
-                            <th>Contacto</th>
-                            <th>Correo</th>
+                            <th>Propiedades</th>
                             <th>Acción</th>
                         </tr>
                     </thead>
@@ -388,8 +451,7 @@ function Productor() {
                                 <td>{prod.cedula}</td>
                                 <td>{prod.nombre}</td>
                                 <td>{prod.apellido}</td>
-                                <td>{prod.contacto}</td>
-                                <td>{prod.email}</td>
+                                <td>{prod.total_propiedades || 0}</td>
                                 <td>
                                     <div className='iconContainer'>
                                         <img

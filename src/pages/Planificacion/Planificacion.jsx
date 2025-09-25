@@ -27,6 +27,7 @@ function Planificacion() {
     const [formData, setFormData] = useState({
         id: '',
         solicitud_id: null,
+        solicitud_codigo: '', 
         fecha_programada: '',
         actividad: '',
         objetivo: '',
@@ -47,7 +48,10 @@ function Planificacion() {
     // Opciones para selects
     const solicitudOptions = solicitudes.map(s => ({
         value: String(s.id),
-        label: `${s.codigo || s.id} - (${s.propiedad_nombre || ''})`
+        label: [
+            (s.codigo || `SOL-${s.id}`),
+            (s.propiedad_nombre ? `(${s.propiedad_nombre})` : '')
+        ].join(' ').trim()
     }));
     const empleadosOptions = empleados.map(e => ({
         value: String(e.id),
@@ -108,6 +112,7 @@ function Planificacion() {
         } catch (error) {
             console.error('Error al obtener solicitudes', error);
             addNotification('Error al obtener solicitudes', 'error');
+            setSolicitudes([]);
         }
     };
 
@@ -150,6 +155,7 @@ function Planificacion() {
         setFormData({
             id: '',
             solicitud_id: null,
+            solicitud_codigo: '',
             fecha_programada: '',
             actividad: '',
             objetivo: '',
@@ -164,6 +170,36 @@ function Planificacion() {
         setErrors({});
     };
 
+    const toId = (v) => {
+        if (v == null) return null;
+        if (typeof v === 'object' && v.value !== undefined) return String(v.value);
+        return String(v);
+    };
+
+    const buildSelectedOption = (options, id, fallbackLabel = '') => {
+        if (!id) return null;
+        const opt = options.find(o => String(o.value) === String(id));
+        if (opt) return opt;
+        return { value: String(id), label: fallbackLabel || `#${id}` };
+    };
+
+    const ensureCatalogos = async () => {
+        const promises = [];
+        if (!solicitudes.length) promises.push(fetchSolicitudes());
+        if (!tipoInspecciones.length) promises.push(fetchTipoInspecciones());
+        if (!empleados.length) promises.push(fetchEmpleados());
+        if (promises.length) await Promise.all(promises);
+    };
+
+    useEffect(() => {
+        setFormData(f => ({
+            ...f,
+            solicitud_id: toId(f.solicitud_id),
+            tipo_inspeccion_fito_id: toId(f.tipo_inspeccion_fito_id),
+            empleados_ids: Array.isArray(f.empleados_ids) ? f.empleados_ids.map(toId) : []
+        }));
+    }, [solicitudes, tipoInspecciones, empleados]);
+
     // Modal handlers
     const openModal = () => {
         resetFormData();
@@ -175,10 +211,12 @@ function Planificacion() {
         setCurrentModal(null);
     };
 
-    const openEditModal = (item) => {
+    const openEditModal = async (item) => {
+        await ensureCatalogos();
         setFormData({
             id: item.id,
-            solicitud_id: solicitudOptions.find(opt => String(opt.value) === String(item.solicitud_id)) || null,
+            solicitud_id: toId(item.solicitud_id),
+            solicitud_codigo: item.solicitud_codigo || '',
             fecha_programada: item.fecha_programada || '',
             actividad: item.actividad || '',
             objetivo: item.objetivo || '',
@@ -186,7 +224,7 @@ function Planificacion() {
             convocatoria: item.convocatoria || '',
             ubicacion: item.ubicacion || '',
             aseguramiento: item.aseguramiento || '',
-            tipo_inspeccion_fito_id: tipoInspeccionOptions.find(opt => String(opt.value) === String(item.tipo_inspeccion_fito_id)) || null,
+            tipo_inspeccion_fito_id: toId(item.tipo_inspeccion_fito_id),
             estado: item.estado || 'pendiente',
             empleados_ids: (item.empleados || []).map(e => String(e.id))
         });
@@ -203,21 +241,21 @@ function Planificacion() {
         setConfirmDeleteModal(false);
     };
 
-    const openDetalleModal = (planificacion) => setDetalleModal({ abierto: true, planificacion });
+    const openDetalleModal = async (planificacion) => {
+        await ensureCatalogos();
+        setDetalleModal({ abierto: true, planificacion });
+    };
     const closeDetalleModal = () => setDetalleModal({ abierto: false, planificacion: null });
 
     // Select handlers
     const handleSolicitudChange = (val) => {
-        setFormData(prev => ({ ...prev, solicitud_id: val }));
+        setFormData(f => ({ ...f, solicitud_id: val ? String(val.value) : null }));
     };
     const handleTipoInspeccionChange = (val) => {
-        setFormData(prev => ({ ...prev, tipo_inspeccion_fito_id: val }));
+        setFormData(f => ({ ...f, tipo_inspeccion_fito_id: val ? String(val.value) : null }));
     };
     const handleEmpleadosChange = (selected) => {
-        setFormData(prev => ({
-            ...prev,
-            empleados_ids: selected ? selected.map(opt => opt.value) : []
-        }));
+        setFormData(f => ({ ...f, empleados_ids: (selected || []).map(o => String(o.value)) }));
     };
     const clearMultiSelect = () => {
         setFormData(prev => ({
@@ -238,6 +276,19 @@ function Planificacion() {
             const { valid, message } = validateField(value, regex, errorMessage);
             setErrors(prev => ({ ...prev, [id]: valid ? '' : message }));
         }
+    };
+
+    const buildSelectedSolicitud = () => {
+        if (!formData.solicitud_id) return null;
+        const opt = solicitudOptions.find(o => String(o.value) === String(formData.solicitud_id));
+        if (opt) return opt;
+        if (formData.solicitud_codigo) {
+            return {
+                value: String(formData.solicitud_id),
+                label: formData.solicitud_codigo
+            };
+        }
+        return { value: String(formData.solicitud_id), label: `Solicitud #${formData.solicitud_id}` };
     };
 
     const handleSave = async () => {
@@ -286,15 +337,20 @@ function Planificacion() {
         }
         setLoading(true);
         try {
-            const cleanFormData = {
-                ...formData,
-                solicitud_id: formData.solicitud_id?.value || '',
-                tipo_inspeccion_fito_id: formData.tipo_inspeccion_fito_id?.value || '',
-                empleados_ids: formData.empleados_ids,
-                fecha_programada: formData.fecha_programada || null,
-                estado: formData.estado || 'pendiente'
+            const payload = {
+                solicitud_id: formData.solicitud_id,
+                fecha_programada: formData.fecha_programada,
+                actividad: formData.actividad,
+                objetivo: formData.objetivo,
+                hora: formData.hora,
+                convocatoria: formData.convocatoria,
+                ubicacion: formData.ubicacion,
+                aseguramiento: formData.aseguramiento,
+                tipo_inspeccion_fito_id: formData.tipo_inspeccion_fito_id,
+                estado: formData.estado || 'pendiente',
+                empleados_ids: formData.empleados_ids
             };
-            await axios.post(`${BaseUrl}/planificacion`, cleanFormData, {
+            await axios.post(`${BaseUrl}/planificacion`, payload, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Planificación registrada con éxito', 'success');
@@ -358,15 +414,19 @@ function Planificacion() {
         }
         setLoading(true);
         try {
-            const cleanFormData = {
-                ...formData,
-                solicitud_id: formData.solicitud_id?.value || '',
-                tipo_inspeccion_fito_id: formData.tipo_inspeccion_fito_id?.value || '',
-                empleados_ids: formData.empleados_ids,
-                fecha_programada: formData.fecha_programada || null,
-                estado: formData.estado || 'pendiente'
+            const payload = {
+                fecha_programada: formData.fecha_programada,
+                actividad: formData.actividad,
+                objetivo: formData.objetivo,
+                hora: formData.hora,
+                convocatoria: formData.convocatoria,
+                ubicacion: formData.ubicacion,
+                aseguramiento: formData.aseguramiento,
+                tipo_inspeccion_fito_id: formData.tipo_inspeccion_fito_id,
+                estado: formData.estado || 'pendiente',
+                empleados_ids: formData.empleados_ids
             };
-            await axios.put(`${BaseUrl}/planificacion/${formData.id}`, cleanFormData, {
+            await axios.put(`${BaseUrl}/planificacion/${formData.id}`, payload, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Planificación actualizada con éxito', 'success');
@@ -452,7 +512,12 @@ function Planificacion() {
                                     <label>Solicitud:</label>
                                     <SingleSelect
                                         options={solicitudOptions}
-                                        value={solicitudOptions.find(opt => String(opt.value) === String(detalleModal.planificacion.solicitud_id)) || null}
+                                        value={
+                                            solicitudOptions.find(o => o.value === String(detalleModal.planificacion.solicitud_id)) ||
+                                            (detalleModal.planificacion.solicitud_codigo
+                                                ? { value: String(detalleModal.planificacion.solicitud_id), label: detalleModal.planificacion.solicitud_codigo }
+                                                : null)
+                                        }
                                         isDisabled={true}
                                     />
                                 </div>
@@ -464,6 +529,37 @@ function Planificacion() {
                                         value={detalleModal.planificacion.fecha_programada}
                                         disabled
                                         className='date'
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Tipo de Inspección:</label>
+                                    <SingleSelect
+                                        options={tipoInspeccionOptions}
+                                        value={buildSelectedOption(
+                                            tipoInspeccionOptions,
+                                            detalleModal.planificacion.tipo_inspeccion_fito_id,
+                                            detalleModal.planificacion.tipo_inspeccion_nombre || 'Tipo'
+                                        )}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Hora:</label>
+                                    <input
+                                        type="time"
+                                        value={detalleModal.planificacion.hora || ''}
+                                        disabled
+                                        className='input'
+                                    />
+                                </div>
+                                <div className='formGroup'>
+                                    <label>Empleados Responsables:</label>
+                                    <MultiSelect
+                                        options={empleadosOptions}
+                                        value={empleadosOptions.filter(opt =>
+                                            (detalleModal.planificacion.empleados || []).map(e => String(e.id)).includes(opt.value)
+                                        )}
+                                        isDisabled={true}
                                     />
                                 </div>
                                 <div className='formGroup'>
@@ -480,15 +576,6 @@ function Planificacion() {
                                     <input
                                         type="text"
                                         value={detalleModal.planificacion.objetivo || ''}
-                                        disabled
-                                        className='input'
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Hora:</label>
-                                    <input
-                                        type="time"
-                                        value={detalleModal.planificacion.hora || ''}
                                         disabled
                                         className='input'
                                     />
@@ -521,26 +608,6 @@ function Planificacion() {
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Tipo de Inspección:</label>
-                                    <SingleSelect
-                                        options={tipoInspeccionOptions}
-                                        value={tipoInspeccionOptions.find(opt => String(opt.value) === String(detalleModal.planificacion.tipo_inspeccion_fito_id)) || null}
-                                        isDisabled={true}
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Empleados Responsables:</label>
-                                    <MultiSelect
-                                        options={getEmpleadosDisponibles(formData.fecha_programada)}
-                                        value={empleadosOptions.filter(opt =>
-                                            (detalleModal.planificacion.empleados || []).map(e => String(e.id)).includes(opt.value)
-                                        )}
-                                        onChange={() => {}}
-                                        isDisabled={true}
-                                        placeholder="Selecciona empleados..."
-                                    />
-                                </div>
-                                <div className='formGroup'>
                                     <label>Estado:</label>
                                     <span className={`badge-estado badge-${detalleModal.planificacion.estado}`}>
                                         {detalleModal.planificacion.estado}
@@ -564,7 +631,7 @@ function Planificacion() {
                                     <label><span className='Unique' title='Campo Obligatorio'>*</span>Solicitud:</label>
                                     <SingleSelect
                                         options={solicitudOptions}
-                                        value={formData.solicitud_id}
+                                        value={buildSelectedSolicitud()}
                                         onChange={handleSolicitudChange}
                                         placeholder="Seleccione solicitud"
                                     />
@@ -585,7 +652,7 @@ function Planificacion() {
                                     <label><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Inspección:</label>
                                     <SingleSelect
                                         options={tipoInspeccionOptions}
-                                        value={formData.tipo_inspeccion_fito_id}
+                                        value={buildSelectedOption(tipoInspeccionOptions, formData.tipo_inspeccion_fito_id, 'Tipo')}
                                         onChange={handleTipoInspeccionChange}
                                         placeholder="Tipo de inspección"
                                     />

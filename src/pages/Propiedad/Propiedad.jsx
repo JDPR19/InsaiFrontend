@@ -57,6 +57,17 @@ function Propiedad() {
     const productoresOptions = productores.map(p => ({ value: String(p.id), label: `${p.cedula || ''} - ${p.nombre} ${p.apellido || ''}`.trim() }));
     const sectoresOptions = sectores.map(s => ({ value: String(s.id), label: s.nombre }));
 
+    const [totales, setTotales] = useState({
+        total: 0,
+        registradas: 0,
+        planificadas: 0,
+        inspeccionando: 0,
+        diagnosticadas: 0,
+        aprobadas: 0,
+        rechazadas: 0,
+        seguimiento: 0,
+        cuarentena: 0
+    });
     // Fetchers
     const fetchPropiedades = async () => {
         setLoading(true);
@@ -67,6 +78,17 @@ function Propiedad() {
             const data = Array.isArray(response.data) ? response.data : [];
             setDatosOriginales(data);
             setDatosFiltrados(data);
+            setTotales({
+                total: data.length,
+                registradas: data.filter(p => p.estado === 'registrada').length,
+                planificadas: data.filter(p => p.estado === 'planificada').length,
+                inspeccionando: data.filter(p => p.estado === 'inspeccionando').length,
+                diagnosticadas: data.filter(p => p.estado === 'diagnosticada').length,
+                aprobadas: data.filter(p => p.estado === 'aprobada').length,
+                rechazadas: data.filter(p => p.estado === 'rechazada').length,
+                seguimiento: data.filter(p => p.estado === 'seguimiento').length,
+                cuarentena: data.filter(p => p.estado === 'cuarentena').length
+            });
         } catch (error) {
             console.error('error obteniendo todas las propiedades', error);
             addNotification('Error al obtener propiedades', 'error');
@@ -180,59 +202,46 @@ function Propiedad() {
     }, []);
 
     // Selects dependientes
-    const handleEstadoChange = (val) => {
+    const handleEstadoChange = (opt) => {
+        const id = opt ? opt.value : null;
         setFormData(prev => ({
             ...prev,
-            estado_id: val,
+            estado_id: id,
             municipio_id: null,
             parroquia_id: null,
             sector_id: null
         }));
-        if (val) {
-            fetchMunicipios(val.value);
-            setParroquias([]);
-            setSectores([]);
-        } else {
-            setMunicipios([]);
-            setParroquias([]);
-            setSectores([]);
-        }
+        if (id) fetchMunicipios(id); else setMunicipios([]);
     };
 
-    const handleMunicipioChange = (val) => {
+    const handleMunicipioChange = (opt) => {
+        const id = opt ? opt.value : null;
         setFormData(prev => ({
             ...prev,
-            municipio_id: val,
+            municipio_id: id,
             parroquia_id: null,
             sector_id: null
         }));
-        if (val) {
-            fetchParroquias(val.value);
-            setSectores([]);
-        } else {
-            setParroquias([]);
-            setSectores([]);
-        }
+        if (id) fetchParroquias(id); else setParroquias([]);
     };
 
-    const handleParroquiaChange = (val) => {
+    const handleParroquiaChange = (opt) => {
+        const id = opt ? opt.value : null;
         setFormData(prev => ({
             ...prev,
-            parroquia_id: val,
+            parroquia_id: id,
             sector_id: null
         }));
-        if (val) {
-            fetchSectores(val.value);
-        } else {
-            setSectores([]);
-        }
+        if (id) fetchSectores(id); else setSectores([]);
     };
 
-    const handleSectorChange = (val) => {
-        setFormData(prev => ({
-            ...prev,
-            sector_id: val
-        }));
+    const handleSectorChange = (opt) => {
+        const id = opt ? opt.value : null;
+        setFormData(prev => ({ ...prev, sector_id: id }));
+    };
+
+    const handleSelectChange = (field, opt) => {
+        setFormData(prev => ({ ...prev, [field]: opt ? opt.value : null }));
     };
 
     const resetFormData = () => {
@@ -268,12 +277,6 @@ function Propiedad() {
         }
     };
 
-    const handleSelectChange = (field, value) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
-    };
 
     const handleCultivosChange = (selected) => {
         setFormData(prev => ({
@@ -354,8 +357,7 @@ function Propiedad() {
                 sitios_asociados: formData.sitios_asociados || null,
                 ubicacion: formData.ubicacion || null,
                 tipo_propiedad_id: formData.tipo_propiedad_id?.value || null,
-                sector_id: formData.sector_id?.value || null,
-                // productor_id: formData.productor_id?.value || null,
+                sector_id: formData.sector_id ? Number(formData.sector_id) : null,
                 posee_certificado: formData.posee_certificado || 'NO',
                 cultivos_ids: formData.cultivos_ids,
                 productores_ids: formData.productores_ids
@@ -430,8 +432,7 @@ function Propiedad() {
                 sitios_asociados: formData.sitios_asociados || null,
                 ubicacion: formData.ubicacion || null,
                 tipo_propiedad_id: formData.tipo_propiedad_id?.value || null,
-                sector_id: formData.sector_id?.value || null,
-                // productor_id: formData.productor_id?.value || null,
+                sector_id: formData.sector_id ? Number(formData.sector_id) : null,
                 posee_certificado: formData.posee_certificado || 'NO',
                 cultivos_ids: formData.cultivos_ids,
                 productores_ids: formData.productores_ids
@@ -497,7 +498,13 @@ function Propiedad() {
 
     const closeModal = () => setCurrentModal(null);
 
-    const openEditModal = (propiedad) => {
+    const openEditModal = async (propiedad) => {
+        // Cargar dependientes en cadena
+        if (!estados.length) await fetchEstados();
+        if (propiedad.estado_id) await fetchMunicipios(propiedad.estado_id);
+        if (propiedad.municipio_id) await fetchParroquias(propiedad.municipio_id);
+        if (propiedad.parroquia_id) await fetchSectores(propiedad.parroquia_id);
+
         setFormData({
             id: propiedad.id,
             rif: propiedad.rif || '',
@@ -508,19 +515,13 @@ function Propiedad() {
             ubicacion: propiedad.ubicacion || '',
             posee_certificado: propiedad.posee_certificado || 'NO',
             cultivos_ids: (propiedad.cultivos || []).map(c => String(c.id)),
-            productores_ids: (propiedad.productores || []).map(p => String(p.id)), // NUEVO
-            tipo_propiedad_id: tiposOptions.find(opt => String(opt.value) === String(propiedad.tipo_propiedad_id)) || null,
-            // productor_id: productoresOptions.find(opt => String(opt.value) === String(propiedad.productor_id)) || null,
-            estado_id: estadosOptions.find(opt => String(opt.value) === String(propiedad.estado_id)) || null,
-            municipio_id: municipiosOptions.find(opt => String(opt.value) === String(propiedad.municipio_id)) || null,
-            parroquia_id: parroquiasOptions.find(opt => String(opt.value) === String(propiedad.parroquia_id)) || null,
-            sector_id: sectoresOptions.find(opt => String(opt.value) === String(propiedad.sector_id)) || null,
+            productores_ids: (propiedad.productores || []).map(p => String(p.id)),
+            tipo_propiedad_id: propiedad.tipo_propiedad_id ? String(propiedad.tipo_propiedad_id) : null,
+            estado_id: propiedad.estado_id ? String(propiedad.estado_id) : null,
+            municipio_id: propiedad.municipio_id ? String(propiedad.municipio_id) : null,
+            parroquia_id: propiedad.parroquia_id ? String(propiedad.parroquia_id) : null,
+            sector_id: propiedad.sector_id ? String(propiedad.sector_id) : null
         });
-
-        if (propiedad.estado_id) fetchMunicipios(propiedad.estado_id);
-        if (propiedad.municipio_id) fetchParroquias(propiedad.municipio_id);
-        if (propiedad.parroquia_id) fetchSectores(propiedad.parroquia_id);
-
         setCurrentModal('propiedad');
     };
 
@@ -544,6 +545,26 @@ function Propiedad() {
     return (
         <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
+            {/*Cartas  */}
+            <div className='cardsContainer'>
+                <div className='card' onClick={() => setDatosFiltrados(datosOriginales)} title='Todas las Propiedades'>
+                    <span className='cardNumber'>{totales.total}</span>
+                    <p>Total</p>
+                </div>
+                <div className='card' onClick={() => setDatosFiltrados(datosOriginales.filter(p => p.estado === 'planificada'))} title='Planificadas'>
+                    <span className='cardNumber'>{totales.planificadas}</span>
+                    <p>Planificadas</p>
+                </div>
+                <div className='card' onClick={() => setDatosFiltrados(datosOriginales.filter(p => p.estado === 'inspeccionando'))} title='Inspeccionando'>
+                    <span className='cardNumber'>{totales.inspeccionando}</span>
+                    <p>Inspeccionando</p>
+                </div>
+                <div className='card' onClick={() => setDatosFiltrados(datosOriginales.filter(p => p.estado === 'rechazada'))} title='Rechazadas'>
+                    <span className='cardNumber'>{totales.rechazadas}</span>
+                    <p>Rechazadas</p>
+                </div>
+            </div>
+
             {/* Modal Detalle */}
             {detalleModal.abierto && detalleModal.propiedad && (
                 <div className='modalOverlay'>
@@ -756,7 +777,7 @@ function Propiedad() {
                                     <label htmlFor="estado_id"><span className='Unique'  title='Campos Obligatorios'>*</span>Estado:</label>
                                     <SingleSelect
                                         options={estadosOptions}
-                                        value={formData.estado_id}
+                                        value={estadosOptions.find(o => o.value === String(formData.estado_id)) || null}
                                         onChange={handleEstadoChange}
                                         placeholder="Seleccione un estado"
                                     />
@@ -765,30 +786,30 @@ function Propiedad() {
                                     <label htmlFor="municipio_id"><span className='Unique'  title='Campos Obligatorios'>*</span>Municipio:</label>
                                     <SingleSelect
                                         options={municipiosOptions}
-                                        value={formData.municipio_id}
+                                        value={municipiosOptions.find(o => o.value === String(formData.municipio_id)) || null}
                                         onChange={handleMunicipioChange}
-                                        placeholder="Seleccione un municipio"
                                         isDisabled={!formData.estado_id || municipiosOptions.length === 0}
+                                        placeholder="Seleccione un municipio"
                                     />
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="parroquia_id"><span className='Unique'  title='Campos Obligatorios'>*</span>Parroquia:</label>
                                     <SingleSelect
                                         options={parroquiasOptions}
-                                        value={formData.parroquia_id}
+                                        value={parroquiasOptions.find(o => o.value === String(formData.parroquia_id)) || null}
                                         onChange={handleParroquiaChange}
-                                        placeholder="Seleccione una parroquia"
                                         isDisabled={!formData.municipio_id || parroquiasOptions.length === 0}
+                                        placeholder="Seleccione una parroquia"
                                     />
                                 </div>
                                 <div className='formGroup'>
                                     <label htmlFor="sector_id"><span className='Unique'  title='Campos Obligatorios'>*</span>Sector:</label>
                                     <SingleSelect
                                         options={sectoresOptions}
-                                        value={formData.sector_id}
+                                        value={sectoresOptions.find(o => o.value === String(formData.sector_id)) || null}
                                         onChange={handleSectorChange}
-                                        placeholder="Seleccione un sector"
                                         isDisabled={!formData.parroquia_id || sectoresOptions.length === 0}
+                                        placeholder="Seleccione un sector"
                                     />
                                 </div>
                                 <div className='formGroup'>
