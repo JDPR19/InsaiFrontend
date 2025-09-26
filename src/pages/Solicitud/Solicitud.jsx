@@ -9,7 +9,6 @@ import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
-// import Ciclo from '../../components/ayudanteCiclo/Ciclo';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 
 function Solicitud() {

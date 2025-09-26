@@ -63,6 +63,8 @@ function Planificacion() {
     }));
 
     const columnsPlanificacion = [
+        { header: 'Código', key: 'codigo' },
+        { header: 'Código de Solicitud', key: 'solicitud_codigo' },
         { header: 'Actividad', key: 'actividad' },
         { header: 'Fecha Programada', key: 'fecha_programada' },
         { header: 'Estado', key: 'estado' },
@@ -304,12 +306,25 @@ function Planificacion() {
                 return;
             }
         }
-        if (!formData.solicitud_id || !formData.solicitud_id.value) {
+        if (!formData.solicitud_id || String(formData.solicitud_id).trim() === '') {
             addNotification('Debe seleccionar una solicitud', 'warning');
             return;
         }
-        if (!formData.tipo_inspeccion_fito_id || !formData.tipo_inspeccion_fito_id.value) {
+        if (!formData.tipo_inspeccion_fito_id || String(formData.tipo_inspeccion_fito_id).trim() === '') {
             addNotification('Debe seleccionar un tipo de inspección', 'warning');
+            return;
+        }
+        if (!formData.fecha_programada) {
+            addNotification('Debe seleccionar la fecha programada', 'warning');
+            return;
+        }
+        if (!formData.hora) {
+            addNotification('Debe indicar la hora', 'warning');
+            return;
+        }
+        if (!formData.actividad?.trim() || !formData.objetivo?.trim() ||
+            !formData.convocatoria?.trim() || !formData.ubicacion?.trim() || !formData.aseguramiento?.trim()) {
+            addNotification('Complete todos los campos obligatorios', 'warning');
             return;
         }
         const fecha = formData.fecha_programada;
@@ -369,14 +384,14 @@ function Planificacion() {
     };
 
     const handleEdit = async () => {
-        if (!formData.solicitud_id || !formData.solicitud_id.value) {
-            addNotification('Debe seleccionar una solicitud', 'warning');
-            return;
-        }
-        if (!formData.tipo_inspeccion_fito_id || !formData.tipo_inspeccion_fito_id.value) {
-            addNotification('Debe seleccionar un tipo de inspección', 'warning');
-            return;
-        }
+        // if (!formData.solicitud_id || !formData.solicitud_id.value) {
+        //     addNotification('Debe seleccionar una solicitud', 'warning');
+        //     return;
+        // }
+        // if (!formData.tipo_inspeccion_fito_id || !formData.tipo_inspeccion_fito_id.value) {
+        //     addNotification('Debe seleccionar un tipo de inspección', 'warning');
+        //     return;
+        // }
         for (const field in formData) {
             const rule = getValidationRule(field);
             if (!rule || !rule.regex) continue;
@@ -508,6 +523,15 @@ function Planificacion() {
                         <h2>Detalle de Planificación</h2>
                         <form className='modalForm'>
                             <div className='formColumns'>
+                                <div className='formGroup'>
+                                    <label>Código de Planificación:</label>
+                                    <input
+                                        type="text"
+                                        value={detalleModal.planificacion.codigo || ''}
+                                        disabled
+                                        className='input'
+                                    />
+                                </div>
                                 <div className='formGroup'>
                                     <label>Solicitud:</label>
                                     <SingleSelect
@@ -867,6 +891,7 @@ function Planificacion() {
                     <thead>
                         <tr>
                             <th>N°</th>
+                            <th>Código</th>
                             <th>Solicitud</th>
                             <th>Fecha Programada</th>
                             <th>Actividad</th>
@@ -878,6 +903,7 @@ function Planificacion() {
                         {currentData.map((item, idx) => (
                             <tr key={item.id}>
                                 <td>{indexOfFirstItem + idx + 1}</td>
+                                <td>{item.codigo}</td>
                                 <td>{item.solicitud_codigo || item.solicitud_id}</td>
                                 <td>{item.fecha_programada}</td>
                                 <td>{item.actividad}</td>

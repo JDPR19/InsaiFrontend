@@ -8,6 +8,7 @@ import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
+import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 
 function Productor() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -16,6 +17,10 @@ function Productor() {
     const [loading, setLoading] = useState(false);
     const [currentModal, setCurrentModal] = useState(null);
     const [detalleModal, setDetalleModal] = useState({ abierto: false, productor: null });
+    const [pdfUrl, setPdfUrl] = useState(null)
+    const [pdfFileName, setPdfFileName] = useState('');
+    const { fileName } = getPDFInfo();
+    const excelFileName = fileName.replace('.pdf', '.xlsx');
     const [formData, setFormData] = useState({
         id: '',
         codigo: '',
@@ -36,6 +41,47 @@ function Productor() {
         maxPropiedades: 0,
         topProducers: [] 
     });
+
+    // Columnas para PDF/Excel
+    const columnsProductor = [
+        { header: 'Código', key: 'codigo' },
+        { header: 'Cédula', key: 'cedula' },
+        { header: 'Nombre', key: 'nombre' },
+        { header: 'Apellido', key: 'apellido' },
+        { header: 'Contacto', key: 'contacto' },
+        { header: 'Correo', key: 'email' },
+        { header: 'Propiedades', key: 'total_propiedades' }
+    ];
+
+    function getPDFInfo() {
+        if (datosFiltrados.length === datosOriginales.length) {
+            return { fileName: 'Productores_Total.pdf', title: 'Listado de Todos los Productores' };
+        }
+        if (datosFiltrados.length > 0 && datosFiltrados.every(p => (p.total_propiedades || 0) === 0)) {
+            return { fileName: 'Productores_Sin_Propiedades.pdf', title: 'Productores sin Propiedades' };
+        }
+        const maxLocal = datosFiltrados.length
+            ? Math.max(...datosFiltrados.map(p => p.total_propiedades || 0))
+            : 0;
+        if (maxLocal > 0 && datosFiltrados.every(p => (p.total_propiedades || 0) === maxLocal)) {
+            return { fileName: 'Productores_con_mas_Propiedades.pdf', title: 'Productores con Más Propiedades' };
+        }
+        return { fileName: 'Productores_Filtrados.pdf', title: 'Listado de Productores Filtrados' };
+    }
+
+    const handlePreviewPDF = () => {
+        const { fileName, title } = getPDFInfo();
+        const blob = exportToPDF({
+            data: datosFiltrados,
+            columns: columnsProductor,
+            fileName,
+            title,
+            preview: true
+        });
+        const url = URL.createObjectURL(blob);
+        setPdfUrl(url);
+        setPdfFileName(fileName);
+    };
 
     const fetchProductores = async () => {
         setLoading(true);
@@ -417,16 +463,61 @@ function Productor() {
                 </div>
             )}
 
+            {pdfUrl && (
+                <div className="modalOverlay">
+                    <div className="modalDetalle">
+                        <button className="closeButton" onClick={() => setPdfUrl(null)}>&times;</button>
+                        <iframe src={pdfUrl} width="100%" height="600px" title="Vista previa PDF" />
+                        <a
+                            href={pdfUrl}
+                            download={pdfFileName}
+                            className="btn-estandar"
+                            style={{ marginTop: 16, display: 'inline-block', textDecoration: 'none' }}
+                        >
+                            Descargar PDF
+                        </a>
+                    </div>
+                </div>
+            )}
+
             <div className='tableSection'>
                 <div className='filtersContainer'>
-                    <button 
-                        type='button'
-                        onClick={openModal} 
-                        className='create'
-                        title='Registrar Productor'>
-                        <img src={icon.plus} alt="Crear" className='icon' />
-                        Agregar
-                    </button>
+                <div className='filtersButtons'>
+                        <button 
+                            type='button'
+                            onClick={openModal} 
+                            className='create'
+                            title='Registrar Productor'>
+                            <img src={icon.plus} alt="Crear" className='icon' />
+                            Agregar
+                        </button>
+
+                        <button
+                            type='button'
+                            onClick={handlePreviewPDF}
+                            className='btn-estandar'
+                            title='Previsualizar PDF'
+                        >
+                            <img src={icon.pdf5} alt="PDF" className='icon' />
+                            PDF
+                        </button>
+
+                        <button
+                            type='button'
+                            onClick={() => exportToExcel({
+                                data: datosFiltrados,
+                                columns: columnsProductor,
+                                fileName: excelFileName,
+                                count: true,
+                                totalLabel: 'TOTAL REGISTROS'
+                            })}
+                            className='btn-estandar'
+                            title='Descargar Formato Excel'
+                        >
+                            <img src={icon.excel2} alt="Excel" className='icon' />
+                            Excel
+                        </button>
+                    </div>
                     <h2>Productores</h2>
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />

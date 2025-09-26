@@ -10,6 +10,7 @@ import { useNotification } from '../../utils/NotificationContext';
 import Spinner from '../../components/spinner/Spinner';
 import { validateField, getValidationRule } from '../../utils/validation';
 import { BaseUrl } from '../../utils/constans';
+import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 
 function Propiedad() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -24,6 +25,10 @@ function Propiedad() {
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [pdfUrl, setPdfUrl] = useState(null)
+    const [pdfFileName, setPdfFileName] = useState('');
+    const { fileName } = getPDFInfo();
+    const excelFileName = fileName.replace('.pdf', '.xlsx');
     const [detalleModal, setDetalleModal] = useState({ abierto: false, propiedad: null });
     const [formData, setFormData] = useState({
         id: '',
@@ -68,6 +73,52 @@ function Propiedad() {
         seguimiento: 0,
         cuarentena: 0
     });
+
+    // Definición de columnas para PDF/Excel
+    const columnsPropiedad = [
+        { header: 'Código', key: 'codigo' },
+        { header: 'RIF', key: 'rif' },
+        { header: 'Nombre', key: 'nombre' },
+        { header: 'Ubicación', key: 'ubicacion' },
+        { header: 'Sector', key: 'sector_nombre' },
+        { header: 'Parroquia', key: 'parroquia_nombre' },
+        { header: 'Municipio', key: 'municipio_nombre' },
+        { header: 'Estado (Geo)', key: 'estado_nombre' },
+        { header: 'Hectáreas', key: 'hectareas' },
+        { header: 'Tipo Propiedad', key: 'tipo_propiedad_nombre' },
+        { header: 'Estatus', key: 'estado' }
+    ];
+
+    function getPDFInfo() {
+        if (datosFiltrados.length === datosOriginales.length) {
+            return { fileName: 'Total_Propiedades.pdf', title: 'Listado de Todas las Propiedades' };
+        }
+        const allSameEstado = (est) => datosFiltrados.length > 0 && datosFiltrados.every(p => p.estado === est);
+        if (allSameEstado('registrada'))      return { fileName: 'Propiedades_Registradas.pdf',   title: 'Listado de Propiedades Registradas' };
+        if (allSameEstado('planificada'))     return { fileName: 'Propiedades_Planificadas.pdf',  title: 'Listado de Propiedades Planificadas' };
+        if (allSameEstado('inspeccionando'))  return { fileName: 'Propiedades_Inspeccionando.pdf',title: 'Listado de Propiedades en Inspección' };
+        if (allSameEstado('diagnosticada'))   return { fileName: 'Propiedades_Diagnosticadas.pdf',title: 'Listado de Propiedades Diagnosticadas' };
+        if (allSameEstado('aprobada'))        return { fileName: 'Propiedades_Aprobadas.pdf',     title: 'Listado de Propiedades Aprobadas' };
+        if (allSameEstado('rechazada'))       return { fileName: 'Propiedades_Rechazadas.pdf',    title: 'Listado de Propiedades Rechazadas' };
+        if (allSameEstado('seguimiento'))     return { fileName: 'Propiedades_Seguimiento.pdf',   title: 'Listado de Propiedades en Seguimiento' };
+        if (allSameEstado('cuarentena'))      return { fileName: 'Propiedades_Cuarentena.pdf',    title: 'Listado de Propiedades en Cuarentena' };
+        return { fileName: 'Propiedades_Filtradas.pdf', title: 'Listado de Propiedades Filtradas' };
+    }
+
+    const handlePreviewPDF = () => {
+        const { fileName, title } = getPDFInfo();
+        const blob = exportToPDF({
+            data: datosFiltrados,
+            columns: columnsPropiedad,
+            fileName,
+            title,
+            preview: true
+        });
+        const url = URL.createObjectURL(blob);
+        setPdfUrl(url);
+        setPdfFileName(fileName);
+    };
+
     // Fetchers
     const fetchPropiedades = async () => {
         setLoading(true);
@@ -578,7 +629,7 @@ function Propiedad() {
                                     <input type="text" value={detalleModal.propiedad.codigo || ''} className='input' disabled />
                                 </div>
                                 <div className='formGroup'>
-                                    <label><span className='Unique'>*</span>Productores Asociados:</label>
+                                    <label><span className='Unique'>*</span>Productor asociado:</label>
                                     <MultiSelect
                                         options={productoresOptions}
                                         value={productoresOptions.filter(opt =>
@@ -712,7 +763,7 @@ function Propiedad() {
                         <form className='modalForm'>
                             <div className='formColumns_tree'>
                                 <div className='formGroup'>
-                                    <label><span className='Unique'>*</span>Productores Asociado:</label>
+                                    <label><span className='Unique'>*</span>Productor Asociado:</label>
                                     <MultiSelect
                                         options={productoresOptions}
                                         value={productoresOptions.filter(opt => formData.productores_ids.includes(opt.value))}
@@ -866,17 +917,62 @@ function Propiedad() {
                 </div>
             )}
 
+            {pdfUrl && (
+                <div className="modalOverlay">
+                    <div className="modalDetalle">
+                        <button className="closeButton" onClick={() => setPdfUrl(null)}>&times;</button>
+                        <iframe src={pdfUrl} width="100%" height="600px" title="Vista previa PDF" />
+                        <a
+                            href={pdfUrl}
+                            download={pdfFileName}
+                            className="btn-estandar"
+                            style={{ marginTop: 16, display: 'inline-block', textDecoration: 'none' }}
+                        >
+                            Descargar PDF
+                        </a>
+                    </div>
+                </div>
+            )}
+
             <div className='tableSection'>
                 <div className='filtersContainer'>
-                    <button 
-                        type='button'
-                        onClick={openModal} 
-                        className='create'
-                        title='Registrar Propiedad'
-                    >
-                        <img src={icon.plus} alt="Crear" className='icon' />
-                        Agregar
-                    </button>
+                    <div className='filtersButtons'>
+                        <button 
+                            type='button'
+                            onClick={openModal} 
+                            className='create'
+                            title='Registrar Propiedad'
+                            >
+                            <img src={icon.plus} alt="Crear" className='icon' />
+                            Agregar
+                        </button>
+
+                        <button
+                            type='button'
+                            onClick={handlePreviewPDF}
+                            className='btn-estandar'
+                            title='Previsualizar PDF'
+                        >
+                            <img src={icon.pdf5} alt="PDF" className='icon' />
+                            PDF
+                        </button>
+
+                        <button
+                            type='button'
+                            onClick={() => exportToExcel({
+                                data: datosFiltrados,
+                                columns: columnsPropiedad,
+                                fileName: excelFileName,
+                                count: true,
+                                totalLabel: 'TOTAL REGISTROS'
+                            })}
+                            className='btn-estandar'
+                            title='Descargar Formato Excel'
+                        >
+                            <img src={icon.excel2} alt="Excel" className='icon' />
+                            Excel
+                        </button>
+                    </div>
                     <h2>Propiedades</h2>
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
