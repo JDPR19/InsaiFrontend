@@ -447,18 +447,17 @@ function Home() {
     }, [chartFilter, dateRange, BaseUrl]);
 
     // Modal detalle de operación del día
-    const openDetalleModal = async (item) => {
+      const openDetalleModal = async (item) => {
         setDetalleModal({ abierto: true, propiedad: null, loading: true });
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`${BaseUrl}/home/detalle-operacion/${item.planificacion_id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setDetalleModal({ abierto: true, propiedad: res.data, loading: false });
+        const { data } = await axios.get(`${BaseUrl}/home/detalle-operacion/${item.planificacion_id}`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        setDetalleModal({ abierto: true, propiedad: data, loading: false });
         } catch (error) {
-            console.error('Error obteniendo los datos para el modal de detalle', error);
-            addNotification('Error al obtener detalle de operación', 'error');
-            setDetalleModal({ abierto: true, propiedad: null, loading: false });
+        console.error('Error obteniendo detalle de operación', error);
+        addNotification('No se pudo cargar el detalle', 'error');
+        setDetalleModal({ abierto: true, propiedad: null, loading: false });
         }
     };
     const closeDetalleModal = () => setDetalleModal({ abierto: false, propiedad: null, loading: false });
@@ -515,7 +514,6 @@ function Home() {
         usuario_username: 'Usuario',
         fecha_programada: 'Fecha Programada',
         inspector: 'Inspector',
-        tipo_inspeccion: 'Tipo de Inspección',
         propiedad: 'Propiedad',
         estado: 'Estatus',
         codigo_inspeccion: 'Código de Inspección',
@@ -554,7 +552,6 @@ function Home() {
             <tr>
                 <th>#</th>
                 <th>Inspector</th>
-                <th>Tipo Inspección</th>
                 <th>Propiedad</th>
                 <th>Estado Planificación</th>
                 <th>Acción</th>
@@ -573,7 +570,6 @@ function Home() {
                     <tr key={index}>
                         <td>{indexOfFirstItem + index + 1}</td>
                         <td>{item.inspector}</td>
-                        <td>{item.tipo_inspeccion}</td>
                         <td>{item.propiedad}</td>
                         <td>
                             <span className={`badge-estado badge-${(item.estado_planificacion || '').toLowerCase()}`}>
@@ -626,7 +622,7 @@ function Home() {
 
         return (
             <div className='modalOverlay'>
-                <div className='modalDetalle'>
+                <div className='modal'>
                     <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
                     <h2>Detalle de Operación</h2>
                     {detalleModal.loading ? (
@@ -658,7 +654,6 @@ function Home() {
                                     <tr><th>Convocatoria</th><td>{propiedad.convocatoria || '—'}</td></tr>
                                     <tr><th>Aseguramiento</th><td>{propiedad.aseguramiento || '—'}</td></tr>
                                     <tr><th>Ubicación Planificación</th><td>{propiedad.ubicacion_planificacion || '—'}</td></tr>
-                                    <tr><th>Tipo de Inspección</th><td>{propiedad.tipo_inspeccion || '—'}</td></tr>
                                 </tbody>
                             </table>
 

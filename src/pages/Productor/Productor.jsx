@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../../main.css';
 import icon from '../../components/iconos/iconos';
@@ -11,6 +12,9 @@ import { BaseUrl } from '../../utils/constans';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 
 function Productor() {
+    const navigate = useNavigate();
+    const [step, setStep] = useState(1);
+    const [recentProductor, setRecentProductor] = useState(null);
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -156,59 +160,79 @@ function Productor() {
     };
 
     const handleSave = async () => {
-        for (const field in formData) {
-            if (!validationRules[field]) continue;
-            const { regex, errorMessage } = validationRules[field];
-            const { valid, message } = validateField(formData[field], regex, errorMessage);
-            if (!valid) {
-                addNotification(message, 'warning');
-                setErrors(prev => ({ ...prev, [field]: message }));
-                setLoading(false);
-                return;
-            }
-        }
         setLoading(true);
         try {
-            await axios.post(`${BaseUrl}/productor`, formData, {
-                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
+            const payload = {
+                codigo: formData.codigo,
+                cedula: formData.cedula,
+                nombre: formData.nombre,
+                apellido: formData.apellido,
+                contacto: formData.contacto || null,
+                email: formData.email || null,
+            };
+            const resp = await axios.post(`${BaseUrl}/productor`, payload, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
-            addNotification('Productor registrado con éxito', 'success');
-            fetchProductores();
-            closeModal();
-        } catch (error) {
-            console.error('Error registrando el productor', error);
-            addNotification('Error al registrar productor', 'error');
+            addNotification('Productor registrado', 'success');
+            setRecentProductor(resp.data); // guardar el creado
+            await fetchProductores();       // refrescar listado
+            setStep(2);                     // pasar a la segunda sección del modal
+        } catch (err) {
+            const backendMessage = err?.response?.data?.message;
+            const status = err?.response?.status;
+            console.error('Error registrando productor:', err?.response?.data || err?.message);
+
+            addNotification(backendMessage || 'Error al registrar productor', 'error');
+
+            if (status === 409 && backendMessage) {
+                const lower = backendMessage.toLowerCase();
+                setErrors(prev => ({
+                    ...prev,
+                    ...(lower.includes('cédula') || lower.includes('cedula') ? { cedula: backendMessage } : {}),
+                    ...(lower.includes('código') || lower.includes('codigo') ? { codigo: backendMessage } : {})
+                }));
+            }
         } finally {
             setLoading(false);
         }
     };
 
     const handleEdit = async () => {
-        for (const field of ['codigo', 'cedula', 'nombre', 'apellido']) {
-            if (!validationRules[field]) continue;
-            const { regex, errorMessage } = validationRules[field];
-            const { valid, message } = validateField(formData[field], regex, errorMessage);
-            if (!valid) {
-                addNotification(message, 'warning');
-                setErrors(prev => ({ ...prev, [field]: message }));
-                setLoading(false);
-                return;
+    if (!formData.id) { addNotification('Falta ID de productor', 'warning'); return; }
+    setLoading(true);
+    try {
+        const payload = {
+        codigo: formData.codigo,
+        cedula: formData.cedula,
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        contacto: formData.contacto || null,
+        email: formData.email || null,
+        };
+        await axios.put(`${BaseUrl}/productor/${formData.id}`, payload, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        addNotification('Productor actualizado', 'success');
+        await fetchProductores();
+        closeModal();
+    } catch (err) {
+        const backendMessage = err?.response?.data?.message;
+            const status = err?.response?.status;
+            console.error('Error actualizando productor:', err?.response?.data || err?.message);
+
+            addNotification(backendMessage || 'Error al actualizar productor', 'error');
+
+            if (status === 409 && backendMessage) {
+                const lower = backendMessage.toLowerCase();
+                setErrors(prev => ({
+                    ...prev,
+                    ...(lower.includes('cédula') || lower.includes('cedula') ? { cedula: backendMessage } : {}),
+                    ...(lower.includes('código') || lower.includes('codigo') ? { codigo: backendMessage } : {})
+                }));
             }
-            setLoading(true);
-        }
-        try {
-            await axios.put(`${BaseUrl}/productor/${formData.id}`, formData, {
-                headers: { Authorization : `Bearer ${localStorage.getItem('token')}` }
-            });
-            addNotification('Productor actualizado con éxito', 'success');
-            fetchProductores();
-            closeModal();
-        } catch (error) {
-            console.error('Error actualizando el productor', error);
-            addNotification('Error al actualizar productor', 'error');
-        } finally {
-            setLoading(false);
-        }
+    } finally {
+        setLoading(false);
+    }
     };
 
     const handleDelete = async (id) => {
@@ -250,9 +274,17 @@ function Productor() {
 
     const openModal = () => {
         resetFormData();
+        setErrors({});
+        setRecentProductor(null);
+        setStep(1);
         setCurrentModal('productor');
     };
-    const closeModal = () => setCurrentModal(null);
+
+    const closeModal = () => {
+        setCurrentModal(null);
+        setStep(1);
+        setRecentProductor(null);
+    };
 
     const openEditModal = (productor) => {
         setFormData({
@@ -265,7 +297,20 @@ function Productor() {
             email: productor.email || ''
         });
         setErrors({});
+        setStep(1);
         setCurrentModal('productor');
+    };
+
+    const goToNextScreen = () => {
+        
+        localStorage.setItem('seccionOneTab', 'propiedades');
+
+        const params = new URLSearchParams();
+        params.set('tab', 'propiedades');
+        if (recentProductor?.id) params.set('productorId', String(recentProductor.id));
+
+        navigate(`/SeccionOne?${params.toString()}`);
+        closeModal();
     };
 
     const openConfirmDeleteModal = (id) => {
@@ -322,6 +367,7 @@ function Productor() {
                     <p>Top Propiedades</p>
                 </div>
             </div>
+
             {/* modal detalle */}
             {detalleModal.abierto && detalleModal.productor && (
                 <div className='modalOverlay'>
@@ -401,50 +447,71 @@ function Productor() {
                 <div className='modalOverlay'>
                     <div className='modal'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
-                        <h2>{formData.id ? 'Editar Productor' : 'Registrar Productor'}</h2>
-                        <form className='modalForm'>
-                            <div className='formColumns'>
-                                <div className='formGroup'>
-                                    <label htmlFor="codigo"><span className='Unique' title='Campo Obligatorio'>*</span>Código Runsai:</label>
-                                    <input type="text" id="codigo" value={formData.codigo} onChange={handleChange} className='input' placeholder='Código único'/>
-                                    {errors.codigo && <span className='errorText'>{errors.codigo}</span>}
+                        {step === 1 ? (
+                            <>
+                                <h2>{formData.id ? 'Editar Productor' : 'Registrar Productor'}</h2>
+                                <form className='modalForm'>
+                                    <div className='formColumns'>
+                                        <div className='formGroup'>
+                                            <label htmlFor="codigo"><span className='Unique' title='Campo Obligatorio'>*</span>Código Runsai:</label>
+                                            <input type="text" id="codigo" value={formData.codigo} onChange={handleChange} className='input' placeholder='Código único'/>
+                                            {errors.codigo && <span className='errorText'>{errors.codigo}</span>}
+                                        </div>
+                                        <div className='formGroup'>
+                                            <label htmlFor="cedula"><span className='Unique' title='Campo Obligatorio'>*</span>Cédula:</label>
+                                            <input type="text" id="cedula" value={formData.cedula} onChange={handleChange} className='input' placeholder='Cédula'/>
+                                            {errors.cedula && <span className='errorText'>{errors.cedula}</span>}
+                                        </div>
+                                        <div className='formGroup'>
+                                            <label htmlFor="nombre"><span className='Unique' title='Campo Obligatorio'>*</span>Nombre:</label>
+                                            <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Nombre'/>
+                                            {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
+                                        </div>
+                                        <div className='formGroup'>
+                                            <label htmlFor="apellido"><span className='Unique' title='Campo Obligatorio'>*</span>Apellido:</label>
+                                            <input type="text" id="apellido" value={formData.apellido} onChange={handleChange} className='input' placeholder='Apellido'/>
+                                            {errors.apellido && <span className='errorText'>{errors.apellido}</span>}
+                                        </div>
+                                        <div className='formGroup'>
+                                            <label htmlFor="contacto"><span className='Unique' title='Campo Obligatorio'>*</span>Contacto:</label>
+                                            <input type="text" id="contacto" value={formData.contacto} onChange={handleChange} className='input' placeholder='Teléfono'/>
+                                            {errors.contacto && <span className='errorText'>{errors.contacto}</span>}
+                                        </div>
+                                        <div className='formGroup'>
+                                            <label htmlFor="email"><span className='Unique' title='Campo Obligatorio'>*</span>Correo:</label>
+                                            <input type="email" id="email" value={formData.email} onChange={handleChange} className='input' placeholder='Correo electrónico'/>
+                                            {errors.email && <span className='errorText'>{errors.email}</span>}
+                                        </div>
+                                    </div>
+                                    <button 
+                                        type="button" 
+                                        className='saveButton' 
+                                        onClick={formData.id ? handleEdit : handleSave}
+                                        title={formData.id ? 'Actualizar Productor' : 'Registrar Productor'}
+                                        disabled={loading}    
+                                    >
+                                        {loading ? 'Procesando...' : 'Guardar'}
+                                    </button>
+                                </form>
+                            </>
+                        ) : (
+                            <>
+                                <h2>Productor registrado</h2>
+                                <p>
+                                    Se creó correctamente el productor
+                                    {` ${recentProductor?.codigo ? `(${recentProductor.codigo})` : ''} ${recentProductor?.nombre || ''} ${recentProductor?.apellido || ''}`}.
+                                </p>
+                                <p>¿Deseas continuar para culminar el proceso en la siguiente pantalla?</p>
+                                <div className='modalActions' style={{ marginTop: 16, display: 'flex', gap: 8 }}>
+                                    <button className='btn-estandar' onClick={goToNextScreen}>
+                                        Continuar
+                                    </button>
+                                    <button className='cancelButton' onClick={closeModal}>
+                                        Más tarde
+                                    </button>
                                 </div>
-                                <div className='formGroup'>
-                                    <label htmlFor="cedula"><span className='Unique' title='Campo Obligatorio'>*</span>Cédula:</label>
-                                    <input type="text" id="cedula" value={formData.cedula} onChange={handleChange} className='input' placeholder='Cédula'/>
-                                    {errors.cedula && <span className='errorText'>{errors.cedula}</span>}
-                                </div>
-                                <div className='formGroup'>
-                                    <label htmlFor="nombre"><span className='Unique' title='Campo Obligatorio'>*</span>Nombre:</label>
-                                    <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Nombre'/>
-                                    {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
-                                </div>
-                                <div className='formGroup'>
-                                    <label htmlFor="apellido"><span className='Unique' title='Campo Obligatorio'>*</span>Apellido:</label>
-                                    <input type="text" id="apellido" value={formData.apellido} onChange={handleChange} className='input' placeholder='Apellido'/>
-                                    {errors.apellido && <span className='errorText'>{errors.apellido}</span>}
-                                </div>
-                                <div className='formGroup'>
-                                    <label htmlFor="contacto"><span className='Unique' title='Campo Obligatorio'>*</span>Contacto:</label>
-                                    <input type="text" id="contacto" value={formData.contacto} onChange={handleChange} className='input' placeholder='Teléfono'/>
-                                    {errors.contacto && <span className='errorText'>{errors.contacto}</span>}
-                                </div>
-                                <div className='formGroup'>
-                                    <label htmlFor="email"><span className='Unique' title='Campo Obligatorio'>*</span>Correo:</label>
-                                    <input type="email" id="email" value={formData.email} onChange={handleChange} className='input' placeholder='Correo electrónico'/>
-                                    {errors.email && <span className='errorText'>{errors.email}</span>}
-                                </div>
-                            </div>
-                            <button 
-                                type="button" 
-                                className='saveButton' 
-                                onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Productor' : 'Registrar Productor'}
-                                disabled={loading}    
-                            >
-                                {loading ? 'Procesando...' : 'Guardar'}
-                            </button>
-                        </form>
+                            </>
+                        )}
                     </div>
                 </div>
             )}

@@ -144,6 +144,8 @@ html, body {
   --badge-rechazada-border: #b10b0b;
   --badge-aprobada-bg: #23272f;
   --badge-aprobada-border: #3a3b3c;
+  --green5: #98c79a;  
+  --green-hover1: #98c79a;
   background-color: #18191a;
   color: #fff;
 }
@@ -310,11 +312,11 @@ html, body {
 .modal_tree {
   padding: 25px;
   border-radius: 10px;
-  width: 100%;
+  width: clamp(820px, 86vw, 1300px);
   min-width: 0vh;
   min-height: 0vh;
-  max-width: 140vh;
-  max-height: 90vh;
+  max-width: 150vh;
+  max-height: 85vh;
   position: relative;
 }
 
@@ -333,11 +335,11 @@ html, body {
 .modal {
   padding: 25px;
   border-radius: 10px;
-  width: 100%;
+  width: clamp(700px, 80vw, 1100px);
   min-width: 0vh;
   min-height: 0vh;
-  max-width: 100vh;
-  max-height: 90vh;
+  max-width: 90vh;
+  max-height: 85vh;
   position: relative;
 }
 
@@ -444,11 +446,13 @@ html, body {
 
 .formColumns {
   display: grid;
-  grid-template-columns: 1fr 1fr; 
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+  column-gap: 24px;
+  row-gap: 14px;
   min-height: 0;
   height: 100%;
 }
+
 
 .formColumns_tree {
     display: grid;
@@ -473,6 +477,17 @@ html, body {
 .formGroup label {
   margin-bottom: 6px;
   margin-top: 10px;
+  margin-left: 10px;
+}
+
+.formGroup ul {
+  margin-left: 25px;
+  /* padding-left: 16px; */
+}
+.formGroup ul li {
+  line-height: 1.3;
+  word-break: break-word;
+  white-space: pre-line;
 }
 
 .text_empleado {
@@ -514,10 +529,10 @@ html, body {
     background: #fff;
     padding: 30px 30px 20px 30px;
     border-radius: 10px;
-    width: 100%;
-    max-width: 70vw;
+    width: clamp(720px, 82vw, 1200px);
+    max-width: 100vw;
     min-width: 320px;
-    max-height: 80vh;
+    max-height: 85vh;
     box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
     position: relative;
     overflow: auto;
@@ -1258,10 +1273,9 @@ html, body {
   flex-direction: column;
   gap: 10px;
   border-radius: 10px;
-  /* padding: 12px 18px; */
+  padding: 10px 12px;
   margin-top: 8px;
   margin-bottom: 8px;
-  /* box-shadow: 0 2px 8px #b5c99a2c; */
   transition: max-height 0.3s, opacity 0.3s;
   max-height: 400px;
   overflow: auto;
@@ -1286,8 +1300,9 @@ html, body {
   border-radius: 10px;
   margin-top: 8px;
   margin-bottom: 8px;
-  max-height: 350px;
+  max-height: 360px;
   overflow-y: auto;
+  padding: 10px 12px;
 }
 
 .finalidad-checkbox {
@@ -1413,6 +1428,7 @@ html, body {
 .badge-solicitada  { background: var(--badge-pendiente-bg);    color: var(--badge-text); border: 1px solid var(--badge-pendiente-border); }  
 .badge-seguimiento { background: var(--badge-diagnosticada-bg);color: var(--badge-text); border: 1px solid var(--badge-diagnosticada-border);}
 .badge-cuarentena  { background: var(--badge-rechazada-bg);    color: var(--badge-text); border: 1px solid var(--badge-rechazada-border); }  
+.badge-finalizada   { background: var(--lithg-green); color: var(--badge-text); border: 1px solid var(--badge-border); }
 /* Graficas ///////////////777*/
 
 .chartSection {
@@ -1982,7 +1998,156 @@ html, body {
     color: #98c79a;
 }
 
+/* Carousel de cartas */
+.carouselWrap {
+  position: relative;
+  width: 100%;
+  padding: 8px 36px;               /* deja espacio a los botones */
+  box-sizing: border-box;
+}
 
+.carouselTrack {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(220px, 260px); /* ancho carta */
+  gap: 14px;
+  overflow: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 6px;
+}
+
+.carouselTrack::-webkit-scrollbar {
+  height: 8px;
+}
+.carouselTrack::-webkit-scrollbar-thumb {
+  background: var(--lithg-green);
+  border-radius: 6px;
+}
+.carouselTrack::-webkit-scrollbar-track {
+  background: #e9ecef;
+  border-radius: 6px;
+}
+
+.carouselTrack.is-dragging {
+  cursor: grabbing;
+  /* user-select: none; */
+}
+
+.carouselCard {
+  scroll-snap-align: start;
+  height: var(--card-height, 160px);
+  background: linear-gradient(145deg, #ffffff, #f3f7f1);
+  border: 1px solid var(--table-border);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.carouselCard:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+}
+
+.carouselCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  color: var(--black1);
+}
+.carouselCardTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--green5);
+}
+.carouselCardSub {
+  font-size: .9rem;
+  color: var(--grey4);
+}
+
+/* Botones navegación */
+.carouselBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: var(--lithg-green);
+  color: #fff;
+  font-size: 22px;
+  line-height: 34px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  transition: transform .2s, background .2s, box-shadow .2s;
+  z-index: 2;
+}
+.carouselBtn:hover {
+  transform: translateY(-50%) scale(1.06);
+  background: #539252;
+  box-shadow: 0 6px 16px rgba(0,0,0,.2);
+}
+.carouselBtn.prev { left: 4px; }
+.carouselBtn.next { right: 4px; }
+
+/* Desvanecido en bordes */
+/* .edgeFade {
+  mask-image: linear-gradient(to right, transparent 0, black 28px, black calc(100% - 28px), transparent 100%);
+} */
+/* @supports not (mask-image: linear-gradient(black, black)) {
+  .edgeFade 
+} */
+
+/* Modo oscuro */
+.dark .carouselCard {
+  background: linear-gradient(145deg, var(--white2), var(--white1));
+  border-color: var(--grey3);
+  color: var(--black2);
+}
+.dark .carouselCardTitle { color: var(--grey6); }
+.dark .carouselCardSub { color: var(--grey4); }
+.dark .carouselTrack::-webkit-scrollbar-track { background: var(--grey3); }
+.dark .carouselTrack::-webkit-scrollbar-thumb { background: var(--grey4); }
+
+/* Cartas de imágenes en el carrusel */
+.imgCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.imgThumb {
+  width: 100%;
+  height: calc(var(--card-height, 220px) - 54px);
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--table-border);
+  background: var(--white1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.imgMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--grey4);
+  white-space: nowrap;
+}
+
+.imgMeta span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 @media (max-width: 700px) {
     .ss-center {
         grid-template-columns: repeat(2, 1fr);

@@ -50,7 +50,7 @@ import SeccionSix from './pages/Seccion/SeccionSix';
 import SeccionSeven from './pages/Seccion/SeccionSeven';
 import SeguimientoInspeccion from './pages/Inspecciones/SeguimientoInspeccion';
 import Informativa from './pages/Informativa/Informativa';
-import CicloId from './pages/cicloid/CicloId';
+import ActaSilosWizard from './pages/Inspecciones/ActaSilosWizard';
 
 function AppContent() {
 
@@ -93,11 +93,13 @@ function AppContent() {
           }
         />
         <Route
-          path="/procesosid"
-          element={
-              <CicloId />           
-          }
-        />
+        path="/inspecciones/:id/acta-silos"
+        element={
+          <ProtectedRoute pantalla="inspecciones">
+              <ActaSilosWizard /> 
+          </ProtectedRoute>
+        }
+      />
         <Route 
         path="/SeccionOne" 
         element={

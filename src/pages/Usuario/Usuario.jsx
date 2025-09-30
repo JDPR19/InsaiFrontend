@@ -416,7 +416,7 @@ function Usuario() {
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label htmlFor="email">Email:</label>
+                                    <label htmlFor="email">Correo:</label>
                                     <input
                                         type="text"
                                         id="email"
@@ -501,7 +501,7 @@ function Usuario() {
                                 </div>
 
                                 <div className='formGroup'>
-                                    <label htmlFor="email"><span className='Unique' title='Campo Obligatorio'>*</span>Email:</label>
+                                    <label htmlFor="email"><span className='Unique' title='Campo Obligatorio'>*</span>Correo:</label>
                                     <input type="text" id="email" value={formData.email} onChange={handleChange} className='input' placeholder='Rellene el campo'/>
                                     {errors.email && <span className='errorText'>{errors.email}</span>}
                                 </div>
@@ -577,7 +577,7 @@ function Usuario() {
                     <thead>
                         <tr>
                             <th>Usuario</th>
-                            <th>email</th>  
+                            <th>Correo</th>  
                             <th>Tipo de Usuario</th>
                             <th>Acción</th>
                         </tr>
@@ -613,7 +613,6 @@ function Usuario() {
                                             className='iconeliminar' 
                                             title='eliminar'
                                             />
-                                       
                                         {tienePermiso('usuarios', 'deshabilitar') && user.id !== usuario.id && usuario.estado && (
                                             <img 
                                                 onClick={() => disableUser(usuario.id, false)} 

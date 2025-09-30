@@ -138,9 +138,15 @@ function Empleado() {
             closeModal();
             addNotification('Empleado registrado con éxito', 'success');
         } catch (error) {
-            const errorResponse = error.response ? error.response.data : error.message;
-            console.error('Error creando empleado:', errorResponse);
-            addNotification('Error al registrar empleado', 'error');
+            const backendMessage = error.response?.data?.message;
+            const status = error.response?.status;
+            console.error('Error creando empleado:', error.response?.data || error.message);
+
+            addNotification(backendMessage || 'Error al registrar empleado', 'error');
+
+            if (status === 409 && backendMessage) {
+                setErrors(prev => ({ ...prev, cedula: backendMessage }));
+            }
         } finally {
             setLoading(false);
         }
@@ -180,8 +186,15 @@ function Empleado() {
             closeModal();
             addNotification('Empleado actualizado con éxito', 'success');
         } catch (error) {
-            console.error('Error editando empleado:', error);
-            addNotification('Error al actualizar empleado', 'error');
+            const backendMessage = error.response?.data?.message;
+            const status = error.response?.status;
+            console.error('Error editando empleado:', error.response?.data || error.message);
+
+            addNotification(backendMessage || 'Error al actualizar empleado', 'error');
+
+            if (status === 409 && backendMessage) {
+                setErrors(prev => ({ ...prev, cedula: backendMessage }));
+            }
         } finally {
             setLoading(false);
         }

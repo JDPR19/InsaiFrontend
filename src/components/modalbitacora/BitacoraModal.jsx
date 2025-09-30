@@ -84,7 +84,7 @@ function BitacoraModal({ registro, onClose }) {
 
     return (
         <div className="modalOverlay">
-            <div className="modalDetalle">
+            <div className="modal">
                 <button className="closeButton" onClick={onClose}>&times;</button>
                 <h2>Detalles del Registro</h2>
                 <table className="detalleTable">

@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 import '../../main.css';
-import styles from './inspecciones.module.css';
 
 import icon from '../../components/iconos/iconos';
 import Spinner from '../../components/spinner/Spinner';
 import SearchBar from '../../components/searchbart/SearchBar';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
-
+import CardsCarousel from '../../components/CarruselCartas/CarruselCartas';
+import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 import { usePermiso } from '../../hooks/usePermiso';
 import { BaseUrl } from '../../utils/constans';
 import { useNotification } from '../../utils/NotificationContext';
@@ -20,35 +20,13 @@ function InspeccionesEst() {
   const navigate = useNavigate();
   const tienePermiso = usePermiso();
   const { addNotification } = useNotification();
+  const user = JSON.parse(localStorage.getItem('user'));
+  const rol = user?.roles_nombre;
+  const puedeVerSeguimiento = ['Administrador', 'Moderador'].includes(rol);
 
   // Estado de datos
   const [datosOriginales, setDatosOriginales] = useState([]);
   const [datosFiltrados, setDatosFiltrados] = useState([]);
-
-  // Estado UI
-  const [loading, setLoading] = useState(false);
-  const [currentModal, setCurrentModal] = useState(null);
-  const [detalleModal, setDetalleModal] = useState({ abierto: false, inspeccion: null });
-  const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
-  const [selectedInspeccionId, setSelectedInspeccionId] = useState(null);
-  const [showOpcionales, setShowOpcionales] = useState(false);
-  const [galeriaModal, setGaleriaModal] = useState({ abierto: false, imagenes: [] });
-
-  // Catálogos
-  const [planificaciones, setPlanificaciones] = useState([]);
-  const [finalidadesCatalogo, setFinalidadesCatalogo] = useState([]);
-
-  // Imágenes
-  const [imagenes, setImagenes] = useState([]); // nuevas
-  const [previewUrls, setPreviewUrls] = useState([]);
-  const [imagenesGuardadas, setImagenesGuardadas] = useState([]); // del backend (editar)
-  const [imagenesAEliminar, setImagenesAEliminar] = useState([]); // nombres a eliminar
-
-  // Paginación
-  const itemsPerPage = 8;
-  const [currentPage, setCurrentPage] = useState(1);
-
-  // Formulario
   const [formData, setFormData] = useState({
     id: '',
     codigo_inspeccion: '',
@@ -67,27 +45,218 @@ function InspeccionesEst() {
     ordenamientos: '',
     fecha_proxima_inspeccion: '',
     estado: '',
-    planificacion_id: null, // SingleSelect { value, label }
-    finalidades: [],        // [{ finalidad_id: SingleSelect, objetivo: '' }]
+    planificacion_id: null,
+    finalidades: [],
   });
+  // Estado UI
+  const [loading, setLoading] = useState(false);
+  const [currentModal, setCurrentModal] = useState(null);
+  const [detalleModal, setDetalleModal] = useState({ abierto: false, inspeccion: null });
+  const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
+  const [selectedInspeccionId, setSelectedInspeccionId] = useState(null);
+  const [showOpcionales, setShowOpcionales] = useState(false);
+  const [galeriaModal, setGaleriaModal] = useState({ abierto: false, imagenes: [] });
+  const mostrarTodas = () => setDatosFiltrados(datosOriginales);
+  const mostrarCuarentena = () => setDatosFiltrados((datosOriginales || []).filter(i => String(i.estado || '').toLowerCase() === 'cuarentena'));
+  const mostrarAprobadas = () => setDatosFiltrados((datosOriginales || []).filter(i => String(i.estado || '').toLowerCase() === 'aprobada'));
+  const mostrarRechazadas = () => setDatosFiltrados((datosOriginales || []).filter(i => String(i.estado || '').toLowerCase() === 'rechazada'));
+  const normEstado = (s) => String(s || '').toLowerCase().trim(); 
+  const [totales, setTotales] = useState({
+    inspeccionesTotales: 0,
+    inspeccionesCreadas: 0,
+    inspeccionesAprobadas: 0,
+    inspeccionesRechazadas: 0,
+  });
+  const [registroStep, setRegistroStep] = useState(1);            // 1=form, 2=estado, 3=reportes
+  const [createdInspeccionId, setCreatedInspeccionId] = useState(null);
+  const [estadoSeleccionado, setEstadoSeleccionado] = useState('aprobada'); // default
+  const [reportesElegidos, setReportesElegidos] = useState(() => {
+  try { return JSON.parse(localStorage.getItem('inspeccion_reportes') || '{}'); } catch { return {}; }
+});
+  // const puedeIrPaso2 = true;               
+  const puedeIrPaso3 = true; 
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [pdfFileName, setPdfFileName] = useState('');
+  const setReportePara = (id, tipo) => {
+  setReportesElegidos(prev => {
+    const key = String(id);
+    const next = { ...prev, [key]: tipo };
+    localStorage.setItem('inspeccion_reportes', JSON.stringify(next));
+    return next;
+  });
+};
+  const columnsInspecciones = [
+    { header: 'Código', key: 'codigo_inspeccion' },
+    { header: 'N° Control', key: 'n_control' },
+    { header: 'Fecha', key: 'fecha_inspeccion' },
+    { header: 'Hora', key: 'hora_inspeccion' },
+    { header: 'Estado', key: 'estado' },
+    { header: 'Solicitud', key: 'solicitud_codigo' },
+    { header: 'Planificación', key: 'planificacion_codigo' },
+    { header: 'Aspectos', key: 'aspectos' },
+    { header: 'Ordenamientos', key: 'ordenamientos' },
+  ];
 
+  function getPDFInfo() {
+    const all = Array.isArray(datosOriginales) ? datosOriginales : [];
+    const cur = Array.isArray(datosFiltrados) ? datosFiltrados : [];
+
+    const sameSize = cur.length === all.length;
+    const allEstadoIs = (estado) => cur.length > 0 && cur.every(i => String(i.estado || '').toLowerCase() === estado);
+
+    if (sameSize) {
+      return { fileName: 'Inspecciones_Todas.pdf', title: 'Listado de Inspecciones' };
+    }
+    if (allEstadoIs('creada'))         return { fileName: 'Inspecciones_Creadas.pdf',        title: 'Inspecciones Creadas' };
+    if (allEstadoIs('aprobada'))       return { fileName: 'Inspecciones_Aprobadas.pdf',      title: 'Inspecciones Aprobadas' };
+    if (allEstadoIs('rechazada'))      return { fileName: 'Inspecciones_Rechazadas.pdf',     title: 'Inspecciones Rechazadas' };
+    if (allEstadoIs('cuarentena'))     return { fileName: 'Inspecciones_Cuarentena.pdf',     title: 'Inspecciones en Cuarentena' };
+    if (allEstadoIs('inspeccionando')) return { fileName: 'Inspecciones_Inspeccionando.pdf', title: 'Inspecciones en Proceso' };
+    if (allEstadoIs('finalizada') || allEstadoIs('finalizado'))
+      return { fileName: 'Inspecciones_Finalizadas.pdf',    title: 'Inspecciones Finalizadas' };
+
+    return { fileName: 'Inspecciones_Filtradas.pdf', title: 'Listado de Inspecciones Filtradas' };
+  }
+
+  const handlePreviewPDF = () => {
+    const { fileName, title } = getPDFInfo();
+    const blob = exportToPDF({
+      data: datosFiltrados,
+      columns: columnsInspecciones,
+      fileName,
+      title,
+      preview: true
+    });
+    const url = URL.createObjectURL(blob);
+    setPdfUrl(url);
+    setPdfFileName(fileName);
+  };
+
+  const handleExportExcel = () => {
+    const { fileName } = getPDFInfo();
+    const excelFileName = fileName.replace('.pdf', '.xlsx');
+    exportToExcel({
+      data: datosFiltrados,
+      columns: columnsInspecciones,
+      fileName: excelFileName,
+      count: true,
+      totalLabel: 'TOTAL REGISTROS'
+    });
+  };
+
+  const handleSeguimiento = (inspeccionId) => {
+    if (!puedeVerSeguimiento) {
+      addNotification('No tiene permiso para ver el seguimiento.', 'error');
+      return;
+    }
+    navigate(`/inspecciones/${inspeccionId}/seguimiento`);
+  };
+
+  useEffect(() => {
+    const arr = Array.isArray(datosOriginales) ? datosOriginales : [];
+    const cuarentena    = arr.filter(i => normEstado(i.estado) === 'cuarentena').length;
+    const aprobadas  = arr.filter(i => normEstado(i.estado) === 'aprobada').length;
+    const rechazadas = arr.filter(i => normEstado(i.estado) === 'rechazada').length;
+    setTotales({
+      inspeccionesTotales: arr.length,
+      inspeccionesCuarentena: cuarentena,
+      inspeccionesAprobadas: aprobadas,
+      inspeccionesRechazadas: rechazadas,
+    });
+  }, [datosOriginales]);
+
+  // Actualizar estado (requiere endpoint PATCH /inspecciones/:id/estado)
+const updateEstadoInspeccion = async (estado) => {
+    const targetId = createdInspeccionId || formData.id;
+    if (!targetId) {
+      addNotification('Primero guarda la inspección.', 'warning');
+      return;
+    }
+    try {
+      setLoading(true);
+      await axios.patch(`${BaseUrl}/inspecciones/${targetId}/estado`, { estado }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+
+      // reflejar cambios en listas
+      setDatosOriginales(prev => prev.map(i => i.id === targetId ? { ...i, estado } : i));
+      setDatosFiltrados(prev => prev.map(i => i.id === targetId ? { ...i, estado } : i));
+
+      const st = String(estado).toLowerCase();
+      setEstadoSeleccionado(st);
+
+      if (st === 'rechazada' || st === 'cuarentena') {
+        // Fijar reporte para icono en tabla y pasar a FIN (paso 4)
+        setReportePara(targetId, 'general');
+        setRegistroStep(4);
+        // Asegura que el modal siga abierto
+        setCurrentModal('inspeccion');
+        addNotification(`Inspección #${targetId} finalizada (${st}).`, 'success');
+      } else {
+        setRegistroStep(3);
+      }
+    } catch (e) {
+      console.error(e);
+      addNotification('No se pudo actualizar el estado.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openReporte = (tipo, idForce) => {
+  const id = idForce || createdInspeccionId || formData.id;
+  if (!id) { addNotification('Primero guarda la inspección', 'warning'); return; }
+  setReportePara(id, tipo);
+  if (tipo === 'acta') {
+    navigate(`/inspecciones/${id}/acta-silos`);
+    return;
+  }
+  const url = `${BaseUrl}/reportes/inspeccion/${id}?tipo=${tipo}`;
+  window.open(url, '_blank');
+};
+
+  const openReporteDesdeTabla = (id, tipo) => openReporte(tipo, id);
+
+  // Catálogos
+  const [planificaciones, setPlanificaciones] = useState([]);
+  const [finalidadesCatalogo, setFinalidadesCatalogo] = useState([]);
+
+  // Para el select de planificación en edición (inyectar la opción actual si no está disponible)
+  const [planificacionActualOpt, setPlanificacionActualOpt] = useState(null);
+  const puedeIrPaso2 = Boolean(createdInspeccionId || formData.id);
+  // Imágenes
+  const [imagenes, setImagenes] = useState([]); // nuevas
+  const [previewUrls, setPreviewUrls] = useState([]);
+  const [imagenesGuardadas, setImagenesGuardadas] = useState([]); // del backend (editar)
+  const [imagenesAEliminar, setImagenesAEliminar] = useState([]); // nombres a eliminar
+
+  // Paginación
+  const itemsPerPage = 8;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  
   // Opciones de selects (memo)
   const planificacionOptions = useMemo(() => {
-    return planificaciones.map((p) => ({
+    return (planificaciones || []).map((p) => ({
       value: String(p.id),
-      // Antes: `${p.solicitud_codigo || 'SIN-COD'} — ${p.fecha_programada || ''}`
       label: `${p.solicitud_codigo || 'SIN-SOL'} - ${p.codigo || 'SIN-PLAN'}`,
     }));
   }, [planificaciones]);
 
+  
+  const planificacionOptionsEdit = useMemo(() => {
+    if (!planificacionActualOpt) return planificacionOptions;
+    const exists = planificacionOptions.some(o => o.value === planificacionActualOpt.value);
+    return exists ? planificacionOptions : [planificacionActualOpt, ...planificacionOptions];
+  }, [planificacionOptions, planificacionActualOpt]);
+
   const finalidadOptions = useMemo(() => {
-    return finalidadesCatalogo.map((f) => ({
+    return (finalidadesCatalogo || []).map((f) => ({
       value: String(f.id),
       label: f.nombre,
     }));
   }, [finalidadesCatalogo]);
 
-  // Constantes cliente alineadas con backend
   const MAX_FILES = 10;
   const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
   const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/jpg']);
@@ -139,6 +308,14 @@ function InspeccionesEst() {
     fetchFinalidadesCatalogo();
   }, []);
 
+  useEffect(() => {
+  const old = localStorage.getItem('reportesElegidos');
+  if (old && !localStorage.getItem('inspeccion_reportes')) {
+    localStorage.setItem('inspeccion_reportes', old);
+    try { setReportesElegidos(JSON.parse(old) || {}); } catch (e){e}
+  }
+}, []);
+
   // Helpers formulario
   const resetFormData = () => {
     setFormData({
@@ -157,7 +334,6 @@ function InspeccionesEst() {
       zona: '',
       aspectos: '',
       ordenamientos: '',
-      fecha_proxima_inspeccion: '',
       estado: '',
       planificacion_id: null,
       finalidades: [],
@@ -167,19 +343,38 @@ function InspeccionesEst() {
     setImagenesGuardadas([]);
     setImagenesAEliminar([]);
     setShowOpcionales(false);
+    setPlanificacionActualOpt(null);
   };
 
   const openModal = () => {
     resetFormData();
+    setRegistroStep(1);
+    setCreatedInspeccionId(null);
+    setEstadoSeleccionado('aprobada');
     setCurrentModal('inspeccion');
   };
 
   const closeModal = () => {
     resetFormData();
+    setRegistroStep(1);
+    setCreatedInspeccionId(null);
+    setEstadoSeleccionado('aprobada');
     setCurrentModal(null);
   };
 
-  const openDetalleModal = (inspeccion) => setDetalleModal({ abierto: true, inspeccion });
+  const openDetalleModal = async (inspeccion) => {
+    try {
+      setLoading(true);
+      const { data } = await axios.get(`${BaseUrl}/inspecciones/${inspeccion.id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      setDetalleModal({ abierto: true, inspeccion: data });
+    } catch {
+      setDetalleModal({ abierto: true, inspeccion });
+    } finally {
+      setLoading(false);
+    }
+  };
   const closeDetalleModal = () => setDetalleModal({ abierto: false, inspeccion: null });
 
   const openConfirmDeleteModal = (id) => {
@@ -191,45 +386,85 @@ function InspeccionesEst() {
     setConfirmDeleteModal(false);
   };
 
-
-  // NUEVO: galería
-  const openGaleriaModal = (imagenes = []) => {
-    setGaleriaModal({ abierto: true, imagenes: Array.isArray(imagenes) ? imagenes : [] });
+  // Galería
+   const openGaleriaModal = async (inspeccionId) => {
+    try {
+      setLoading(true);
+      const { data } = await axios.get(`${BaseUrl}/inspecciones/imagenes/${inspeccionId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      setGaleriaModal({ abierto: true, imagenes: Array.isArray(data) ? data : [] });
+    } catch (e) {
+      console.error('Error cargando imágenes:', e);
+      addNotification('No se pudieron cargar las imágenes', 'error');
+      setGaleriaModal({ abierto: true, imagenes: [] });
+    } finally {
+      setLoading(false);
+    }
   };
+
   const closeGaleriaModal = () => setGaleriaModal({ abierto: false, imagenes: [] });
 
-  const openEditModal = (item) => {
-    setFormData({
-      id: item.id,
-      codigo_inspeccion: item.codigo_inspeccion || '',
-      n_control: item.n_control || '',
-      area: item.area || 'VEGETAL',
-      fecha_inspeccion: item.fecha_inspeccion || '',
-      hora_inspeccion: item.hora_inspeccion || '',
-      responsable_e: item.responsable_e || 'No Especificado',
-      cedula_res: item.cedula_res || 'No Especificado',
-      tlf: item.tlf || 'No Especificado',
-      correo: item.correo || 'No Especificado',
-      norte: item.norte || '',
-      este: item.este || '',
-      zona: item.zona || '',
-      aspectos: item.aspectos || '',
-      ordenamientos: item.ordenamientos || '',
-      fecha_proxima_inspeccion: item.fecha_proxima_inspeccion || '',
-      estado: item.estado || '',
-      planificacion_id:
-        planificacionOptions.find((opt) => String(opt.value) === String(item.planificacion_id)) || null,
-      finalidades: (item.finalidades || []).map((f) => ({
-        finalidad_id:
-          finalidadOptions.find((opt) => String(opt.value) === String(f.finalidad_id || f.id)) || null,
-        objetivo: f.objetivo || '',
-      })),
-    });
-    setImagenesGuardadas(item.imagenes || []);
-    setImagenes([]);
-    setPreviewUrls([]);
-    setImagenesAEliminar([]);
-    setCurrentModal('inspeccion');
+
+
+  // Abrir Edición
+  const openEditModal = async (item) => {
+    try {
+      setLoading(true);
+      const { data } = await axios.get(`${BaseUrl}/inspecciones/${item.id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+
+      // Opción fallback actual para edición
+      const optPlan = data.planificacion_id
+        ? {
+            value: String(data.planificacion_id),
+            label: `${data.solicitud_codigo || 'SIN-SOL'} - ${data.planificacion_codigo || 'SIN-PLAN'}`
+          }
+        : null;
+      setPlanificacionActualOpt(optPlan);
+
+      // Finalidades a objeto { value, label }
+      const finalidadesForm = (data.finalidades || []).map(f => ({
+        finalidad_id: {
+          value: String(f.finalidad_id),
+          label: finalidadOptions.find(o => String(o.value) === String(f.finalidad_id))?.label || f.finalidad || 'Finalidad'
+        },
+        objetivo: f.objetivo || ''
+      }));
+
+      setFormData(prev => ({
+        ...prev,
+        id: data.id,
+        codigo_inspeccion: data.codigo_inspeccion || '',
+        n_control: data.n_control || '',
+        area: data.area || 'VEGETAL',
+        fecha_inspeccion: data.fecha_inspeccion || '',
+        hora_inspeccion: data.hora_inspeccion || '',
+        responsable_e: data.responsable_e || 'No Especificado',
+        cedula_res: data.cedula_res || 'No Especificado',
+        tlf: data.tlf || 'No Especificado',
+        correo: data.correo || 'No Especificado',
+        norte: data.norte ?? '',
+        este: data.este ?? '',
+        zona: data.zona ?? '',
+        aspectos: data.aspectos || '',
+        ordenamientos: data.ordenamientos || '',
+        estado: data.estado || 'creada',
+        planificacion_id: optPlan,           // SingleSelect
+        finalidades: finalidadesForm
+      }));
+
+      setImagenesGuardadas(Array.isArray(data.imagenes) ? data.imagenes : []);
+      setImagenesAEliminar([]);
+      setPreviewUrls([]);
+      setCurrentModal('inspeccion');
+    } catch (error) {
+      console.error(error);
+      addNotification('No se pudo cargar el detalle para editar', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Handlers inputs
@@ -354,7 +589,7 @@ function InspeccionesEst() {
     const data = new FormData();
 
     // Omite campos calculados o manejados en backend
-    const omit = new Set(['estado', 'finalidades', 'planificacion_id', 'codigo_inspeccion', 'n_control']);
+    const omit = new Set(['id', 'estado', 'finalidades', 'planificacion_id', 'codigo_inspeccion', 'n_control']);
     Object.entries(formData).forEach(([key, value]) => {
       if (omit.has(key)) return;
       data.append(key, value ?? '');
@@ -386,12 +621,20 @@ function InspeccionesEst() {
     setLoading(true);
     try {
       const data = buildFormDataPayload(false);
-      await axios.post(`${BaseUrl}/inspecciones`, data, {
+      const resp = await axios.post(`${BaseUrl}/inspecciones`, data, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      addNotification('Inspección registrada con éxito', 'success');
-      fetchInspecciones();
-      closeModal();
+
+      const newId = resp?.data?.id || resp?.data?.inspeccion?.id || resp?.data?.createdId;
+      if (newId) {
+        setCreatedInspeccionId(newId);
+        setFormData(prev => ({ ...prev, id: newId }));
+        setRegistroStep(2); // → Paso 2 (estado)
+        addNotification('Inspección registrada. Define el estado.', 'success');
+        await fetchInspecciones();
+      } else {
+        addNotification('No se pudo obtener el ID de la inspección creada.', 'error');
+      }
     } catch (error) {
       console.error('Error al registrar inspección:', error);
       addNotification('Error al registrar inspección', 'error');
@@ -462,9 +705,7 @@ function InspeccionesEst() {
   };
 
   // Seguimiento
-  const handleSeguimiento = (inspeccionId) => {
-    navigate(`/inspecciones/${inspeccionId}/seguimiento`);
-  };
+  
 
   return (
     <div className="mainContainer">
@@ -473,429 +714,638 @@ function InspeccionesEst() {
       {/* Modal Detalle */}
       {detalleModal.abierto && detalleModal.inspeccion && (
         <div className="modalOverlay">
-          <div className="modal">
+          <div className="modalDetalle">
             <button className="closeButton" onClick={closeDetalleModal}>&times;</button>
             <h2>Detalle de Inspección</h2>
-            <form className="modalForm">
-              <div className={styles.formColumns}>
-                <div className="formGroup">
-                  <label>Código Inspección:</label>
-                  <input type="text" value={detalleModal.inspeccion.codigo_inspeccion || ''} disabled className="input" />
-                </div>
-                <div className="formGroup">
-                  <label>N° Control:</label>
-                  <input type="text" value={detalleModal.inspeccion.n_control || ''} disabled className="input" />
-                </div>
-                <div className="formGroup">
-                  <label>Área:</label>
-                  <input type="text" value={detalleModal.inspeccion.area || ''} disabled className="input" />
-                </div>
-                <div className="formGroup">
-                  <label>Fecha Inspección:</label>
-                  <input type="date" value={detalleModal.inspeccion.fecha_inspeccion || ''} disabled className="date" />
-                </div>
-                <div className="formGroup">
-                  <label>Hora Inspección:</label>
-                  <input type="time" value={detalleModal.inspeccion.hora_inspeccion || ''} disabled className="input" />
-                </div>
-                <div className="formGroup">
-                  <label>Responsable:</label>
-                  <input type="text" value={detalleModal.inspeccion.responsable_e || ''} disabled className="input" />
-                </div>
-                <div className="formGroup">
-                  <label>Cédula Responsable:</label>
-                  <input type="text" value={detalleModal.inspeccion.cedula_res || ''} disabled className="input" />
-                </div>
-                <div className="formGroup">
-                  <label>Teléfono:</label>
-                  <input type="text" value={detalleModal.inspeccion.tlf || ''} disabled className="input" />
-                </div>
-                <div className="formGroup">
-                  <label>Correo:</label>
-                  <input type="email" value={detalleModal.inspeccion.correo || ''} disabled className="input" />
-                </div>
-                <div className="formGroup">
-                  <label>Coordenadas Norte:</label>
-                  <input type="number" value={detalleModal.inspeccion.norte || ''} disabled className="input" />
-                </div>
-                <div className="formGroup">
-                  <label>Coordenadas Este:</label>
-                  <input type="number" value={detalleModal.inspeccion.este || ''} disabled className="input" />
-                </div>
-                <div className="formGroup">
-                  <label>Zona:</label>
-                  <input type="number" value={detalleModal.inspeccion.zona || ''} disabled className="input" />
-                </div>
-                <div className="formGroup">
-                  <label>Aspectos:</label>
-                  <textarea value={detalleModal.inspeccion.aspectos || ''} disabled className="textarea" />
-                </div>
-                <div className="formGroup">
-                  <label>Ordenamientos:</label>
-                  <textarea value={detalleModal.inspeccion.ordenamientos || ''} disabled className="textarea" />
-                </div>
-                <div className="formGroup">
-                  <label>Finalidades:</label>
-                  <ul>
-                    {(detalleModal.inspeccion.finalidades || []).map((f, idx) => (
-                      <li key={idx}>
-                        {finalidadOptions.find((opt) => String(opt.value) === String(f.finalidad_id))?.label || f.finalidad}
-                        : {f.objetivo}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="formGroup">
-                  <label>Fecha Próxima Inspección:</label>
-                  <input type="date" value={detalleModal.inspeccion.fecha_proxima_inspeccion || ''} disabled className="date" />
-                </div>
-                <div className="formGroup">
-                  <label>Planificación:</label>
-                  <SingleSelect
-                    options={planificacionOptions}
-                    value={
-                      planificacionOptions.find(
-                        (opt) => String(opt.value) === String(detalleModal.inspeccion.planificacion_id)
-                      ) || null
-                    }
-                    isDisabled={true}
-                  />
-                </div>
-                 <div className="formGroup">
-                  <label>Estado:</label>
-                  <span className={`badge-estado badge-${detalleModal.inspeccion.estado}`}>
-                    {detalleModal.inspeccion.estado || '—'}
-                  </span>
-                </div>
-                {/* <div className="formGroup">
-                  <label>Imágenes:</label>
-                  <div className="imagenesPreview">
-                    {(detalleModal.inspeccion.imagenes || []).map((img) => (
-                      <img
-                        key={img.id}
-                        src={`${BaseUrl}/uploads/inspeccion_est/${img.imagen}`}
-                        alt="img"
-                        className="imgPreview"
-                      />
-                    ))}
-                  </div>
-                </div> */}
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
-        {galeriaModal.abierto && (
-            <div className="modalOverlay">
-            <div className="modalDetalle">
-                <button className="closeButton" onClick={closeGaleriaModal}>&times;</button>
-                <h2>Imágenes de la inspección</h2>
-                {galeriaModal.imagenes.length === 0 ? (
-                <p style={{ marginTop: 10 }}>Sin imágenes para mostrar.</p>
-                ) : (
-                <div className="galeriaGrid">
-                    {galeriaModal.imagenes.map((img) => (
-                    <img
-                        key={img.id || img.imagen}
-                        src={`${BaseUrl}/uploads/inspeccion_est/${img.imagen}`}
-                        alt="Imagen de inspección"
-                        className="galeriaImg"
-                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                        loading="lazy"
-                    />
-                    ))}
-                </div>
-                )}
-            </div>
-            </div>
-        )}
-
-      {/* Modal registro / edición */}
-      {currentModal === 'inspeccion' && (
-        <div className="modalOverlay">
-          <div className="modal_tree">
-            <button className="closeButton" onClick={closeModal}>&times;</button>
-            <h2>{formData.id ? 'Editar Inspección' : 'Registrar Inspección'}</h2>
-
-            {/* Subida de imágenes */}
-            <input
-              type="file"
-              id="imagenes"
-              className="input-imagen"
-              multiple
-              accept="image/png,image/jpeg,image/webp"
-              onChange={handleFileChange}
-            />
-            <label htmlFor="imagenes" className="label-imagen">
-              <img src={icon.pdf3} alt="Subir" className="iconSubir" style={{ width: 18, marginRight: 6 }} />
-              Subir Imágenes
-            </label>
-            <div style={{ fontSize: 12, color: '#6C757D', marginBottom: 8 }}>
-              Máx {MAX_FILES} imágenes por inspección, formatos: JPG/PNG/WebP, tamaño por archivo ≤ 3MB.
-            </div>
-
-            {/* Previews nuevas */}
-            {previewUrls.length > 0 && (
-              <div style={{ display: 'flex', gap: 10, margin: '10px 0', alignItems: 'center', flexWrap: 'wrap' }}>
-                {previewUrls.map((url, idx) => (
-                  <div key={idx} style={{ position: 'relative' }}>
-                    <img src={url} alt={`preview-${idx}`} style={{ maxWidth: 80, maxHeight: 80, border: '1px solid #ccc' }} />
-                    <button type="button" onClick={() => removeImage(idx)} title="Quitar imagen" className="closeButton2">×</button>
-                  </div>
-                ))}
-                <button type="button" onClick={clearImages} className="btn-limpiar" title="Limpiar imágenes seleccionadas">
-                  Limpiar seleccionadas
-                </button>
-              </div>
-            )}
-
-            {/* Imágenes guardadas (editar) */}
-            {formData.id && imagenesGuardadas.length > 0 && previewUrls.length === 0 && (
-              <div style={{ display: 'flex', gap: 10, margin: '10px 0', alignItems: 'center', flexWrap: 'wrap' }}>
-                {imagenesGuardadas.map((img, idx) => (
-                  <div key={img.id || img.imagen} style={{ position: 'relative' }}>
-                    <img
-                      src={`${BaseUrl}/uploads/inspeccion_est/${img.imagen}`}
-                      alt={`guardada-${idx}`}
-                      style={{ maxWidth: 80, maxHeight: 80, border: '1px solid #ccc' }}
-                      onError={(e) => { e.target.style.display = 'none'; }}
-                    />
-                    <button type="button" onClick={() => removeSavedImage(img.imagen)} title="Quitar imagen" className="closeButton2">×</button>
-                  </div>
-                ))}
-                <button type="button" onClick={clearSavedImages} className="btn-limpiar" title="Marcar todas las imágenes para eliminar">
-                  Quitar todas
-                </button>
-              </div>
-            )}
-
-            {/* Formulario */}
             <form className="modalForm">
               <div className="formColumns">
                 {/* Columna 1 */}
                 <div className="formColumn">
                   <div className="formGroup">
-                    <label htmlFor="planificacion_id">
-                      <span className="Unique" title="Campo Obligatorio">*</span>
-                      Planificación:
-                    </label>
-                    <SingleSelect
-                      options={planificacionOptions}
-                      value={formData.planificacion_id}
-                      onChange={(val) => handleSelectChange('planificacion_id', val)}
-                      placeholder="Planificación"
+                    <label>Planificación:</label>
+                    {(() => {
+                      const det = detalleModal.inspeccion || {};
+                      const fallback = det.planificacion_id
+                        ? {
+                            value: String(det.planificacion_id),
+                            label: `${det.solicitud_codigo || 'SIN-SOL'} - ${det.planificacion_codigo || 'SIN-PLAN'}`,
+                          }
+                        : null;
+                      const selected =
+                        planificacionOptions.find(o => String(o.value) === String(det.planificacion_id)) || fallback;
+
+                      return (
+                        <SingleSelect
+                          options={planificacionOptions}
+                          value={selected}
+                          isDisabled={true}
+                          placeholder="Planificación"
+                        />
+                      );
+                    })()}
+                  </div>
+
+                  <div className="formGroup">
+                    <label>Fecha Inspección:</label>
+                    <input
+                      type="date"
+                      value={detalleModal.inspeccion.fecha_inspeccion || ''}
+                      disabled
+                      className="date"
                     />
                   </div>
 
                   <div className="formGroup">
-                    <label htmlFor="hora_inspeccion">
-                      <span className="Unique" title="Campo Obligatorio">*</span>
-                      Hora Inspección:
-                    </label>
+                    <label>Hora Inspección (Real):</label>
                     <input
                       type="time"
-                      id="hora_inspeccion"
-                      value={formData.hora_inspeccion}
-                      onChange={handleChange}
+                      value={detalleModal.inspeccion.hora_inspeccion || ''}
+                      disabled
                       className="input"
                     />
                   </div>
 
                   <div className="formGroup">
-                    <label htmlFor="norte">
-                      <span className="Unique" title="Campo Obligatorio">*</span>
-                      Coordenadas Norte:
-                    </label>
+                    <label>Coordenadas Norte:</label>
                     <input
                       type="number"
-                      id="norte"
-                      value={formData.norte}
-                      onChange={handleChange}
+                      value={detalleModal.inspeccion.norte || ''}
+                      disabled
                       className="input"
-                      placeholder="Coordenada"
                     />
                   </div>
 
                   <div className="formGroup">
-                    <label htmlFor="este">
-                      <span className="Unique" title="Campo Obligatorio">*</span>
-                      Coordenadas Este:
-                    </label>
+                    <label>Coordenadas Este:</label>
                     <input
                       type="number"
-                      id="este"
-                      value={formData.este}
-                      onChange={handleChange}
+                      value={detalleModal.inspeccion.este || ''}
+                      disabled
                       className="input"
-                      placeholder="Coordenada"
                     />
                   </div>
 
                   <div className="formGroup">
-                    <label htmlFor="zona">
-                      <span className="Unique" title="Campo Obligatorio">*</span>
-                      Zona:
-                    </label>
+                    <label>Zona:</label>
                     <input
                       type="number"
-                      id="zona"
-                      value={formData.zona}
-                      onChange={handleChange}
+                      value={detalleModal.inspeccion.zona || ''}
+                      disabled
                       className="input"
-                      placeholder="Coordenada"
                     />
                   </div>
 
                   <div className="formGroup">
-                    <label htmlFor="aspectos">
-                      <span className="Unique" title="Campo Obligatorio">*</span>
-                      Aspectos:
-                    </label>
+                    <label>Aspectos:</label>
                     <textarea
-                      id="aspectos"
-                      value={formData.aspectos}
-                      onChange={handleChange}
+                      value={detalleModal.inspeccion.aspectos || ''}
+                      disabled
                       className="textarea"
-                      placeholder="Rellene el campo"
                     />
                   </div>
 
                   <div className="formGroup">
-                    <label htmlFor="ordenamientos">
-                      <span className="Unique" title="Campo Obligatorio">*</span>
-                      Ordenamientos:
-                    </label>
+                    <label>Ordenamientos:</label>
                     <textarea
-                      id="ordenamientos"
-                      value={formData.ordenamientos}
-                      onChange={handleChange}
+                      value={detalleModal.inspeccion.ordenamientos || ''}
+                      disabled
                       className="textarea"
-                      placeholder="Rellene el campo"
                     />
+                  </div>
+
+                  <div className="formGroup">
+                    <label>Área:</label>
+                    <input
+                      type="text"
+                      value={detalleModal.inspeccion.area || ''}
+                      disabled
+                      className="input"
+                    />
+                  </div>
+                  <div className="formGroup">
+                    <label>Estado:</label>
+                    <span className={`badge-estado badge-${detalleModal.inspeccion.estado}`}>
+                      {detalleModal.inspeccion.estado || '—'}
+                    </span>
                   </div>
                 </div>
 
                 {/* Columna 2 */}
                 <div className="formColumn">
                   <div className="formGroup">
-                    <label>Representante del establecimiento:</label>
-                    <button
-                      type="button"
-                      className="btn-limpiar"
-                      onClick={() => setShowOpcionales((prev) => !prev)}
-                      style={{ marginBottom: 8 }}
-                    >
-                      {showOpcionales ? 'Ocultar campos' : 'Mostrar campos'}
-                    </button>
-
-                    <div className={`opcionales-group${showOpcionales ? '' : ' hide'}`}>
-                      <div className="formGroup">
-                        <label htmlFor="responsable_e">Responsable:</label>
-                        <input
-                          type="text"
-                          id="responsable_e"
-                          value={formData.responsable_e}
-                          onChange={handleChange}
-                          className="input"
-                          placeholder="Campo opcional"
-                        />
-                      </div>
-                      <div className="formGroup">
-                        <label htmlFor="cedula_res">Cédula Responsable:</label>
-                        <input
-                          type="text"
-                          id="cedula_res"
-                          value={formData.cedula_res}
-                          onChange={handleChange}
-                          className="input"
-                          placeholder="Campo opcional"
-                        />
-                      </div>
-                      <div className="formGroup">
-                        <label htmlFor="tlf">Teléfono:</label>
-                        <input
-                          type="text"
-                          id="tlf"
-                          value={formData.tlf}
-                          onChange={handleChange}
-                          className="input"
-                          placeholder="Campo opcional"
-                        />
-                      </div>
-                      <div className="formGroup">
-                        <label htmlFor="correo">Correo:</label>
-                        <input
-                          type="email"
-                          id="correo"
-                          value={formData.correo}
-                          onChange={handleChange}
-                          className="input"
-                          placeholder="Campo opcional"
-                        />
-                      </div>
-                    </div>
+                    <label>Código Inspección:</label>
+                    <input
+                      type="text"
+                      value={detalleModal.inspeccion.codigo_inspeccion || ''}
+                      disabled
+                      className="input"
+                    />
                   </div>
 
-                  {/* Finalidades: Select arriba del objetivo */}
+                  <div className="formGroup">
+                    <label>N° Control:</label>
+                    <input
+                      type="text"
+                      value={detalleModal.inspeccion.n_control || ''}
+                      disabled
+                      className="input"
+                    />
+                  </div>
                   <div className="formGroup">
                     <label>Finalidades:</label>
-                    <div className="finalidades-group">
-                      {formData.finalidades.map((fin, idx) => (
-                        <div key={idx} className="finalidadRow" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                          <SingleSelect
-                            options={finalidadOptions}
-                            value={fin.finalidad_id}
-                            onChange={(val) => handleFinalidadChange(idx, 'finalidad_id', val)}
-                            placeholder="Finalidad"
-                          />
-                          <input
-                            type="text"
-                            value={fin.objetivo}
-                            onChange={(e) => handleFinalidadChange(idx, 'objetivo', e.target.value)}
-                            placeholder="Objetivo"
-                            className="input"
-                          />
-                          <div>
-                            <button type="button" onClick={() => removeFinalidad(idx)} className="btn-limpiar">
-                              Eliminar
-                            </button>
-                          </div>
-                        </div>
+                    <ul>
+                      {(detalleModal.inspeccion.finalidades || []).map((f, idx) => (
+                        <li key={idx}>
+                          {finalidadOptions.find((opt) => String(opt.value) === String(f.finalidad_id))?.label || f.finalidad}
+                          : {f.objetivo}
+                        </li>
                       ))}
-                      <button type="button" onClick={addFinalidad} className="btn-limpiar">
-                        Agregar finalidad
-                      </button>
-                    </div>
+                    </ul>
                   </div>
 
-                  {/* Opcional: fecha próxima inspección */}
                   <div className="formGroup">
-                    <label htmlFor="fecha_proxima_inspeccion">Fecha Próxima Inspección (opcional):</label>
-                    <input
-                      type="date"
-                      id="fecha_proxima_inspeccion"
-                      value={formData.fecha_proxima_inspeccion}
-                      onChange={handleChange}
-                      className="date"
-                    />
+                    <div className="opcionales-group">
+                      <div className="formGroup">
+                        <label>Responsable:</label>
+                        <input
+                          type="text"
+                          value={detalleModal.inspeccion.responsable_e || ''}
+                          disabled
+                          className="input"
+                        />
+                      </div>
+                      <div className="formGroup">
+                        <label>Cédula Responsable:</label>
+                        <input
+                          type="text"
+                          value={detalleModal.inspeccion.cedula_res || ''}
+                          disabled
+                          className="input"
+                        />
+                      </div>
+                      <div className="formGroup">
+                        <label>Teléfono:</label>
+                        <input
+                          type="text"
+                          value={detalleModal.inspeccion.tlf || ''}
+                          disabled
+                          className="input"
+                        />
+                      </div>
+                      <div className="formGroup">
+                        <label>Correo:</label>
+                        <input
+                          type="email"
+                          value={detalleModal.inspeccion.correo || ''}
+                          disabled
+                          className="input"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-
-              <button
-                type="button"
-                className="saveButton"
-                onClick={formData.id ? handleEdit : handleSave}
-                title={formData.id ? 'Actualizar Inspección' : 'Registrar Inspección'}
-                disabled={loading}
-              >
-                {loading ? 'Procesando...' : 'Guardar'}
-              </button>
             </form>
           </div>
         </div>
       )}
+
+      {galeriaModal.abierto && (
+          <div className="modalOverlay">
+            <div className="modalDetalle">
+              <button className="closeButton" onClick={closeGaleriaModal}>&times;</button>
+              <h2>Imágenes de la inspección</h2>
+              {galeriaModal.imagenes.length === 0 ? (
+                <p style={{ marginTop: 10 }}>Sin imágenes para mostrar.</p>
+              ) : (
+                <CardsCarousel
+                  items={galeriaModal.imagenes}
+                  height={220}
+                  renderCard={(img) => (
+                    <div className="imgCard">
+                      <img
+                        src={`${BaseUrl}/uploads/inspeccion_est/${img.imagen}`}
+                        alt="Imagen de inspección"
+                        className="imgThumb"
+                        loading="lazy"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      />
+                      <div className="imgMeta">
+                        <span title={img.imagen}>{img.imagen}</span>
+                        <a
+                          href={`${BaseUrl}/uploads/inspeccion_est/${img.imagen}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-estandar"
+                          style={{ padding: '4px 10px' }}
+                        >
+                          Abrir
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                />
+              )}
+            </div>
+          </div>
+        )}
+
+      {/* Modal registro / edición */}
+    {currentModal === 'inspeccion' && (
+        <div className="modalOverlay">
+          <div className={registroStep === 1 ? 'modal_tree' : 'modal_mono'}>
+            <button className="closeButton" onClick={closeModal}>&times;</button>
+          <h2>
+              {registroStep === 1
+                ? (formData.id ? 'Editar Inspección' : 'Registrar Inspección')
+                : registroStep === 2
+                  ? 'Actualizar estado de la inspección'
+                  : registroStep === 3
+                    ? 'Finalizar inspección y generar reporte'
+                    : 'Fin de la Inspección'}
+          </h2>
+
+            {registroStep === 1 && (
+              <>
+                {/* Subida de imágenes */}
+                <input
+                  type="file"
+                  id="imagenes"
+                  className="input-imagen"
+                  multiple
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={handleFileChange}
+                />
+                <label htmlFor="imagenes" className="label-imagen">
+                  <img src={icon.pdf3} alt="Subir" className="iconSubir" style={{ width: 18, marginRight: 6 }} />
+                  Subir Imágenes
+                </label>
+                <div style={{ fontSize: 12, color: '#6C757D', marginBottom: 8 }}>
+                  Máx {MAX_FILES} imágenes por inspección, formatos: JPG/PNG/WebP, tamaño por archivo ≤ 3MB.
+                </div>
+
+                {/* Previews nuevas */}
+                {previewUrls.length > 0 && (
+                  <div style={{ display: 'flex', gap: 10, margin: '10px 0', alignItems: 'center', flexWrap: 'wrap' }}>
+                    {previewUrls.map((url, idx) => (
+                      <div key={idx} style={{ position: 'relative' }}>
+                        <img src={url} alt={`preview-${idx}`} style={{ maxWidth: 80, maxHeight: 80, border: '1px solid #ccc' }} />
+                        <button type="button" onClick={() => removeImage(idx)} title="Quitar imagen" className="closeButton2">×</button>
+                      </div>
+                    ))}
+                    <button type="button" onClick={clearImages} className="btn-limpiar" title="Limpiar imágenes seleccionadas">
+                      Limpiar seleccionadas
+                    </button>
+                  </div>
+                )}
+
+                {/* Imágenes guardadas (editar) */}
+                {formData.id && imagenesGuardadas.length > 0 && previewUrls.length === 0 && (
+                  <div style={{ display: 'flex', gap: 10, margin: '10px 0', alignItems: 'center', flexWrap: 'wrap' }}>
+                    {imagenesGuardadas.map((img, idx) => (
+                      <div key={img.id || img.imagen} style={{ position: 'relative' }}>
+                        <img
+                          src={`${BaseUrl}/uploads/inspeccion_est/${img.imagen}`}
+                          alt={`guardada-${idx}`}
+                          style={{ maxWidth: 80, maxHeight: 80, border: '1px solid #ccc' }}
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                        <button type="button" onClick={() => removeSavedImage(img.imagen)} title="Quitar imagen" className="closeButton2">×</button>
+                      </div>
+                    ))}
+                    <button type="button" onClick={clearSavedImages} className="btn-limpiar" title="Marcar todas las imágenes para eliminar">
+                      Quitar todas
+                    </button>
+                  </div>
+                )}
+
+                {/* Formulario */}
+                <form className="modalForm">
+                  <div className="formColumns">
+                    {/* Columna 1 */}
+                    <div className="formColumn">
+                      <div className="formGroup">
+                        <label htmlFor="planificacion_id">
+                          <span className="Unique" title="Campo Obligatorio">*</span>
+                          Planificación:
+                        </label>
+                        <SingleSelect
+                          options={formData.id ? planificacionOptionsEdit : planificacionOptions}
+                          value={formData.planificacion_id}
+                          onChange={(val) => handleSelectChange('planificacion_id', val)}
+                          placeholder="Planificación"
+                        />
+                      </div>
+
+                      <div className="formGroup">
+                        <label htmlFor="hora_inspeccion">
+                          <span className="Unique" title="Campo Obligatorio">*</span>
+                          Hora Inspección (Real):
+                        </label>
+                        <input
+                          type="time"
+                          id="hora_inspeccion"
+                          value={formData.hora_inspeccion}
+                          onChange={handleChange}
+                          className="input"
+                        />
+                      </div>
+
+                      <div className="formGroup">
+                        <label htmlFor="norte">
+                          <span className="Unique" title="Campo Obligatorio">*</span>
+                          Coordenadas Norte:
+                        </label>
+                        <input
+                          type="number"
+                          id="norte"
+                          value={formData.norte}
+                          onChange={handleChange}
+                          className="input"
+                          placeholder="Coordenada"
+                        />
+                      </div>
+
+                      <div className="formGroup">
+                        <label htmlFor="este">
+                          <span className="Unique" title="Campo Obligatorio">*</span>
+                          Coordenadas Este:
+                        </label>
+                        <input
+                          type="number"
+                          id="este"
+                          value={formData.este}
+                          onChange={handleChange}
+                          className="input"
+                          placeholder="Coordenada"
+                        />
+                      </div>
+
+                      <div className="formGroup">
+                        <label htmlFor="zona">
+                          <span className="Unique" title="Campo Obligatorio">*</span>
+                          Zona:
+                        </label>
+                        <input
+                          type="number"
+                          id="zona"
+                          value={formData.zona}
+                          onChange={handleChange}
+                          className="input"
+                          placeholder="Coordenada"
+                        />
+                      </div>
+
+                      <div className="formGroup">
+                        <label htmlFor="aspectos">
+                          <span className="Unique" title="Campo Obligatorio">*</span>
+                          Aspectos:
+                        </label>
+                        <textarea
+                          id="aspectos"
+                          value={formData.aspectos}
+                          onChange={handleChange}
+                          className="textarea"
+                          placeholder="Rellene el campo"
+                        />
+                      </div>
+
+                      <div className="formGroup">
+                        <label htmlFor="ordenamientos">
+                          <span className="Unique" title="Campo Obligatorio">*</span>
+                          Ordenamientos:
+                        </label>
+                        <textarea
+                          id="ordenamientos"
+                          value={formData.ordenamientos}
+                          onChange={handleChange}
+                          className="textarea"
+                          placeholder="Rellene el campo"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Columna 2 */}
+                    <div className="formColumn">
+                      <div className="formGroup">
+                        <label><span className='Unique'>*</span>Representante del establecimiento:</label>
+                        <button
+                          type="button"
+                          className="btn-limpiar"
+                          onClick={() => setShowOpcionales((prev) => !prev)}
+                          style={{ marginBottom: 8 }}
+                        >
+                          {showOpcionales ? 'Ocultar campos' : 'Mostrar campos'}
+                        </button>
+
+                        <div className={`opcionales-group${showOpcionales ? '' : ' hide'}`}>
+                          <div className="formGroup">
+                            <label htmlFor="responsable_e">Responsable:</label>
+                            <input
+                              type="text"
+                              id="responsable_e"
+                              value={formData.responsable_e}
+                              onChange={handleChange}
+                              className="input"
+                              placeholder="Campo opcional"
+                            />
+                          </div>
+                          <div className="formGroup">
+                            <label htmlFor="cedula_res">Cédula Responsable:</label>
+                            <input
+                              type="text"
+                              id="cedula_res"
+                              value={formData.cedula_res}
+                              onChange={handleChange}
+                              className="input"
+                              placeholder="Campo opcional"
+                            />
+                          </div>
+                          <div className="formGroup">
+                            <label htmlFor="tlf">Teléfono:</label>
+                            <input
+                              type="text"
+                              id="tlf"
+                              value={formData.tlf}
+                              onChange={handleChange}
+                              className="input"
+                              placeholder="Campo opcional"
+                            />
+                          </div>
+                          <div className="formGroup">
+                            <label htmlFor="correo">Correo:</label>
+                            <input
+                              type="email"
+                              id="correo"
+                              value={formData.correo}
+                              onChange={handleChange}
+                              className="input"
+                              placeholder="Campo opcional"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Finalidades */}
+                      <div className="formGroup">
+                        <label><span className='Unique'>*</span>Finalidades:</label>
+                        <div className="finalidades-group">
+                          {formData.finalidades.map((fin, idx) => (
+                            <div key={idx} className="finalidadRow" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                              <SingleSelect
+                                options={finalidadOptions}
+                                value={fin.finalidad_id}
+                                onChange={(val) => handleFinalidadChange(idx, 'finalidad_id', val)}
+                                placeholder="Finalidad"
+                              />
+                              <input
+                                type="text"
+                                value={fin.objetivo}
+                                onChange={(e) => handleFinalidadChange(idx, 'objetivo', e.target.value)}
+                                placeholder="Objetivo"
+                                className="input"
+                              />
+                              <div>
+                                <button type="button" onClick={() => removeFinalidad(idx)} className="btn-limpiar">
+                                  Eliminar
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                          <button type="button" onClick={addFinalidad} className="btn-limpiar">
+                            Agregar finalidad
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="saveButton"
+                    onClick={formData.id ? handleEdit : handleSave}
+                    title={formData.id ? 'Actualizar Inspección' : 'Registrar Inspección'}
+                    disabled={loading}
+                  >
+                    {loading ? 'Procesando...' : 'Guardar'}
+                  </button>
+                </form>
+              </>
+            )}
+
+            {registroStep === 2 && puedeIrPaso2 && (
+              <div className="modalForm">
+                <p style={{ marginTop: 4, marginBottom: 10 }}>
+                  Inspección cargada con éxito. ¿Cómo deseas establecer el estado de esta inspección?
+                </p>
+                <div className="radio-group" style={{ marginTop: 6 }}>
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      className="radio-input"
+                      checked={estadoSeleccionado === 'aprobada'}
+                      onChange={() => setEstadoSeleccionado('aprobada')}
+                    />
+                    Aprobada
+                  </label>
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      className="radio-input"
+                      checked={estadoSeleccionado === 'finalizda'}
+                      onChange={() => setEstadoSeleccionado('finalizada')}
+                    />
+                    Finalizada
+                  </label>
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      className="radio-input"
+                      checked={estadoSeleccionado === 'rechazada'}
+                      onChange={() => setEstadoSeleccionado('rechazada')}
+                    />
+                    Rechazada
+                  </label>
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      className="radio-input"
+                      checked={estadoSeleccionado === 'cuarentena'}
+                      onChange={() => setEstadoSeleccionado('cuarentena')}
+                    />
+                    Cuarentena
+                  </label>
+                </div>
+
+                <div className="modalActions">
+                  <button
+                    className="confirmButton"
+                    onClick={async () => { await updateEstadoInspeccion(estadoSeleccionado); }}
+                    disabled={loading}
+                  >
+                    Guardar estado y continuar
+                  </button>
+                  <button className="cancelButton" onClick={() => setCurrentModal(null)}>Cerrar</button>
+                </div>
+              </div>
+            )}
+
+            {registroStep === 3 && puedeIrPaso3 && (
+              <div className="modalForm">
+                <p style={{ marginTop: 4, marginBottom: 12 }}>
+                  Finaliza completamente la inspección{estadoSeleccionado ? ` (estado: ${estadoSeleccionado})` : ''} y genera un reporte:
+                </p>
+                <div className="panelActions" style={{ justifyContent: 'center' }}>
+                  <button className="panelBtn editar" onClick={() => openReporte('general')}>
+                    Reporte General
+                  </button>
+                  <button className="panelBtn editar" onClick={() => openReporte('acta')}>
+                    Acta de Inspección
+                  </button>
+                  <button className="panelBtn editar" onClick={() => openReporte('informe')}>
+                    Informe Técnico
+                  </button>
+                </div>
+                <div style={{ textAlign: 'center', marginTop: 10, color: 'var(--grey4)' }}>
+                  El reporte se abrirá en una nueva pestaña.
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+     {/* Paso 4: Fin de la Inspección */}
+            {registroStep === 4 && (
+              <div className="modalForm">
+                <h3 style={{ textAlign: 'center', marginBottom: 8 }}>Fin de la Inspección</h3>
+                <p style={{ textAlign: 'center', color: 'var(--grey4)' }}>
+                  La inspección ha sido cerrada con estado: <strong>{estadoSeleccionado}</strong>.
+                </p>
+
+                <div className="panelActions" style={{ justifyContent: 'center', marginTop: 12 }}>
+                  <button
+                    className="panelBtn editar"
+                    onClick={() => openReporte('general')}
+                    title="Abrir Reporte General"
+                  >
+                    Abrir Reporte General
+                  </button>
+                  <button
+                    className="panelBtn eliminar"
+                    onClick={() => setCurrentModal(null)}
+                    title="Cerrar"
+                    style={{ marginLeft: 10 }}
+                  >
+                    Cerrar
+                  </button>
+                </div>
+
+                <div style={{ textAlign: 'center', marginTop: 10, color: 'var(--grey4)' }}>
+                  Se guardó tu preferencia de reporte para mostrar el ícono en la tabla.
+                </div>
+              </div>
+            )}
 
       {/* Modal confirmación eliminar */}
       {confirmDeleteModal && (
@@ -916,13 +1366,70 @@ function InspeccionesEst() {
         </div>
       )}
 
+      <div className='cardsContainer'>
+        <div className='card' onClick={mostrarTodas} title='Todas las Inspecciones'>
+          <span className='cardNumber'>{totales.inspeccionesTotales}</span>
+          <p>Total</p>
+        </div>
+        <div className='card' onClick={mostrarCuarentena} title='Inspecciones Cuarentena'>
+          <span className='cardNumber'>{totales.inspeccionesCuarentena}</span>
+          <p>Inspecciones con Cuarentenas</p>
+        </div>
+        <div className='card' onClick={mostrarAprobadas} title='Inspecciones Aprobadas'>
+          <span className='cardNumber'>{totales.inspeccionesAprobadas}</span>
+          <p>Inspecciones Aprobadas</p>
+        </div>
+        <div className='card' onClick={mostrarRechazadas} title='Inspecciones Rechazadas'>
+          <span className='cardNumber'>{totales.inspeccionesRechazadas}</span>
+          <p>Inspecciones Rechazadas</p>
+        </div>
+      </div>
+
+      {pdfUrl && (
+        <div className="modalOverlay">
+          <div className="modalDetalle">
+            <button className="closeButton" onClick={() => setPdfUrl(null)}>&times;</button>
+            <iframe src={pdfUrl} width="100%" height="600px" title="Vista previa PDF" />
+            <a
+              href={pdfUrl}
+              download={pdfFileName}
+              className="btn-estandar"
+              style={{ marginTop: 16, display: 'inline-block', textDecoration: 'none' }}
+            >
+              Descargar PDF
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* Tabla */}
       <div className="tableSection">
         <div className="filtersContainer">
+          <div className='filtersButtons'>
+
           <button type="button" onClick={openModal} className="create" title="Registrar Inspección">
             <img src={icon.plus} alt="Crear" className="icon" />
             Inspección
           </button>
+          <button
+            type='button'
+            onClick={handlePreviewPDF}
+            className='btn-estandar'
+            title='Previsualizar PDF'
+          >
+            <img src={icon.pdf5} alt="PDF" className='icon' />
+            PDF
+          </button>
+          <button
+            type='button'
+            onClick={handleExportExcel}
+            className='btn-estandar'
+            title='Descargar Excel'
+          >
+            <img src={icon.excel2} alt="Excel" className='icon' />
+            Excel
+          </button>
+        </div>
           <h2>Inspecciones</h2>
           <div className="searchContainer">
             <SearchBar onSearch={handleSearch} />
@@ -952,14 +1459,16 @@ function InspeccionesEst() {
                 <td>{item.responsable_e}</td>
                 <td><span className={`badge-estado badge-${item.estado}`}>{item.estado}</span></td>
                 <td>
-                   <div className="iconContainer">
-                    <img
-                      src={icon.ojito}
-                      onClick={() => handleSeguimiento(item.id)}
-                      alt="Seguimiento"
-                      className="iconver"
-                      title="Dar Seguimiento a esta Inspección"
-                    />
+                  <div className="iconContainer">
+                  {puedeVerSeguimiento && (
+                      <img
+                        src={icon.ojito}
+                        onClick={() => handleSeguimiento(item.id)}
+                        alt="Seguimiento"
+                        className="iconver"
+                        title="Dar Seguimiento a esta Inspección"
+                      />
+                    )}
                     <img
                       onClick={() => openDetalleModal(item)}
                       src={icon.ver}
@@ -968,12 +1477,25 @@ function InspeccionesEst() {
                       title="Ver más"
                     />
                     <img
-                      src={icon.pdf5}
-                      onClick={() => openGaleriaModal(item.imagenes || [])}
+                      src={icon.picture}
+                      onClick={() => openGaleriaModal(item.id)}   
                       alt="Imágenes"
                       className="iconver"
                       title="Ver imágenes"
                     />
+                    {reportesElegidos[String(item.id)] && (
+                      <img
+                        src={
+                          reportesElegidos[String(item.id)] === 'general' ? icon.pdf2
+                          : reportesElegidos[String(item.id)] === 'acta' ? icon.pdf4
+                          : icon.pdf
+                        }
+                        onClick={() => openReporteDesdeTabla(item.id, reportesElegidos[String(item.id)])}
+                        alt="Reporte"
+                        className="iconpdf"
+                        title={`Abrir reporte (${reportesElegidos[String(item.id)]})`}
+                      />
+                    )}
                     {tienePermiso('inspecciones', 'editar') && (
                       <img
                         onClick={() => openEditModal(item)}

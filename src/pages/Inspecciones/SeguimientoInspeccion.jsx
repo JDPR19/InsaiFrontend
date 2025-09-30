@@ -1,376 +1,334 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { BaseUrl } from '../../utils/constans';
-import SingleSelect from '../../components/selectmulti/SingleSelect';
 import Spinner from '../../components/spinner/Spinner';
-import icon from '../../components/iconos/iconos';
 import { useNotification } from '../../utils/NotificationContext';
+import styles from './inspecciones.module.css';
 import '../../main.css';
+import Icon from '../../components/iconos/iconos';
+
+function timeSince(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  const now = new Date();
+  let delta = Math.floor((now - d) / 1000);
+  const y = Math.floor(delta / (3600 * 24 * 365)); if (y >= 1) return `${y} año${y > 1 ? 's' : ''}`;
+  const m = Math.floor(delta / (3600 * 24 * 30)); if (m >= 1) return `${m} mes${m > 1 ? 'es' : ''}`;
+  const w = Math.floor(delta / (3600 * 24 * 7)); if (w >= 1) return `${w} semana${w > 1 ? 's' : ''}`;
+  const dd = Math.floor(delta / (3600 * 24)); if (dd >= 1) return `${dd} día${dd > 1 ? 's' : ''}`;
+  const hh = Math.floor(delta / 3600); if (hh >= 1) return `${hh} hora${hh > 1 ? 's' : ''}`;
+  const mm = Math.floor(delta / 60); if (mm >= 1) return `${mm} minuto${mm > 1 ? 's' : ''}`;
+  return `${delta} segundo${delta !== 1 ? 's' : ''}`;
+}
 
 function SeguimientoInspeccion() {
-    const { id } = useParams();
-    const navigate = useNavigate();
-    const [loading, setLoading] = useState(false);
-    const [inspeccion, setInspeccion] = useState(null);
-    const [programas, setProgramas] = useState([]);
-    const [asociados, setAsociados] = useState([]);
-    const [modalOpen, setModalOpen] = useState(false);
-    const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
-    const [selectedAsociadoId, setSelectedAsociadoId] = useState(null);
-    const { addNotification } = useNotification();
-    const [todasInspecciones, setTodasInspecciones] = useState([]);
-    const numeroOrden = todasInspecciones.findIndex(i => String(i.id) === String(id)) + 1;
-    // Estado del formulario
-    const [formData, setFormData] = useState({
-        id: '',
-        programa_fito_id: null,
-        observacion: ''
-    });
-    // Opciones para el select de programas 
-    const programaOptions = programas.map(p => ({value: String(p.id),label: p.nombre}));
+  const { id } = useParams(); // id de la inspección clicada
+  const navigate = useNavigate();
+  const { addNotification } = useNotification();
 
-    useEffect(() => {
-        axios.get(`${BaseUrl}/inspecciones`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        })
-        .then(res => setTodasInspecciones(res.data))
-        .catch(() => setTodasInspecciones([]));
-    }, []);
+  const [loading, setLoading] = useState(false);
+  const [traza, setTraza] = useState({ propiedad: null, productores: [], galeria: [], inspecciones: [] });
+  const [hovered, setHovered] = useState(null);
+  const [inspeccionSeleccionada, setInspeccionSeleccionada] = useState(null);
 
-    // Obtener datos de inspección
-    const fetchInspeccion = async () => {
-        setLoading(true);
-        try {
-            const res = await axios.get(`${BaseUrl}/inspecciones/${id}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            setInspeccion(res.data);
-        } catch (error) {
-            console.error('Error solicitando todos los datos de la inspección', error);
-            setInspeccion(null);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Obtener todos los programas fito
-    const fetchProgramas = async () => {
-        try {
-            const res = await axios.get(`${BaseUrl}/seguimiento/programas`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            setProgramas(Array.isArray(res.data) ? res.data : []);
-        } catch (error) {
-            console.error('Error solicitando todos los programas', error);
-            setProgramas([]);
-        }
-    };
-
-    // Obtener programas asociados a la inspección
-    const fetchAsociados = async () => {
-        try {
-            const res = await axios.get(`${BaseUrl}/seguimiento/${id}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            setAsociados(Array.isArray(res.data) ? res.data : []);
-        } catch (error) {
-            console.error('Error solicitando los programas asociados', error);
-            setAsociados([]);
-        }
-    };
-
-    useEffect(() => {
-        fetchInspeccion();
-        fetchProgramas();
-        fetchAsociados();
-        // eslint-disable-next-line
-    }, [id]);
-
-    // Abrir modal de registro
-    const openModal = () => {
-        setFormData({
-            id: '',
-            programa_fito_id: null,
-            observacion: ''
-        });
-        setModalOpen(true);
-    };
-
-    // Abrir modal de edición
-    const openEditModal = (asociado) => {
-        setFormData({
-            id: asociado.id,
-            programa_fito_id: programaOptions.find(opt => String(opt.value) === String(asociado.programa_id)) || null,
-            observacion: asociado.observacion || ''
-        });
-        setModalOpen(true);
-    };
-    // Cerrar modal
-    const closeModal = () => {
-        setModalOpen(false);
-        setFormData({
-            id: '',
-            programa_fito_id: null,
-            observacion: ''
-        });
-    };
-
-    // Abrir modal de confirmación para eliminar
-    const openConfirmDeleteModal = (id) => {
-        setSelectedAsociadoId(id);
-        setConfirmDeleteModal(true);
-    };
-    const closeConfirmDeleteModal = () => {
-        setSelectedAsociadoId(null);
-        setConfirmDeleteModal(false);
-    };
-
-    const handleSave = async () => {
-    if (!formData.programa_fito_id) {
-        addNotification('Debe seleccionar un programa', 'error');
-        return;
-    }
+  const fetchTrazabilidad = async () => {
     setLoading(true);
     try {
-        await axios.post(`${BaseUrl}/seguimiento`, {
-            inspeccion_est_id: id,
-            programa_fito_id: formData.programa_fito_id.value,
-            observacion: formData.observacion
-        }, {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-        addNotification('Programa asociado con éxito', 'success');
-        fetchAsociados();
-        closeModal();
+      const res = await axios.get(`${BaseUrl}/seguimiento/${id}/trazabilidad`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      const data = res.data || {};
+      setTraza({
+        propiedad: data.propiedad || null,
+        productores: Array.isArray(data.productores) ? data.productores : [],
+        galeria: Array.isArray(data.galeria) ? data.galeria : [],
+        inspecciones: Array.isArray(data.inspecciones) ? data.inspecciones : [],
+      });
     } catch (error) {
-        console.error('Error registrando programa asociado', error);
-        addNotification('Error al guardar', 'error');
+      console.error('Error obteniendo trazabilidad', error);
+      addNotification('No se pudo cargar la trazabilidad', 'error');
+      setTraza({ propiedad: null, productores: [], galeria: [], inspecciones: [] });
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
 
+  useEffect(() => {
+    fetchTrazabilidad();
+    setInspeccionSeleccionada(Number(id) || null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
-    const handleEdit = async () => {
-        setLoading(true);
-        try {
-            await axios.put(`${BaseUrl}/seguimiento/${formData.id}`, {
-                observacion: formData.observacion
-            }, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            addNotification('Programa actualizado con éxito', 'success');
-            fetchAsociados();
-            closeModal();
-        } catch (error) {
-            console.error('Error actualizando programa asociado', error);
-            addNotification('Error al actualizar', 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
+  const primeraFecha = useMemo(() => {
+    if (!traza.inspecciones.length) return null;
+    const first = [...traza.inspecciones].sort(
+      (a, b) => new Date(a.fecha_inspeccion) - new Date(b.fecha_inspeccion)
+    )[0];
+    return first?.fecha_inspeccion || null;
+  }, [traza.inspecciones]);
 
-    const handleDelete = async () => {
-        setLoading(true);
-        try {
-            await axios.delete(`${BaseUrl}/seguimiento/${selectedAsociadoId}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            addNotification('Programa eliminado con éxito', 'success');
-            fetchAsociados();
-        } catch (error) {
-            console.error('Error Eliminando el programa', error);
-            addNotification('Error al eliminar el programa', 'error');
-        } finally {
-            setLoading(false);
-            closeConfirmDeleteModal();
-        }
-    };
+  const propCover = useMemo(() => {
+    const img = traza.galeria?.[0]?.imagen;
+    return img ? `${BaseUrl}/uploads/inspeccion_est/${img}` : null;
+  }, [traza.galeria]);
 
-    return (
-        <div className="mainContainer">
-            {loading && <Spinner text="Procesando..." />}
+  const avatarFromName = (nombre = '', apellido = '') => {
+    const n = (nombre || '').trim();
+    const a = (apellido || '').trim();
+    const txt = [n, a].filter(Boolean).join(' ');
+    if (!txt) return `https://ui-avatars.com/api/?name=NA&background=98c79a&color=fff&rounded=true`;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(txt)}&background=98c79a&color=fff&rounded=true`;
+  };
 
-            {/* Modal de confirmación para eliminar */}
-            {confirmDeleteModal && (
-                <div className='modalOverlay'>
-                    <div className='modal'>
-                        <h2>Confirmar Eliminación</h2>
-                        <p>¿Estás seguro de que deseas eliminar este Programa para esta Inspección?</p>
-                        <div className='modalActions'>
-                            <button className='cancelButton' onClick={closeConfirmDeleteModal}>Cancelar</button>
-                            <button className='confirmButton' onClick={handleDelete}>Confirmar</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+   const openReporte = (tipo, idForce) => {
+    const targetId = idForce || inspeccionSeleccionada;
+    if (!targetId) {
+      addNotification('Selecciona una inspección para generar el reporte', 'warning');
+      return;
+    }
+    if (tipo === 'acta') {
+      navigate(`/inspecciones/${targetId}/acta-silos`);
+      return;
+    }
+    const url = `${BaseUrl}/reportes/inspeccion/${targetId}?tipo=${tipo}`;
+    window.open(url, '_blank');
+  };
 
-            {/* Sección superior */}
-            <div className='SectionSeguimiento'>
-                <div className='ss-left'>
-                    <button
-                        className="create"
-                        onClick={() => navigate('/SeccionThree')}
-                    >
-                        <img src={icon.flecha} alt="Regresar" title='Regresar a la pagina anterior' className='iconTwo' />
-                        Regresar
-                    </button>
-                </div>
+  return (
+    <div className="mainContainer">
+      {loading && <Spinner text="Procesando..." />}
 
-                {/* <div className="ss-center">
-                    <img src={icon.homeIcon} alt="Exportar" title='Exportar' className='btn-icon-Estandar' />
-                    <img src={icon.excel} alt="Imprimir" title='Imprimir' className='btn-icon-Estandar'/>
-                    <img src={icon.pdf4} alt="Ayuda" title='Ayuda' className='btn-icon-Estandar'/>
-                    <img src={icon.cubo} alt="Ayuda" title='Ayuda' className='btn-icon-Estandar'/>
-                </div> */}
-
-                <div className='ss-right'>
-                    <h2  className='titleOne'>
-                        Seguimiento de Inspección #{numeroOrden > 0 ? numeroOrden : id}
-                    </h2>
-                    <h3 className='titleTwo'>
-                        Propiedad: {inspeccion?.propiedad_nombre || 'Sin Nombre'}
-                    </h3>
-                </div>
-            </div>
-
-            {/* Tabla de detalles de la inspección */}
-            {inspeccion && (
-                <div className="tableSection" style={{ marginBottom: 30 }}>
-                    <table className="table">
-                        <thead>
-                            <tr>
-                                <th>Código</th>
-                                <th>Estado</th>
-                                <th>Fecha Inspección</th>
-                                <th>Responsable</th>
-                                <th>Tipo</th>
-                                <th>Propiedad</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>{inspeccion.codigo_inspeccion}</td>
-                                <td>
-                                    <span className={`badge-estado badge-${inspeccion.estado?.toLowerCase().replace(/\s/g, '')}`}>
-                                        {inspeccion.estado}
-                                    </span>
-                                </td>
-                                <td>{inspeccion.fecha_inspeccion}</td>
-                                <td>
-                                    {inspeccion.empleados_responsables && inspeccion.empleados_responsables.length > 0
-                                        ? inspeccion.empleados_responsables.map(e => `${e.nombre} ${e.apellido}`).join(', ')
-                                        : 'Sin responsable'}
-                                </td>
-                                <td>{inspeccion.tipo_inspeccion_nombre}</td>
-                                <td>{inspeccion.propiedad_nombre}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            )}
-
-            {/* Tabla de programas asociados */}
-            <div className="tableSection" style={{ marginBottom: 30 }}>
-                <div className="filtersContainer">
-                    <button className="create" onClick={openModal} title='Asociar Programa'>
-                        <img src={icon.plus} alt="Agregar" className='icon' />
-                        Agregar
-                    </button>
-                    <h2>Programas Asociados</h2>
-                    <div className='searchContainer'></div>
-                </div>
-                <table className="table">
-                    <thead>
-                        <tr>
-                            <th>Programa</th>
-                            <th>Descripción</th>
-                            <th>Fecha Asociación</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {asociados.length === 0 && (
-                            <tr>
-                                <td colSpan={4} style={{ color: 'var(--grey4)' }}>No hay programas asociados.</td>
-                            </tr>
-                        )}
-                        {asociados.map(p => (
-                            <tr key={p.id}>
-                                <td>{p.nombre}</td>
-                                <td>{p.observacion}</td>
-                                <td>{p.created_at?.slice(0, 10)}</td>
-                                <td>
-                                    <div className='iconContainer'>
-                                        <img
-                                            onClick={() => openEditModal(p)}
-                                            src={icon.editar}
-                                            className='iconeditar'
-                                            title='Editar'
-                                        />
-                                        <img
-                                            onClick={() => openConfirmDeleteModal(p.id)}
-                                            src={icon.eliminar}
-                                            className='iconeliminar'
-                                            title='Eliminar'
-                                        />
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Modal registro/edición */}
-            {modalOpen && (
-                <div className="modalOverlay">
-                    <div className="modal_mono">
-                        <button className="closeButton" onClick={closeModal}>&times;</button>
-                        <h2>{formData.id ? 'Editar Asociación' : 'Asociar Programa'}</h2>
-                        <form className="modalForm">
-                            <div className='formColumns_mono'>
-                                <div className="formGroup">
-                                    <label>Programas:</label>
-                                    <SingleSelect
-                                        options={programaOptions}
-                                        value={formData.programa_fito_id}
-                                        onChange={val => setFormData(prev => ({
-                                            ...prev,
-                                            programa_fito_id: val
-                                        }))}
-                                        placeholder="Seleccione un programa"
-                                        isDisabled={!!formData.id}
-                                    />
-                                </div>
-                                <div className="formGroup">
-                                    <label>Descripción:</label>
-                                    <textarea
-                                        className="textarea"
-                                        value={formData.observacion}
-                                        onChange={e => setFormData(prev => ({
-                                            ...prev,
-                                            observacion: e.target.value
-                                        }))}
-                                        placeholder="Descripción del programa"
-                                    />
-                                </div>
-                            </div>
-                            <button 
-                                className="saveButton" 
-                                type="button"
-                                onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Asociación' : 'Asociar Programa'} 
-                            >
-                                Guardar
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
+     <div className={`SectionSeguimiento ${styles.sectionHeader}`}>
+        <div className={`ss-left ${styles.headerLeft}`}>
+          <button className={`create btn-estandar`} onClick={() => navigate('/SeccionTwo')}>
+            <img src={Icon.flecha} alt="Regresar" className='icon' />
+            Regresar
+          </button>
         </div>
-    );
+
+        <div className={`ss-right ${styles.headerCard}`}>
+          <h2 className="titleOne">Trazabilidad de Propiedad</h2>
+          <h3 className="titleTwo">
+            Propiedad: {traza.propiedad?.propiedad_nombre || '—'} 
+          </h3>
+            <h3 className='titleTwo'>
+                RIF: {traza.propiedad?.propiedad_rif || '—'}
+            </h3>
+                
+          <div style={{ color: 'var(--grey4)' }}>
+            Total inspecciones: {traza.inspecciones.length}{' '}
+            {primeraFecha ? `· En seguimiento desde hace ${timeSince(primeraFecha)}` : ''}
+          </div>
+          <div style={{ color: 'var(--grey4)' }}>
+            Ubicación: {traza.propiedad?.propiedad_ubicacion || '—'}
+          </div>
+        </div>
+      </div>
+
+      {/* Cabecera visual: Propiedad (full-width) + Reportes + Productores */}
+      <div className={styles.landingHeader}>
+        <div className={styles.propCard}>
+          <div className={styles.propCover}>
+            {propCover ? (
+              <img src={propCover} alt="propiedad" onError={(e) => (e.currentTarget.style.display = 'none')} />
+            ) : (
+              <div className={styles.propPlaceholder}>Sin imagen</div>
+            )}
+          </div>
+          <div className={styles.propInfo}>
+            <div className={styles.propTitle}>{traza.propiedad?.propiedad_nombre || 'Propiedad'}</div>
+            <div className={styles.propMeta}>
+              <span>RIF: {traza.propiedad?.propiedad_rif || '—'}</span>
+              <span>·</span>
+              <span>{traza.propiedad?.propiedad_ubicacion || '—'}</span>
+            </div>
+            <div className={styles.propStats}>
+              <div>
+                <strong>{traza.inspecciones.length}</strong>
+                <span>Inspecciones</span>
+              </div>
+              <div>
+                <strong>{primeraFecha ? timeSince(primeraFecha) : '—'}</strong>
+                <span>Tiempo en seguimiento</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.reportCard}>
+          <div className={styles.reportHeader}>
+            <div className={styles.reportTitle}>Reportes</div>
+            <div className={styles.reportHint}>
+              {inspeccionSeleccionada
+                ? `Inspección seleccionada: #${inspeccionSeleccionada}`
+                : 'Selecciona una inspección en la línea de tiempo'}
+            </div>
+          </div>
+          <div className={styles.reportActions}>
+            <button
+              className={styles.reportBtn}
+              onClick={() => openReporte('general')}
+              disabled={!inspeccionSeleccionada}
+              title="Reporte General"
+            >
+              Reporte General
+            </button>
+            <button
+              className={styles.reportBtn}
+              onClick={() => openReporte('acta')}
+              disabled={!inspeccionSeleccionada}
+              title="Acta de Inspección"
+            >
+              Acta de Inspección
+            </button>
+            <button
+              className={styles.reportBtn}
+              onClick={() => openReporte('informe')}
+              disabled={!inspeccionSeleccionada}
+              title="Informe Técnico"
+            >
+              Informe Técnico
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.prodCard}>
+          <div className={styles.prodHeader}>
+            <div className={styles.prodTitle}>Productores</div>
+            <div className={styles.prodCount}>{traza.productores?.length || 0}</div>
+          </div>
+          <div className={styles.prodList}>
+            {(traza.productores || []).map((p) => (
+              <div key={p.id} className={styles.prodItem}>
+                <img
+                  className={styles.prodAvatar}
+                  src={avatarFromName(p.nombre, p.apellido)}
+                  alt="avatar"
+                  loading="lazy"
+                />
+                <div className={styles.prodBody}>
+                  <div className={styles.prodName}>{[p.nombre, p.apellido].filter(Boolean).join(' ') || '—'}</div>
+                  <div className={styles.prodMeta}>Cédula: {p.cedula || '—'}</div>
+                </div>
+              </div>
+            ))}
+            {(!traza.productores || traza.productores.length === 0) && (
+              <div className={styles.prodEmpty}>Esta propiedad no tiene productores asociados.</div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Timeline de inspecciones */}
+      <div className="tableSection" style={{ marginBottom: 30, overflow: 'visible' }}>
+        {traza.inspecciones.length === 0 ? (
+          <div style={{ color: 'var(--grey4)' }}>No hay inspecciones registradas para esta propiedad.</div>
+        ) : (
+          <div className={styles.timelineHost}>
+            <div className={styles.timelineWrap} style={{ overflow: 'visible', position: 'relative', zIndex: 1 }}>
+              <div className={styles.timeline}>
+                {traza.inspecciones.map((it) => {
+                  const estadoClass = `badge-${(it.estado || '').toLowerCase()}`;
+                  const isHovered = hovered === it.id;
+                  const isSelected = inspeccionSeleccionada === it.id;
+                  return (
+                    <div
+                      key={it.id}
+                      className={`${styles.timelineItem} ${isSelected ? styles.timelineItemSelected : ''}`}
+                      onMouseEnter={() => setHovered(it.id)}
+                      onMouseLeave={() => setHovered(null)}
+                      onFocus={() => setHovered(it.id)}
+                      onBlur={() => setHovered(null)}
+                      onClick={() => setInspeccionSeleccionada(it.id)}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <div className={styles.markerCol}>
+                        <div className={styles.line} />
+                        <div className={`${styles.marker} ${styles[estadoClass]}`} title={it.estado} />
+                        <div className={styles.date}>{it.fecha_inspeccion || '—'}</div>
+                        <div className={styles.state}>
+                          <span className={`badge-estado ${estadoClass}`}>{it.estado}</span>
+                        </div>
+                      </div>
+
+                      <div className={styles.itemBody}>
+                        <div className={styles.codes}>
+                          <strong>{it.codigo_inspeccion || 'SIN-COD'}</strong>
+                          <span className={styles.muted}> · N° Control: {it.n_control || '—'}</span>
+                        </div>
+                        <div className={styles.meta}>
+                          <span className={styles.muted}>
+                            Solicitud: {it.solicitud_codigo || it.solicitud_id} · Planif: {it.planificacion_codigo || it.planificacion_id}
+                          </span>
+                        </div>
+
+                        {isHovered && (
+                          <div className={styles.hoverCard}>
+                            <div className={styles.hoverHeader}>
+                              <div>
+                                <div className={styles.hoverTitle}>{it.codigo_inspeccion || 'Inspección'}</div>
+                                <div className={styles.hoverSub}>
+                                  Estado: <span className={`badge-estado ${estadoClass}`}>{it.estado}</span>
+                                </div>
+                              </div>
+                              <div className={styles.hoverDate}>{it.fecha_inspeccion || '—'}</div>
+                            </div>
+
+                            {(it.aspectos || it.ordenamientos) && (
+                              <div className={styles.hoverText}>
+                                {it.aspectos && (<div><strong>Aspectos:</strong> {it.aspectos}</div>)}
+                                {it.ordenamientos && (<div><strong>Ordenamientos:</strong> {it.ordenamientos}</div>)}
+                              </div>
+                            )}
+
+                            {Array.isArray(it.finalidades) && it.finalidades.length > 0 && (
+                              <div className={styles.hoverText}>
+                                <strong>Finalidades:</strong>
+                                <ul className={styles.finalidadesList}>
+                                  {it.finalidades.map((fin) => (
+                                    <li key={fin.id}>{fin.finalidad}: {fin.objetivo || '—'}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {Array.isArray(it.imagenes) && it.imagenes.length > 0 && (
+                              <div className={styles.thumbs}>
+                                {it.imagenes.slice(0, 6).map((img) => (
+                                  <a
+                                    key={img.id}
+                                    href={`${BaseUrl}/uploads/inspeccion_est/${img.imagen}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={styles.thumbLink}
+                                    title="Abrir imagen"
+                                  >
+                                    <img
+                                      src={`${BaseUrl}/uploads/inspeccion_est/${img.imagen}`}
+                                      alt="img"
+                                      className={styles.thumb}
+                                      loading="lazy"
+                                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                    />
+                                  </a>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default SeguimientoInspeccion;

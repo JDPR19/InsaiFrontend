@@ -17,7 +17,6 @@ function Planificacion() {
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [solicitudes, setSolicitudes] = useState([]);
     const [empleados, setEmpleados] = useState([]);
-    const [tipoInspecciones, setTipoInspecciones] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -35,7 +34,6 @@ function Planificacion() {
         convocatoria: '',
         ubicacion: '',
         aseguramiento: '',
-        tipo_inspeccion_fito_id: null,
         estado: '',
         empleados_ids: []
     });
@@ -56,10 +54,6 @@ function Planificacion() {
     const empleadosOptions = empleados.map(e => ({
         value: String(e.id),
         label: `${e.cedula} - ${e.nombre} ${e.apellido}`
-    }));
-    const tipoInspeccionOptions = tipoInspecciones.map(t => ({
-        value: String(t.id),
-        label: t.nombre
     }));
 
     const columnsPlanificacion = [
@@ -130,25 +124,12 @@ function Planificacion() {
         }
     };
 
-    const fetchTipoInspecciones = async () => {
-        try {
-            const response = await axios.get(`${BaseUrl}/inspecciones/tipo-inspeccion/all`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            setTipoInspecciones(response.data);
-        } catch (error) {
-            console.error('Error al obtener tipos de inspección', error);
-            addNotification('Error al obtener tipos de inspección', 'error');
-        }
-    };
-
 
     useEffect(() => {
         setDatosFiltrados(datosOriginales);
         fetchPlanificaciones();
         fetchSolicitudes();
         fetchEmpleados();
-        fetchTipoInspecciones();
     }, []);
 
     
@@ -165,7 +146,6 @@ function Planificacion() {
             convocatoria: '',
             ubicacion: '',
             aseguramiento: '',
-            tipo_inspeccion_fito_id: null,
             estado: '',
             empleados_ids: []
         });
@@ -178,17 +158,10 @@ function Planificacion() {
         return String(v);
     };
 
-    const buildSelectedOption = (options, id, fallbackLabel = '') => {
-        if (!id) return null;
-        const opt = options.find(o => String(o.value) === String(id));
-        if (opt) return opt;
-        return { value: String(id), label: fallbackLabel || `#${id}` };
-    };
 
     const ensureCatalogos = async () => {
         const promises = [];
         if (!solicitudes.length) promises.push(fetchSolicitudes());
-        if (!tipoInspecciones.length) promises.push(fetchTipoInspecciones());
         if (!empleados.length) promises.push(fetchEmpleados());
         if (promises.length) await Promise.all(promises);
     };
@@ -197,10 +170,9 @@ function Planificacion() {
         setFormData(f => ({
             ...f,
             solicitud_id: toId(f.solicitud_id),
-            tipo_inspeccion_fito_id: toId(f.tipo_inspeccion_fito_id),
             empleados_ids: Array.isArray(f.empleados_ids) ? f.empleados_ids.map(toId) : []
         }));
-    }, [solicitudes, tipoInspecciones, empleados]);
+    }, [solicitudes, empleados]);
 
     // Modal handlers
     const openModal = () => {
@@ -226,7 +198,6 @@ function Planificacion() {
             convocatoria: item.convocatoria || '',
             ubicacion: item.ubicacion || '',
             aseguramiento: item.aseguramiento || '',
-            tipo_inspeccion_fito_id: toId(item.tipo_inspeccion_fito_id),
             estado: item.estado || 'pendiente',
             empleados_ids: (item.empleados || []).map(e => String(e.id))
         });
@@ -252,9 +223,6 @@ function Planificacion() {
     // Select handlers
     const handleSolicitudChange = (val) => {
         setFormData(f => ({ ...f, solicitud_id: val ? String(val.value) : null }));
-    };
-    const handleTipoInspeccionChange = (val) => {
-        setFormData(f => ({ ...f, tipo_inspeccion_fito_id: val ? String(val.value) : null }));
     };
     const handleEmpleadosChange = (selected) => {
         setFormData(f => ({ ...f, empleados_ids: (selected || []).map(o => String(o.value)) }));
@@ -310,10 +278,6 @@ function Planificacion() {
             addNotification('Debe seleccionar una solicitud', 'warning');
             return;
         }
-        if (!formData.tipo_inspeccion_fito_id || String(formData.tipo_inspeccion_fito_id).trim() === '') {
-            addNotification('Debe seleccionar un tipo de inspección', 'warning');
-            return;
-        }
         if (!formData.fecha_programada) {
             addNotification('Debe seleccionar la fecha programada', 'warning');
             return;
@@ -361,7 +325,6 @@ function Planificacion() {
                 convocatoria: formData.convocatoria,
                 ubicacion: formData.ubicacion,
                 aseguramiento: formData.aseguramiento,
-                tipo_inspeccion_fito_id: formData.tipo_inspeccion_fito_id,
                 estado: formData.estado || 'pendiente',
                 empleados_ids: formData.empleados_ids
             };
@@ -384,14 +347,6 @@ function Planificacion() {
     };
 
     const handleEdit = async () => {
-        // if (!formData.solicitud_id || !formData.solicitud_id.value) {
-        //     addNotification('Debe seleccionar una solicitud', 'warning');
-        //     return;
-        // }
-        // if (!formData.tipo_inspeccion_fito_id || !formData.tipo_inspeccion_fito_id.value) {
-        //     addNotification('Debe seleccionar un tipo de inspección', 'warning');
-        //     return;
-        // }
         for (const field in formData) {
             const rule = getValidationRule(field);
             if (!rule || !rule.regex) continue;
@@ -437,7 +392,6 @@ function Planificacion() {
                 convocatoria: formData.convocatoria,
                 ubicacion: formData.ubicacion,
                 aseguramiento: formData.aseguramiento,
-                tipo_inspeccion_fito_id: formData.tipo_inspeccion_fito_id,
                 estado: formData.estado || 'pendiente',
                 empleados_ids: formData.empleados_ids
             };
@@ -556,18 +510,6 @@ function Planificacion() {
                                     />
                                 </div>
                                 <div className='formGroup'>
-                                    <label>Tipo de Inspección:</label>
-                                    <SingleSelect
-                                        options={tipoInspeccionOptions}
-                                        value={buildSelectedOption(
-                                            tipoInspeccionOptions,
-                                            detalleModal.planificacion.tipo_inspeccion_fito_id,
-                                            detalleModal.planificacion.tipo_inspeccion_nombre || 'Tipo'
-                                        )}
-                                        isDisabled={true}
-                                    />
-                                </div>
-                                <div className='formGroup'>
                                     <label>Hora:</label>
                                     <input
                                         type="time"
@@ -670,15 +612,6 @@ function Planificacion() {
                                         className='date'
                                         min={new Date().toISOString().slice(0, 10)} 
                                         max={`${new Date().getFullYear()}-12-31`}
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Inspección:</label>
-                                    <SingleSelect
-                                        options={tipoInspeccionOptions}
-                                        value={buildSelectedOption(tipoInspeccionOptions, formData.tipo_inspeccion_fito_id, 'Tipo')}
-                                        onChange={handleTipoInspeccionChange}
-                                        placeholder="Tipo de inspección"
                                     />
                                 </div>
                                 <div className='formGroup'>

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import MultiSelect from '../../components/selectmulti/MultiSelect';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
@@ -13,6 +14,8 @@ import { BaseUrl } from '../../utils/constans';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 
 function Propiedad() {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const initializedFromQuery = useRef(false);
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [cultivos, setCultivos] = useState([]);
@@ -118,6 +121,8 @@ function Propiedad() {
         setPdfUrl(url);
         setPdfFileName(fileName);
     };
+
+    
 
     // Fetchers
     const fetchPropiedades = async () => {
@@ -252,6 +257,25 @@ function Propiedad() {
         fetchProductores();
     }, []);
 
+    // Lee productorId del query y abre el modal con el productor preseleccionado
+    useEffect(() => {
+        const prodId = searchParams.get('productorId');
+        if (prodId && !initializedFromQuery.current) {
+            initializedFromQuery.current = true;
+
+            setFormData(prev => ({
+                ...prev,
+                productores_ids: [String(prodId)]
+            }));
+            setCurrentModal('propiedad');
+
+            // limpia el query para evitar reabrir al volver
+            const params = new URLSearchParams(searchParams);
+            params.delete('productorId');
+            setSearchParams(params, { replace: true });
+        }
+    }, [searchParams, setSearchParams]);
+    
     // Selects dependientes
     const handleEstadoChange = (opt) => {
         const id = opt ? opt.value : null;
@@ -291,8 +315,11 @@ function Propiedad() {
         setFormData(prev => ({ ...prev, sector_id: id }));
     };
 
+    const selectedFrom = (options, id) =>
+        options.find(o => String(o.value) === String(id)) || null;
+
     const handleSelectChange = (field, opt) => {
-        setFormData(prev => ({ ...prev, [field]: opt ? opt.value : null }));
+        setFormData(prev => ({ ...prev, [field]: opt ? String(opt.value) : null }));
     };
 
     const resetFormData = () => {
@@ -789,9 +816,9 @@ function Propiedad() {
                                     <label htmlFor="tipo_propiedad_id"><span className='Unique'  title='Campos Obligatorios'>*</span>Tipo de Propiedad:</label>
                                     <SingleSelect
                                         options={tiposOptions}
-                                        value={formData.tipo_propiedad_id}
-                                        onChange={val => handleSelectChange('tipo_propiedad_id', val)}
-                                        placeholder="Seleccione un tipo"
+                                        value={selectedFrom(tiposOptions, formData.tipo_propiedad_id)}
+                                        onChange={(opt) => handleSelectChange('tipo_propiedad_id', opt)}
+                                        placeholder="Tipo de Propiedad"
                                     />
                                 </div>
                                 <div className='formGroup'>

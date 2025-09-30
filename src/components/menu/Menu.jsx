@@ -70,25 +70,19 @@ function Menu() {
             label: "Panel Principal",
             linkTo: "/Home"
         },
-        rol === 'Administrador' && {
-            id: "procesosid",
-            iconSrc: icon.cubo,
-            label: "A trabajar",
-            linkTo: "/procesosid"
-        },
-        ['Administrador', 'Moderador', 'User'].includes(rol) && {
+        ['Administrador', 'Moderador', 'Inspector'].includes(rol) && {
             id: "seccionOne",
             iconSrc: icon.farmer2,
             label: "Productores y Propiedades",
             linkTo: "/SeccionOne"
         },
-        ['Administrador', 'Moderador', 'User'].includes(rol) && {
+        ['Administrador', 'Moderador', 'Inspector'].includes(rol) && {
             id: "SeccionTwo",
             iconSrc: icon.calendario,
             label: "Protección Fitosanitaria",
             linkTo: "/SeccionTwo"
         },
-        ['Administrador', 'Moderador', 'User'].includes(rol) && {
+        ['Administrador', 'Moderador', 'Inspector'].includes(rol) && {
             id: "SeccionThree",
             iconSrc: icon.escudobien,
             label: "Programas Fitosanitarios",

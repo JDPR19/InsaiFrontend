@@ -7,7 +7,7 @@ const NotificationContext = createContext();
 export function NotificationProvider({ children }) {
     const [notifications, setNotifications] = useState([]);
 
-    const addNotification = (message, type, duration = 6000) => {
+    const addNotification = (message, type, duration = 3500) => {
         const id = uuidv4(); // Corrección: id único usando uuid
         setNotifications((prev) => [
             ...prev,
