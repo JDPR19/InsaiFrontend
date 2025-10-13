@@ -31,7 +31,8 @@ function SeguimientoInspeccion() {
   const [traza, setTraza] = useState({ propiedad: null, productores: [], galeria: [], inspecciones: [] });
   const [hovered, setHovered] = useState(null);
   const [inspeccionSeleccionada, setInspeccionSeleccionada] = useState(null);
-
+  const [progLoading, setProgLoading] = useState(false);
+  const [programas, setProgramas] = useState([]); 
   const fetchTrazabilidad = async () => {
     setLoading(true);
     try {
@@ -54,11 +55,36 @@ function SeguimientoInspeccion() {
     }
   };
 
+  const fetchProgramasAsignados = async (inspeccionId) => {
+    if (!inspeccionId) {
+      setProgramas([]);
+      return;
+    }
+    setProgLoading(true);
+    try {
+      const res = await axios.get(`${BaseUrl}/seguimiento/inspeccion/${inspeccionId}/programas`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      const data = Array.isArray(res.data) ? res.data : [];
+      setProgramas(data);
+    } catch (e) {
+      console.error('Error obteniendo programas asignados', e);
+      setProgramas([]);
+    } finally {
+      setProgLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchTrazabilidad();
     setInspeccionSeleccionada(Number(id) || null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  useEffect(() => {
+    if (inspeccionSeleccionada) fetchProgramasAsignados(inspeccionSeleccionada);
+  }, [inspeccionSeleccionada]);
+
 
   const primeraFecha = useMemo(() => {
     if (!traza.inspecciones.length) return null;
@@ -218,6 +244,51 @@ function SeguimientoInspeccion() {
             )}
           </div>
         </div>
+      </div>
+
+     <div className="tableSection" style={{ marginTop: 20, marginBottom: 40 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <h3 className="titleTwo" style={{ marginBottom: 10 }}>
+            Programas asignados 
+            {/* {inspeccionSeleccionada ? `(Inspección #${inspeccionSeleccionada})` : ''} */}
+          </h3>
+          {progLoading && <span style={{ color: 'var(--grey4)' }}>Cargando...</span>}
+        </div>
+
+        {(!programas || programas.length === 0) ? (
+          <div style={{ color: 'var(--grey4)' }}>
+            {inspeccionSeleccionada
+              ? 'Esta inspección no tiene programas asignados.'
+              : 'Selecciona una inspección para ver sus programas asignados.'}
+          </div>
+        ) : (
+          // Fichas (sin estado)
+          <div className="progCards">
+            {programas.map((p) => (
+              <div key={p.id} className="progCard">
+                <div className="progCardTitle">
+                  <strong>{p.programa_nombre || `Programa #${p.programa_fito_id}`}</strong>
+                  {p.tipo_programa && <small className="progType">{p.tipo_programa}</small>}
+                </div>
+
+                {Array.isArray(p.plagas) && p.plagas.length > 0 && (
+                  <div className="chipsRow">
+                    {p.plagas.map((pl, idx) => (
+                      <span key={`${p.id}-pl-${idx}`} className="chip">{pl}</span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="progCardMeta">
+                  <div><span className="metaLabel">Fecha:</span> {p.fecha_asociacion || '—'}</div>
+                  <div className="observacion">
+                    <span className="metaLabel">Observación:</span> {p.observacion || '—'}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Timeline de inspecciones */}

@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
 import '../../main.css';
-
+import MultiSelect from '../../components/selectmulti/MultiSelect';
 import icon from '../../components/iconos/iconos';
 import Spinner from '../../components/spinner/Spinner';
 import SearchBar from '../../components/searchbart/SearchBar';
@@ -56,6 +55,7 @@ function InspeccionesEst() {
   const [selectedInspeccionId, setSelectedInspeccionId] = useState(null);
   const [showOpcionales, setShowOpcionales] = useState(false);
   const [galeriaModal, setGaleriaModal] = useState({ abierto: false, imagenes: [] });
+  const [estadoModal, setEstadoModal] = useState({ abierto: false, id: null, estado: 'aprobada' });
   const mostrarTodas = () => setDatosFiltrados(datosOriginales);
   const mostrarCuarentena = () => setDatosFiltrados((datosOriginales || []).filter(i => String(i.estado || '').toLowerCase() === 'cuarentena'));
   const mostrarAprobadas = () => setDatosFiltrados((datosOriginales || []).filter(i => String(i.estado || '').toLowerCase() === 'aprobada'));
@@ -67,24 +67,16 @@ function InspeccionesEst() {
     inspeccionesAprobadas: 0,
     inspeccionesRechazadas: 0,
   });
-  const [registroStep, setRegistroStep] = useState(1);            // 1=form, 2=estado, 3=reportes
-  const [createdInspeccionId, setCreatedInspeccionId] = useState(null);
-  const [estadoSeleccionado, setEstadoSeleccionado] = useState('aprobada'); // default
-  const [reportesElegidos, setReportesElegidos] = useState(() => {
-  try { return JSON.parse(localStorage.getItem('inspeccion_reportes') || '{}'); } catch { return {}; }
-});
-  // const puedeIrPaso2 = true;               
-  const puedeIrPaso3 = true; 
   const [pdfUrl, setPdfUrl] = useState(null);
   const [pdfFileName, setPdfFileName] = useState('');
-  const setReportePara = (id, tipo) => {
-  setReportesElegidos(prev => {
-    const key = String(id);
-    const next = { ...prev, [key]: tipo };
-    localStorage.setItem('inspeccion_reportes', JSON.stringify(next));
-    return next;
-  });
-};
+  const [programasFito, setProgramasFito] = useState([]);
+  const [programasAsociadosIds, setProgramasAsociadosIds] = useState([]); // ids ya asociados
+  const [selectedProgramas, setSelectedProgramas] = useState([]);         // [{value,label}]
+  const programaOptions = useMemo(
+    () => (programasFito || []).map(p => ({ value: String(p.id), label: p.nombre })),
+    [programasFito]
+  );
+ 
   const columnsInspecciones = [
     { header: 'Código', key: 'codigo_inspeccion' },
     { header: 'N° Control', key: 'n_control' },
@@ -165,57 +157,10 @@ function InspeccionesEst() {
     });
   }, [datosOriginales]);
 
-  // Actualizar estado (requiere endpoint PATCH /inspecciones/:id/estado)
-const updateEstadoInspeccion = async (estado) => {
-    const targetId = createdInspeccionId || formData.id;
-    if (!targetId) {
-      addNotification('Primero guarda la inspección.', 'warning');
-      return;
-    }
-    try {
-      setLoading(true);
-      await axios.patch(`${BaseUrl}/inspecciones/${targetId}/estado`, { estado }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
 
-      // reflejar cambios en listas
-      setDatosOriginales(prev => prev.map(i => i.id === targetId ? { ...i, estado } : i));
-      setDatosFiltrados(prev => prev.map(i => i.id === targetId ? { ...i, estado } : i));
+ 
 
-      const st = String(estado).toLowerCase();
-      setEstadoSeleccionado(st);
-
-      if (st === 'rechazada' || st === 'cuarentena') {
-        // Fijar reporte para icono en tabla y pasar a FIN (paso 4)
-        setReportePara(targetId, 'general');
-        setRegistroStep(4);
-        // Asegura que el modal siga abierto
-        setCurrentModal('inspeccion');
-        addNotification(`Inspección #${targetId} finalizada (${st}).`, 'success');
-      } else {
-        setRegistroStep(3);
-      }
-    } catch (e) {
-      console.error(e);
-      addNotification('No se pudo actualizar el estado.', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const openReporte = (tipo, idForce) => {
-  const id = idForce || createdInspeccionId || formData.id;
-  if (!id) { addNotification('Primero guarda la inspección', 'warning'); return; }
-  setReportePara(id, tipo);
-  if (tipo === 'acta') {
-    navigate(`/inspecciones/${id}/acta-silos`);
-    return;
-  }
-  const url = `${BaseUrl}/reportes/inspeccion/${id}?tipo=${tipo}`;
-  window.open(url, '_blank');
-};
-
-  const openReporteDesdeTabla = (id, tipo) => openReporte(tipo, id);
+  
 
   // Catálogos
   const [planificaciones, setPlanificaciones] = useState([]);
@@ -223,7 +168,6 @@ const updateEstadoInspeccion = async (estado) => {
 
   // Para el select de planificación en edición (inyectar la opción actual si no está disponible)
   const [planificacionActualOpt, setPlanificacionActualOpt] = useState(null);
-  const puedeIrPaso2 = Boolean(createdInspeccionId || formData.id);
   // Imágenes
   const [imagenes, setImagenes] = useState([]); // nuevas
   const [previewUrls, setPreviewUrls] = useState([]);
@@ -278,6 +222,28 @@ const updateEstadoInspeccion = async (estado) => {
     }
   };
 
+  const fetchProgramasFito = async () => {
+    const { data } = await axios.get(`${BaseUrl}/seguimiento/programas_fito`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
+    setProgramasFito(Array.isArray(data) ? data : []);
+  };
+  const fetchProgramasAsociados = async (inspeccionId) => {
+    const { data } = await axios.get(`${BaseUrl}/seguimiento/inspeccion/${inspeccionId}/programas`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
+    const lista = Array.isArray(data) ? data : [];
+    setProgramasAsociadosIds(lista.map(p => String(p.programa_fito_id || p.id)));
+    // Preselección en el multiselect
+    setSelectedProgramas(
+      lista
+        .map(p => ({
+          value: String(p.programa_fito_id || p.id),
+          label: p.programa_nombre || p.nombre || `Programa ${p.programa_fito_id || p.id}`
+        }))
+    );
+  };
+
   const fetchPlanificaciones = async () => {
     try {
       const { data } = await axios.get(`${BaseUrl}/inspecciones/planificaciones/all`, {
@@ -308,13 +274,6 @@ const updateEstadoInspeccion = async (estado) => {
     fetchFinalidadesCatalogo();
   }, []);
 
-  useEffect(() => {
-  const old = localStorage.getItem('reportesElegidos');
-  if (old && !localStorage.getItem('inspeccion_reportes')) {
-    localStorage.setItem('inspeccion_reportes', old);
-    try { setReportesElegidos(JSON.parse(old) || {}); } catch (e){e}
-  }
-}, []);
 
   // Helpers formulario
   const resetFormData = () => {
@@ -348,17 +307,11 @@ const updateEstadoInspeccion = async (estado) => {
 
   const openModal = () => {
     resetFormData();
-    setRegistroStep(1);
-    setCreatedInspeccionId(null);
-    setEstadoSeleccionado('aprobada');
     setCurrentModal('inspeccion');
   };
 
   const closeModal = () => {
     resetFormData();
-    setRegistroStep(1);
-    setCreatedInspeccionId(null);
-    setEstadoSeleccionado('aprobada');
     setCurrentModal(null);
   };
 
@@ -627,11 +580,10 @@ const updateEstadoInspeccion = async (estado) => {
 
       const newId = resp?.data?.id || resp?.data?.inspeccion?.id || resp?.data?.createdId;
       if (newId) {
-        setCreatedInspeccionId(newId);
         setFormData(prev => ({ ...prev, id: newId }));
-        setRegistroStep(2); // → Paso 2 (estado)
-        addNotification('Inspección registrada. Define el estado.', 'success');
+        addNotification('Inspección registrada con exito', 'success');
         await fetchInspecciones();
+        closeModal()
       } else {
         addNotification('No se pudo obtener el ID de la inspección creada.', 'error');
       }
@@ -704,8 +656,65 @@ const updateEstadoInspeccion = async (estado) => {
     setCurrentPage((prev) => Math.min(prev + 3, maxPage));
   };
 
-  // Seguimiento
-  
+  const handleGuardarEstado = async () => {
+    const targetId = estadoModal.id;
+    if (!targetId) {
+      addNotification('No se pudo determinar la inspección a actualizar.', 'warning');
+      return;
+    }
+    try {
+      setLoading(true);
+      // 1) Cambiar estado
+      await axios.patch(`${BaseUrl}/inspecciones/${targetId}/estado`, { estado: estadoModal.estado }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setDatosOriginales(prev => prev.map(i => i.id === targetId ? { ...i, estado: estadoModal.estado } : i));
+      setDatosFiltrados(prev => prev.map(i => i.id === targetId ? { ...i, estado: estadoModal.estado } : i));
+
+      // 2) Asociar programas nuevos (los que no estén ya asociados)
+      const toAddIds = (selectedProgramas || [])
+        .map(o => String(o.value))
+        .filter(id => !programasAsociadosIds.includes(id));
+
+      if (toAddIds.length) {
+        await Promise.all(
+          toAddIds.map(pid =>
+            axios.post(`${BaseUrl}/seguimiento/inspeccion/programa`, {
+              inspeccion_est_id: targetId,
+              programa_fito_id: Number(pid),
+              observacion: null,
+              estado: 'seguimiento'
+            }, {
+              headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            })
+          )
+        );
+      }
+
+      addNotification('Estado actualizado y programas asociados.', 'success');
+      closeEstadoModal();
+    } catch (e) {
+      console.error(e);
+      addNotification('No se pudo actualizar el estado o asociar programas.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openEstadoModal = (item) => {
+    setEstadoModal({
+      abierto: true,
+      id: item.id,
+      estado: String(item.estado || 'aprobada').toLowerCase()
+    });
+    fetchProgramasFito().catch(() => {});
+    fetchProgramasAsociados(item.id).catch(() => {});
+  };
+ const closeEstadoModal = () => {
+    setEstadoModal({ abierto: false, id: null, estado: 'aprobada' });
+    setSelectedProgramas([]);
+    setProgramasAsociadosIds([]);
+  };
 
   return (
     <div className="mainContainer">
@@ -954,20 +963,10 @@ const updateEstadoInspeccion = async (estado) => {
       {/* Modal registro / edición */}
     {currentModal === 'inspeccion' && (
         <div className="modalOverlay">
-          <div className={registroStep === 1 ? 'modal_tree' : 'modal_mono'}>
+          <div className='modal_tree' >
             <button className="closeButton" onClick={closeModal}>&times;</button>
-          <h2>
-              {registroStep === 1
-                ? (formData.id ? 'Editar Inspección' : 'Registrar Inspección')
-                : registroStep === 2
-                  ? 'Actualizar estado de la inspección'
-                  : registroStep === 3
-                    ? 'Finalizar inspección y generar reporte'
-                    : 'Fin de la Inspección'}
-          </h2>
+          <h2> {formData.id ? 'Editar Inspección' : 'Registrar Inspección' }</h2>
 
-            {registroStep === 1 && (
-              <>
                 {/* Subida de imágenes */}
                 <input
                   type="file"
@@ -1231,121 +1230,89 @@ const updateEstadoInspeccion = async (estado) => {
                     {loading ? 'Procesando...' : 'Guardar'}
                   </button>
                 </form>
-              </>
-            )}
+          </div>
+      </div>
+)}
 
-            {registroStep === 2 && puedeIrPaso2 && (
-              <div className="modalForm">
-                <p style={{ marginTop: 4, marginBottom: 10 }}>
-                  Inspección cargada con éxito. ¿Cómo deseas establecer el estado de esta inspección?
-                </p>
-                <div className="radio-group" style={{ marginTop: 6 }}>
-                  <label className="radio-label">
-                    <input
-                      type="radio"
-                      className="radio-input"
-                      checked={estadoSeleccionado === 'aprobada'}
-                      onChange={() => setEstadoSeleccionado('aprobada')}
-                    />
-                    Aprobada
-                  </label>
-                  <label className="radio-label">
-                    <input
-                      type="radio"
-                      className="radio-input"
-                      checked={estadoSeleccionado === 'finalizda'}
-                      onChange={() => setEstadoSeleccionado('finalizada')}
-                    />
-                    Finalizada
-                  </label>
-                  <label className="radio-label">
-                    <input
-                      type="radio"
-                      className="radio-input"
-                      checked={estadoSeleccionado === 'rechazada'}
-                      onChange={() => setEstadoSeleccionado('rechazada')}
-                    />
-                    Rechazada
-                  </label>
-                  <label className="radio-label">
-                    <input
-                      type="radio"
-                      className="radio-input"
-                      checked={estadoSeleccionado === 'cuarentena'}
-                      onChange={() => setEstadoSeleccionado('cuarentena')}
-                    />
-                    Cuarentena
-                  </label>
-                </div>
+ {estadoModal.abierto && (
+        <div className='modalOverlay'>
+          <div className='modal'>
+            <button className='closeButton' onClick={closeEstadoModal}>&times;</button>
+            <h2>Actualizar estado</h2>
+            <p style={{ marginTop: 4, marginBottom: 10 }}>Selecciona el estado para esta inspección.</p>
 
-                <div className="modalActions">
-                  <button
-                    className="confirmButton"
-                    onClick={async () => { await updateEstadoInspeccion(estadoSeleccionado); }}
-                    disabled={loading}
-                  >
-                    Guardar estado y continuar
-                  </button>
-                  <button className="cancelButton" onClick={() => setCurrentModal(null)}>Cerrar</button>
-                </div>
-              </div>
-            )}
+            <div className="radio-group" style={{ marginTop: 6 }}>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  className="radio-input"
+                  checked={estadoModal.estado === 'aprobada'}
+                  onChange={() => setEstadoModal(s => ({ ...s, estado: 'aprobada' }))}
+                />
+                Aprobada
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  className="radio-input"
+                  checked={estadoModal.estado === 'finalizada'}
+                  onChange={() => setEstadoModal(s => ({ ...s, estado: 'finalizada' }))}
+                />
+                Finalizada
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  className="radio-input"
+                  checked={estadoModal.estado === 'rechazada'}
+                  onChange={() => setEstadoModal(s => ({ ...s, estado: 'rechazada' }))}
+                />
+                Rechazada
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  className="radio-input"
+                  checked={estadoModal.estado === 'cuarentena'}
+                  onChange={() => setEstadoModal(s => ({ ...s, estado: 'cuarentena' }))}
+                />
+                Cuarentena
+              </label>
+            </div>
 
-            {registroStep === 3 && puedeIrPaso3 && (
-              <div className="modalForm">
-                <p style={{ marginTop: 4, marginBottom: 12 }}>
-                  Finaliza completamente la inspección{estadoSeleccionado ? ` (estado: ${estadoSeleccionado})` : ''} y genera un reporte:
-                </p>
-                <div className="panelActions" style={{ justifyContent: 'center' }}>
-                  <button className="panelBtn editar" onClick={() => openReporte('general')}>
-                    Reporte General
-                  </button>
-                  <button className="panelBtn editar" onClick={() => openReporte('acta')}>
-                    Acta de Inspección
-                  </button>
-                  <button className="panelBtn editar" onClick={() => openReporte('informe')}>
-                    Informe Técnico
-                  </button>
-                </div>
-                <div style={{ textAlign: 'center', marginTop: 10, color: 'var(--grey4)' }}>
-                  El reporte se abrirá en una nueva pestaña.
-                </div>
-              </div>
+            <div className='formGroup' style={{ marginTop: 12 }}>
+            <label>Programas a asociar (opcional):</label>
+            <MultiSelect
+              options={programaOptions}
+              value={selectedProgramas}
+              onChange={setSelectedProgramas}
+              placeholder="Selecciona programas..."
+            />
+            {selectedProgramas.length > 0 && (
+              <button
+                type="button"
+                className="btn-limpiar"
+                onClick={() => setSelectedProgramas([])}
+                style={{ marginTop: 8 }}
+              >
+                Limpiar selección
+              </button>
             )}
+          </div>
+
+            <div className="modalActions">
+              <button
+                className="confirmButton"
+                onClick={handleGuardarEstado}
+                disabled={loading}
+              >
+                Guardar estado
+              </button>
+              <button className="cancelButton" onClick={closeEstadoModal}>Cancelar</button>
+            </div>
           </div>
         </div>
       )}
-     {/* Paso 4: Fin de la Inspección */}
-            {registroStep === 4 && (
-              <div className="modalForm">
-                <h3 style={{ textAlign: 'center', marginBottom: 8 }}>Fin de la Inspección</h3>
-                <p style={{ textAlign: 'center', color: 'var(--grey4)' }}>
-                  La inspección ha sido cerrada con estado: <strong>{estadoSeleccionado}</strong>.
-                </p>
-
-                <div className="panelActions" style={{ justifyContent: 'center', marginTop: 12 }}>
-                  <button
-                    className="panelBtn editar"
-                    onClick={() => openReporte('general')}
-                    title="Abrir Reporte General"
-                  >
-                    Abrir Reporte General
-                  </button>
-                  <button
-                    className="panelBtn eliminar"
-                    onClick={() => setCurrentModal(null)}
-                    title="Cerrar"
-                    style={{ marginLeft: 10 }}
-                  >
-                    Cerrar
-                  </button>
-                </div>
-
-                <div style={{ textAlign: 'center', marginTop: 10, color: 'var(--grey4)' }}>
-                  Se guardó tu preferencia de reporte para mostrar el ícono en la tabla.
-                </div>
-              </div>
-            )}
 
       {/* Modal confirmación eliminar */}
       {confirmDeleteModal && (
@@ -1444,7 +1411,6 @@ const updateEstadoInspeccion = async (estado) => {
               <th>Código</th>
               <th>N° Control</th>
               <th>Fecha Inspección</th>
-              <th>Responsable</th>
               <th>Estado</th>
               <th>Acción</th>
             </tr>
@@ -1456,7 +1422,6 @@ const updateEstadoInspeccion = async (estado) => {
                 <td>{item.codigo_inspeccion}</td>
                 <td>{item.n_control}</td>
                 <td>{item.fecha_inspeccion}</td>
-                <td>{item.responsable_e}</td>
                 <td><span className={`badge-estado badge-${item.estado}`}>{item.estado}</span></td>
                 <td>
                   <div className="iconContainer">
@@ -1483,17 +1448,22 @@ const updateEstadoInspeccion = async (estado) => {
                       className="iconver"
                       title="Ver imágenes"
                     />
-                    {reportesElegidos[String(item.id)] && (
+                    {tienePermiso('inspecciones', 'exportar') && (
                       <img
-                        src={
-                          reportesElegidos[String(item.id)] === 'general' ? icon.pdf2
-                          : reportesElegidos[String(item.id)] === 'acta' ? icon.pdf4
-                          : icon.pdf
-                        }
-                        onClick={() => openReporteDesdeTabla(item.id, reportesElegidos[String(item.id)])}
-                        alt="Reporte"
-                        className="iconpdf"
-                        title={`Abrir reporte (${reportesElegidos[String(item.id)]})`}
+                        onClick={() => openEditModal(item)}
+                        src={icon.pdf2}
+                        className="iconver"
+                        alt="Tomar Desición"
+                        title="Toma de desiciones"
+                      />
+                    )}
+                  {tienePermiso('inspecciones', 'editar') && (
+                      <img
+                        onClick={() => openEstadoModal(item)}
+                        src={icon.martillito}
+                        className="iconver"
+                        alt="Tomar Desición"
+                        title="Toma de desiciones"
                       />
                     )}
                     {tienePermiso('inspecciones', 'editar') && (

@@ -10,8 +10,12 @@ import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 function Solicitud() {
+    const navigate = useNavigate();
+    const [step, setStep] = useState(1);
+    const [recentSolicitud, setRecentSolicitud] = useState(null);
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [tipoSolicitudes, setTipoSolicitudes] = useState([]);
@@ -26,6 +30,8 @@ function Solicitud() {
     const [pdfFileName, setPdfFileName] = useState('');
     const { fileName } = getPDFInfo();
     const excelFileName = fileName.replace('.pdf', '.xlsx');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const initializedFromQuery = React.useRef(false);
     const [formData, setFormData] = useState({
         id: '',
         descripcion: '',
@@ -115,6 +121,28 @@ function Solicitud() {
         fetchPropiedades();
     }, []);
 
+    useEffect(() => {
+        const propId = searchParams.get('propiedadId');
+        if (!propId || initializedFromQuery.current) return;
+
+        // Espera a que carguen las opciones de propiedades
+        if (propiedadOptions.length === 0) return;
+
+        const opt = propiedadOptions.find(o => String(o.value) === String(propId));
+        if (opt) {
+            setFormData(prev => ({ ...prev, propiedad_id: opt }));
+            setCurrentModal('solicitud'); // abre el modal de crear
+            initializedFromQuery.current = true;
+
+            // Opcional: limpia el query para no reabrir al volver
+            setSearchParams(p => {
+                p.delete('propiedadId');
+                p.set('tab', 'solicitud');
+                return p;
+            });
+        }
+    }, [searchParams, propiedadOptions, setSearchParams]);
+
     const resetFormData = () => {
     setFormData({
         id: '',
@@ -193,11 +221,15 @@ function Solicitud() {
     // Modal
     const openModal = () => {
         resetFormData();
+        setRecentSolicitud(null);
+        setStep(1);
         setCurrentModal('solicitud');
     };
 
     const closeModal = () => {
         resetFormData();
+        setRecentSolicitud(null);
+        setStep(1);
         setCurrentModal(null);
     };
 
@@ -237,9 +269,6 @@ function Solicitud() {
     
     const handleSave = async () => {
     let newErrors = {};
-    if (!formData.descripcion) {
-        newErrors.descripcion = 'La descripción es obligatoria';
-    }
     if (!formData.tipo_solicitud_id || !formData.tipo_solicitud_id.value) {
         newErrors.tipo_solicitud_id = 'Debe seleccionar un tipo de solicitud';
     }
@@ -262,12 +291,13 @@ function Solicitud() {
             usuario_id
         };
 
-        await axios.post(`${BaseUrl}/solicitud`, cleanFormData, {
+        const { data } = await axios.post(`${BaseUrl}/solicitud`, cleanFormData, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         addNotification('Solicitud registrada con éxito', 'success');
-        fetchSolicitudes();
-        closeModal();
+        await fetchSolicitudes();
+        setRecentSolicitud(data);
+        setStep(2);
     } catch (error) {
         console.error('Error registrando la solicitud', error);
         addNotification('Error al registrar solicitud', 'error');
@@ -359,6 +389,15 @@ function Solicitud() {
         setCurrentPage(1);
     };
 
+    const goToNextScreen = () => {
+        localStorage.setItem('seccionTwoTab', 'planificacion');
+        const params = new URLSearchParams();
+        params.set('tab', 'planificacion');
+        if (recentSolicitud?.id) params.set('solicitudId', String(recentSolicitud.id));
+        navigate(`/SeccionTwo?${params.toString()}`);
+        closeModal();
+    };
+
     return (
         <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
@@ -367,61 +406,61 @@ function Solicitud() {
                 <div className='modalOverlay'>
                     <div className='modal'>
                         <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
-                        <h2>Detalle de Solicitud</h2>
-                        <form className='modalForm'>
-                            <div className='formColumns'>
-                                <div className='formGroup'>
-                                    <label>Código:</label>
-                                    <input
-                                        type="inpu"
-                                        value={detalleModal.solicitud.codigo|| ''}
-                                        className='input'
-                                        disabled
-                                    />
+                            <h2>Detalle de Solicitud</h2>
+                            <form className='modalForm'>
+                                <div className='formColumns'>
+                                    <div className='formGroup'>
+                                        <label>Código:</label>
+                                        <input
+                                            type="inpu"
+                                            value={detalleModal.solicitud.codigo|| ''}
+                                            className='input'
+                                            disabled
+                                        />
+                                    </div>
+                                    <div className='formGroup'>
+                                        <label>Fecha Solicitada:</label>
+                                        <input
+                                            type="text"
+                                            value={detalleModal.solicitud.fecha_solicitada || ''}
+                                            className='input'
+                                            disabled
+                                        />
+                                    </div>
+                                    <div className='formGroup'>
+                                        <label>Tipo de Solicitud:</label>
+                                        <input
+                                            type="text"
+                                            value={tipoSolicitudes.find(t => String(t.id) === String(detalleModal.solicitud.tipo_solicitud_id))?.nombre || ''}
+                                            className='select'
+                                            disabled
+                                        />
+                                    </div>
+                                    <div className='formGroup'>
+                                        <label>Propiedad:</label>
+                                        <input
+                                            type="text"
+                                            value={propiedades.find(p => String(p.id) === String(detalleModal.solicitud.propiedad_id))?.nombre || ''}
+                                            className='select'
+                                            disabled
+                                        />
+                                    </div>
+                                    <div className='formGroup'>
+                                        <label>Estado:</label>
+                                        <span className={`badge-estado badge-${detalleModal.solicitud.estado}`}>
+                                            {detalleModal.solicitud.estado}
+                                        </span>
+                                    </div>
+                                    <div className='formGroup'>
+                                        <label>Descripción:</label>
+                                        <textarea
+                                            value={detalleModal.solicitud.descripcion || ''}
+                                            className='textarea'
+                                            disabled
+                                        />
+                                    </div>
                                 </div>
-                                <div className='formGroup'>
-                                    <label>Fecha Solicitada:</label>
-                                    <input
-                                        type="text"
-                                        value={detalleModal.solicitud.fecha_solicitada || ''}
-                                        className='input'
-                                        disabled
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Tipo de Solicitud:</label>
-                                    <input
-                                        type="text"
-                                        value={tipoSolicitudes.find(t => String(t.id) === String(detalleModal.solicitud.tipo_solicitud_id))?.nombre || ''}
-                                        className='select'
-                                        disabled
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Propiedad:</label>
-                                    <input
-                                        type="text"
-                                        value={propiedades.find(p => String(p.id) === String(detalleModal.solicitud.propiedad_id))?.nombre || ''}
-                                        className='select'
-                                        disabled
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Estado:</label>
-                                    <span className={`badge-estado badge-${detalleModal.solicitud.estado}`}>
-                                        {detalleModal.solicitud.estado}
-                                    </span>
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Descripción:</label>
-                                    <textarea
-                                        value={detalleModal.solicitud.descripcion || ''}
-                                        className='textarea'
-                                        disabled
-                                    />
-                                </div>
-                            </div>
-                        </form>
+                            </form>
                     </div>
                 </div>
             )}
@@ -432,43 +471,60 @@ function Solicitud() {
                 <div className='modalOverlay'>
                     <div className='modal'>
                         <button className='closeButton' onClick={closeModal}>&times;</button>
-                        <h2>{formData.id ? 'Editar Solicitud' : 'Registrar Solicitud'}</h2>
-                        <form className='modalForm'>
-                            <div className='formColumns'>
-                                <div className='formGroup'>
-                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Solicitud:</label>
-                                    <SingleSelect
-                                        options={tipoSolicitudOptions}
-                                        value={formData.tipo_solicitud_id}
-                                        onChange={val => setFormData({ ...formData, tipo_solicitud_id: val })}
-                                        placeholder="Seleccione tipo de solicitud"
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label><span className='Unique' title='Campo Obligatorio'>*</span>Propiedad:</label>
-                                    <SingleSelect
-                                        options={propiedadOptions}
-                                        value={formData.propiedad_id}
-                                        onChange={val => setFormData({ ...formData, propiedad_id: val })}
-                                        placeholder="Seleccione propiedad"
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label htmlFor="descripcion"><span className='Unique' title='Campo Obligatorio'>*</span>Descripción:</label>
-                                    <textarea id="descripcion" value={formData.descripcion} onChange={handleChange} className='textarea' placeholder='Descripción'/>
-                                    {errors.descripcion && <span className='errorText'>{errors.descripcion}</span>}
-                                </div>
+                        {step === 1 ? (
+                            <>
+                                <h2>{formData.id ? 'Editar Solicitud' : 'Registrar Solicitud'}</h2>
+                                <form className='modalForm'>
+                                    <div className='formColumns'>
+                                        <div className='formGroup'>
+                                            <label><span className='Unique' title='Campo Obligatorio'>*</span>Tipo de Solicitud:</label>
+                                            <SingleSelect
+                                                options={tipoSolicitudOptions}
+                                                value={formData.tipo_solicitud_id}
+                                                onChange={val => setFormData({ ...formData, tipo_solicitud_id: val })}
+                                                placeholder="Seleccione tipo de solicitud"
+                                            />
+                                        </div>
+                                        <div className='formGroup'>
+                                            <label><span className='Unique' title='Campo Obligatorio'>*</span>Propiedad:</label>
+                                            <SingleSelect
+                                                options={propiedadOptions}
+                                                value={formData.propiedad_id}
+                                                onChange={val => setFormData({ ...formData, propiedad_id: val })}
+                                                placeholder="Seleccione propiedad"
+                                            />
+                                        </div>
+                                        <div className='formGroup'>
+                                            <label htmlFor="descripcion"><span className='Unique' title='Campo Obligatorio'>*</span>Descripción:</label>
+                                            <textarea id="descripcion" value={formData.descripcion} onChange={handleChange} className='textarea' placeholder='Descripción'/>
+                                            {errors.descripcion && <span className='errorText'>{errors.descripcion}</span>}
+                                        </div>
+                                    </div>
+                                    <button 
+                                        type="button" 
+                                        className='saveButton' 
+                                        onClick={formData.id ? handleEdit : handleSave}
+                                        title={formData.id ? 'Actualizar Solicitud' : 'Registrar Solicitud'}
+                                        disabled={loading} 
+                                    >
+                                        {loading ? 'Procesando...' : 'Guardar'}
+                                    </button>
+                                </form>
+                            </>
+                        ) : (
+                            <>
+                            <h2>Solicitud registrada</h2>
+                            <p>
+                                Se creó correctamente la solicitud
+                                {` ${recentSolicitud?.codigo ? `(${recentSolicitud.codigo})` : ''}`}.
+                            </p>
+                            <p>¿Deseas continuar para programar la planificación?</p>
+                            <div className='modalActions' style={{ marginTop: 16, display: 'flex', gap: 8 }}>
+                                <button className='btn-estandar' onClick={goToNextScreen}>Continuar</button>
+                                <button className='cancelButton' onClick={closeModal}>Más tarde</button>
                             </div>
-                            <button 
-                                type="button" 
-                                className='saveButton' 
-                                onClick={formData.id ? handleEdit : handleSave}
-                                title={formData.id ? 'Actualizar Solicitud' : 'Registrar Solicitud'}
-                                disabled={loading} 
-                            >
-                                {loading ? 'Procesando...' : 'Guardar'}
-                            </button>
-                        </form>
+                        </>
+                    )}
                     </div>
                 </div>
             )}

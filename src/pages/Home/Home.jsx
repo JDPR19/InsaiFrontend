@@ -43,16 +43,16 @@ function Home() {
     // Cartas dinámicas
     const [totales, setTotales] = useState({
         empleadosActivos: 0,
-        operacionesCompletadas: 0,
-        programasPendientes: 0,
-        inspeccionRechazada: 0
+        solicitudesPendientes: 0,
+        planificacionesPendientes: 0,
+        propiedadesNoAptas: 0
     });
 
     const totalesPorTipo = {
         empleadosActivos: { count: true, label: 'TOTAL REGISTROS' },
-        operacionesCompletadas: { count: true, label: 'TOTAL REGISTROS' },
-        programasPendientes: { count: true, label: 'TOTAL REGISTROS' },
-        inspeccionRechazada: { count: true, label: 'TOTAL REGISTROS' }
+        solicitudesPendientes: { count: true, label: 'TOTAL REGISTROS' },
+        planificacionesPendientes: { count: true, label: 'TOTAL REGISTROS' },
+        propiedadesNoAptas: { count: true, label: 'TOTAL REGISTROS' }
     };
 
     const columnsPorTipo = {
@@ -63,26 +63,40 @@ function Home() {
             { header: 'Cargo', key: 'cargo' },
             { header: 'Contacto', key: 'contacto' }
         ],
-        operacionesCompletadas: [
+        solicitudesPendientes: [
             { header: 'Código', key: 'codigo' },
             { header: 'Fecha Solicitada', key: 'fecha_solicitada' },
             { header: 'Tipo de Solicitud', key: 'tipo_solicitud_nombre' },
             { header: 'Propiedad', key: 'propiedad_nombre' },
-            { header: 'Usuario', key: 'usuario_username' }
+            { header: 'Usuario', key: 'usuario_username' },
+            { header: 'Días en Espera', key: 'dias_en_espera' }
         ],
-        programasPendientes: [
+        planificacionesPendientes: [
+            { header: 'Código', key: 'codigo' },
             { header: 'Fecha Programada', key: 'fecha_programada' },
-            { header: 'Inspector', key: 'inspector' },
+            { header: 'Actividad', key: 'actividad' },
+            { header: 'Objetivo', key: 'objetivo' },
+            { header: 'Convocatoria', key: 'convocatoria' },
+            { header: 'Aseguramiento', key: 'aseguramiento' },
             { header: 'Tipo de Inspección', key: 'tipo_inspeccion' },
             { header: 'Propiedad', key: 'propiedad' },
-            { header: 'Estatus', key: 'estado' }
-        ],
-        inspeccionRechazada: [
-            { header: 'Código de Inspección', key: 'codigo_inspeccion' },
-            { header: 'Fecha de Inspección', key: 'fecha_inspeccion' },
+            { header: 'Propiedad (Nombre)', key: 'propiedad_nombre' },
+            { header: 'Ubicación', key: 'ubicacion' },
             { header: 'Inspector', key: 'inspector' },
-            { header: 'Propiedad', key: 'propiedad' },
-            { header: 'Motivo de Rechazo', key: 'motivo_rechazo' }
+            { header: 'Inspector Cédula', key: 'inspector_cedula' },
+            { header: 'Inspector Cargo', key: 'inspector_cargo' },
+            { header: 'Estado', key: 'estado' }
+        ],
+        propiedadesNoAptas: [
+            { header: 'Propiedad', key: 'propiedad_nombre' },
+            { header: 'RIF', key: 'propiedad_rif' },
+            { header: 'Ubicación', key: 'propiedad_ubicacion' },
+            { header: 'Hectáreas', key: 'hectareas' },
+            { header: 'Código Inspección', key: 'codigo_inspeccion' },
+            { header: 'Fecha Inspección', key: 'fecha_inspeccion' },
+            { header: 'Inspector', key: 'inspector_nombre' },
+            { header: 'Motivo de Rechazo', key: 'motivo_rechazo' },
+            { header: 'Resumen', key: 'resumen' }
         ]
     };
 
@@ -165,16 +179,6 @@ function Home() {
         return null;
     };
 
-    // Panel lateral de detalle
-    const columnsPlanificacion = [
-        { header: 'Actividad', key: 'actividad' },
-        { header: 'Fecha Programada', key: 'fecha_programada' },
-        { header: 'Estado', key: 'estado' },
-        { header: 'Objetivo', key: 'objetivo' },
-        { header: 'Convocatoria', key: 'convocatoria' },
-        { header: 'Ubicación', key: 'ubicacion' },
-        { header: 'Aseguramiento', key: 'aseguramiento' }
-    ];
 
     // Gráfica
     const [chartFilter, setChartFilter] = useState(chartFilterOptions[0]);
@@ -205,15 +209,22 @@ function Home() {
             setLoadingTotales(true);
             try {
                 const res = await axios.get(`${BaseUrl}/home/totales`);
+                const d = res.data || {};
                 setTotales({
-                    empleadosActivos: res.data.empleadosActivos,
-                    operacionesCompletadas: res.data.solicitudesCompletadas,
-                    programasPendientes: res.data.planificacionesPendientes,
-                    inspeccionRechazada: res.data.inspeccionRechazada
+                empleadosActivos: Number(d.empleadosActivos ?? 0),
+                solicitudesPendientes: Number((d.solicitudesPendientesPlanificar ?? d.solicitudesPendientes) ?? 0),
+                planificacionesPendientes: Number(d.planificacionesPendientes ?? 0),
+                propiedadesNoAptas: Number((d.propiedadesNoAptas ?? d.inspeccionRechazada) ?? 0)
                 });
             } catch (error) {
                 console.error('Error al obtener el total de los datos', error);
                 addNotification('Error al obtener los totales', 'error');
+                setTotales({
+                    empleadosActivos: 0,
+                    solicitudesPendientes: 0,
+                    planificacionesPendientes: 0,
+                    propiedadesNoAptas: 0 
+                });
             }
             setLoadingTotales(false);
         }
@@ -447,7 +458,7 @@ function Home() {
     }, [chartFilter, dateRange, BaseUrl]);
 
     // Modal detalle de operación del día
-      const openDetalleModal = async (item) => {
+    const openDetalleModal = async (item) => {
         setDetalleModal({ abierto: true, propiedad: null, loading: true });
         try {
         const { data } = await axios.get(`${BaseUrl}/home/detalle-operacion/${item.planificacion_id}`, {
@@ -470,18 +481,18 @@ function Home() {
             url = `${BaseUrl}/home/inspectores-activos`;
             campos = ['nombre', 'apellido', 'cedula', 'cargo', 'contacto'];
             titulo = 'Inspectores Activos';
-        } else if (tipo === 'operacionesCompletadas') {
-            url = `${BaseUrl}/home/solicitudes-completadas`;
-            campos = ['codigo', 'fecha_solicitada', 'tipo_solicitud_nombre', 'propiedad_nombre', 'usuario_username'];
-            titulo = 'Solicitudes Completadas';
-        } else if (tipo === 'programasPendientes') {
+        } else if (tipo === 'solicitudesPendientes') {
+            url = `${BaseUrl}/home/solicitudes-pendientes`;
+            campos = ['codigo', 'fecha_solicitada', 'tipo_solicitud_nombre', 'propiedad_nombre', 'usuario_username', 'dias_en_espera'];
+            titulo = 'Solicitudes Pendientes por Planificar';
+        } else if (tipo === 'planificacionesPendientes') {
             url = `${BaseUrl}/home/planificaciones-pendientes`;
-            campos = ['fecha_programada', 'inspector', 'tipo_inspeccion', 'propiedad', 'estado'];
+            campos = columnsPorTipo.planificacionesPendientes.map(c => c.key); 
             titulo = 'Planificaciones Pendientes';
-        } else if (tipo === 'inspeccionRechazada') {
-            url = `${BaseUrl}/home/inspecciones-rechazadas`;
-            campos = ['codigo_inspeccion', 'fecha_inspeccion', 'inspector', 'propiedad', 'motivo_rechazo'];
-            titulo = 'Inspecciones Rechazadas';
+        } else if (tipo === 'propiedadesNoAptas') {
+            url = `${BaseUrl}/home/propiedades-no-aptas`;
+            campos = columnsPorTipo.propiedadesNoAptas.map(c => c.key);
+            titulo = 'Propiedades No aptas';
         } else {
             return;
         }
@@ -489,10 +500,11 @@ function Home() {
         try {
             const token = localStorage.getItem('token');
             const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
+            const data = Array.isArray(res.data) ? res.data : [];
             if (!Array.isArray(res.data) || res.data.length === 0) {
                 addNotification('No se encontraron datos para la carta seleccionada', 'info');
             }
-            setModalCarta({ abierto: true, tipo, datos: res.data, filtrados: res.data, campos, titulo, loading: false });
+            setModalCarta({ abierto: true, tipo, datos: data, filtrados: data, campos, titulo, loading: false });
         } catch (error) {
             console.error('Error obteniendo datos para la carta', error);
             addNotification('Error al obtener datos de la carta', 'error');
@@ -518,7 +530,15 @@ function Home() {
         estado: 'Estatus',
         codigo_inspeccion: 'Código de Inspección',
         fecha_inspeccion: 'Fecha de Inspección',
-        motivo_rechazo: 'Motivo de Rechazo'
+        motivo_rechazo: 'Motivo de Rechazo',
+        dias_en_espera: 'Días en Espera',
+        propiedad_rif: 'RIF',
+        propiedad_ubicacion: 'Ubicación',
+        hectareas: 'Hectáreas',
+        inspector_nombre: 'Inspector',
+        resumen: 'Resumen',
+        inspector_cedula: 'Inspector Cédula',
+        inspector_cargo: 'Inspector Cargo',
     };
 
     // Paginado
@@ -607,6 +627,15 @@ function Home() {
             setModalCarta({ ...modalCarta, abierto: false });
         };
 
+        const formatCell = (item, campo) => {
+            const hasItem = item !== null && item !== undefined;
+            const key = campo != null ? String(campo) : '';
+            const v = hasItem && key ? item[key] : undefined;
+            if (v === null || v === undefined || v === '') return '—';
+            if (typeof v === 'boolean') return v ? 'Sí' : 'No';
+            return String(v);
+        };
+
         const ModalDetallePropiedad = () => {
         const propiedad = detalleModal.propiedad;
 
@@ -619,6 +648,7 @@ function Home() {
             borderBottom: '2px solid #539E43',
             paddingBottom: '0.2em'
         };
+
 
         return (
             <div className='modalOverlay'>
@@ -723,28 +753,28 @@ function Home() {
                 <>
                     <div style={{ width: '100%', overflowX: 'auto', marginTop: 18, marginBottom: 10 }}>
                         <table className={searchStyles.searchModalTable}>
-                            <thead>
-                                <tr>
-                                    {Array.isArray(modalCarta.campos) && modalCarta.campos.map((campo, idx) => (
-                                        <th key={idx}>{titulosCamposVisual[campo] || campo.charAt(0).toUpperCase() + campo.slice(1)}</th>
-                                    ))}
+                        <thead>
+                            <tr>
+                            {Array.isArray(modalCarta.campos) && modalCarta.campos.map((campo, idx) => (
+                                <th key={idx}>{titulosCamposVisual[campo] || campo.charAt(0).toUpperCase() + campo.slice(1)}</th>
+                            ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {Array.isArray(modalCurrentData) && modalCurrentData.length === 0 ? (
+                            <tr>
+                                <td colSpan={modalCarta.campos.length}>Sin resultados</td>
+                            </tr>
+                            ) : (
+                            Array.isArray(modalCurrentData) && modalCurrentData.map((item, idx) => (
+                                <tr key={item.id || item.planificacion_id || item.propiedad_id || idx}>
+                                {modalCarta.campos.map((campo, cidx) => (
+                                    <td key={cidx}>{formatCell(item, campo)}</td>
+                                ))}
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {Array.isArray(modalCurrentData) && modalCurrentData.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={modalCarta.campos.length}>Sin resultados</td>
-                                    </tr>
-                                ) : (
-                                    Array.isArray(modalCurrentData) && modalCurrentData.map((item, idx) => (
-                                        <tr key={item.id || idx}>
-                                            {modalCarta.campos.map((campo, cidx) => (
-                                                <td key={cidx}>{item[campo]}</td>
-                                            ))}
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
+                            ))
+                            )}
+                        </tbody>
                         </table>
                     </div>
                     {/* Pie de paginación */}
@@ -840,20 +870,21 @@ function Home() {
             {/* Cartas dinámicas */}
             <div className={styles.cardsContainer}>
                 <div className={styles.card} onClick={() => handleCardClick('empleadosActivos')} title='Mostrar Detalles'>
-                    <span className={styles.cardNumber}>{totales.empleadosActivos}</span>
+                    <span className={styles.cardNumber}>{totales.empleadosActivos ?? 0}</span>
                     <p>Inspectores Activos</p>
                 </div>
-                <div className={styles.card} onClick={() => handleCardClick('operacionesCompletadas')} title='Mostrar Detalles'>
-                    <span className={styles.cardNumber}>{totales.operacionesCompletadas}</span>
-                    <p>Solicitudes Completadas</p>
+                <div className={styles.card} onClick={() => handleCardClick('solicitudesPendientes')} title='Mostrar Detalles'>
+                    <span className={styles.cardNumber}>{totales.solicitudesPendientes ?? 0}</span>
+                    <p>Solicitudes Pendientes por Planificar</p>
                 </div>
-                <div className={styles.card} onClick={() => handleCardClick('programasPendientes')} title='Mostrar Detalles'>
-                    <span className={styles.cardNumber}>{totales.programasPendientes}</span>
+                {/* FIX: usar planificacionesPendientes en clave y handle */}
+                <div className={styles.card} onClick={() => handleCardClick('planificacionesPendientes')} title='Mostrar Detalles'>
+                    <span className={styles.cardNumber}>{totales.planificacionesPendientes ?? 0}</span>
                     <p>Planificaciones Pendientes</p>
                 </div>
-                <div className={styles.card} onClick={() => handleCardClick('inspeccionRechazada')} title='Mostrar Detalles'>
-                    <span className={styles.cardNumber}>{totales.inspeccionRechazada}</span>
-                    <p>Inspecciones Rechazadas</p>
+                <div className={styles.card} onClick={() => handleCardClick('propiedadesNoAptas')} title='Mostrar Detalles'>
+                    <span className={styles.cardNumber}>{totales.propiedadesNoAptas ?? 0}</span>
+                    <p>Propiedades No aptas</p>
                 </div>
             </div>
 
@@ -941,7 +972,7 @@ function Home() {
                                 <li><strong>Aseguramiento:</strong> {panelFecha.seleccionada.aseguramiento}</li>
                             </ul>
                             <div className="panelActions">
-                                <button
+                                {/* <button
                                     className="panelBtn editar"
                                     title="Editar"
                                     onClick={() => setPanelFecha({ abierto: false, plan: null })}
@@ -956,8 +987,8 @@ function Home() {
                                 >
                                     <img src={icon.eliminar1} alt="Eliminar" style={{ width: 22, marginRight: 6 }} />
                                     Eliminar
-                                </button>
-                                <button
+                                </button> */}
+                                {/* <button
                                     className="panelBtn eliminar"
                                     title="Exportar PDF"
                                     onClick={() => {
@@ -975,20 +1006,8 @@ function Home() {
                                 >
                                     <img src={icon.pdf5} alt="PDF" style={{ width: 22, marginRight: 6 }} />
                                     PDF
-                                </button>
-                                <button
-                                    className="panelBtn editar"
-                                    title="Exportar Excel"
-                                    onClick={() => exportToExcel({
-                                        data: [panelFecha.plan],
-                                        columns: columnsPlanificacion,
-                                        fileName: `Planificacion_${panelFecha.plan.fecha_programada}.xlsx`,
-                                        count: false
-                                    })}
-                                >
-                                    <img src={icon.excel2} alt="Excel" style={{ width: 22, marginRight: 6 }} />
-                                    Excel
-                                </button>
+                                </button> */}
+
                             </div>
                         </div>
                     )}

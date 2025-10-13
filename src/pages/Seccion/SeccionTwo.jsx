@@ -5,10 +5,12 @@ import '../../main.css';
 import Solicitud from '../Solicitud/Solicitud';
 import Planificacion from '../Planificacion/Planificacion';
 import Inspecciones from '../Inspecciones/Inspecciones';
+import { useSearchParams } from 'react-router-dom';
 
 function SeccionTwo () {
     const tienePermiso = usePermiso();
-    
+    const [searchParams] = useSearchParams();
+
     // Tabs principales
     const tabs = [
         tienePermiso('solicitud', 'ver') && { key: 'solicitud', label: 'Solicitudes' },
@@ -18,11 +20,22 @@ function SeccionTwo () {
 
     // Obtiene el tab guardado y verifica que exista en los tabs permitidos
         const getInitialTab = () => {
-            const savedTab = localStorage.getItem('seccionTwoTab');
+            const paramTab = searchParams.get('tab');
+            const savedTab = paramTab || localStorage.getItem('seccionTwoTab');
             return tabs.some(tab => tab.key === savedTab) ? savedTab : tabs[0].key;
         };
-    
+        
         const [activeTab, setActiveTab] = useState(getInitialTab());
+
+        React.useEffect(() => {
+                const paramTab = searchParams.get('tab');
+                if (paramTab && tabs.some(t => t.key === paramTab) && paramTab !== activeTab) {
+                    setActiveTab(paramTab);
+                    localStorage.setItem('seccionTwoTab', paramTab);
+                }
+            }, [searchParams, tabs, activeTab]);
+
+        
     
         // Guarda el tab activo en localStorage al cambiar
         const handleTabClick = (tab) => {

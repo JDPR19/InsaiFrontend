@@ -29,10 +29,10 @@ const tipos = [
 
 const camposPorTipo = {
     empleado: ['nombre', 'apellido', 'cedula', 'cargo', 'contacto'],
-    propiedad: ['propiedad', 'rif', 'ubicación', 'tipo_propiedad', 'sector', 'productor'],
+    propiedad: ['propiedad', 'rif', 'ubicacion', 'tipo_propiedad', 'sector', 'productor'],
     productor: ['nombre', 'apellido', 'cedula', 'contacto', 'email'],
     solicitud: ['codigo', 'fecha_solicitada', 'tipo_solicitud', 'propiedad', 'usuario'],
-    planificacion: ['fecha_programada', 'objetivo', 'actividad', 'tipo_inspeccion', 'propiedad', 'estado'],
+    planificacion: ['fecha_programada', 'objetivo', 'actividad', 'propiedad', 'estado'],
     inspeccion: ['codigo_inspeccion', 'fecha_inspeccion', 'inspector', 'propiedad', 'estado'],
     cultivo: ['nombre', 'nombre_cientifico', 'descripcion'],
     plaga: ['nombre', 'nombre_cientifico', 'observaciones'],

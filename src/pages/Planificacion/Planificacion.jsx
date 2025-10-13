@@ -11,6 +11,7 @@ import { validateField, getValidationRule } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
+import { useSearchParams } from 'react-router-dom';
 
 function Planificacion() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -20,8 +21,13 @@ function Planificacion() {
     const [currentPage, setCurrentPage] = useState(1);
     const [currentModal, setCurrentModal] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [now, setNow] = useState(Date.now());
     const [pdfUrl, setPdfUrl] = useState(null);
     const [pdfFileName, setPdfFileName] = useState('');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [weekStr, setWeekStr] = useState('');
+    const [weekRange, setWeekRange] = useState(null);
+    const initializedFromQuery = React.useRef(false);
     const [detalleModal, setDetalleModal] = useState({ abierto: false, planificacion: null });
     const [formData, setFormData] = useState({
         id: '',
@@ -132,6 +138,60 @@ function Planificacion() {
         fetchEmpleados();
     }, []);
 
+    useEffect(() => {
+        const id = setInterval(() => setNow(Date.now()), 1000);
+        return () => clearInterval(id);
+    }, []);
+
+    const isPendiente = (pl) => String(pl.estado) === 'pendiente';
+
+    const parseLocalDateTime = (pl) => {
+        const rawDate = pl?.fecha_programada;
+        if (!rawDate) return null;
+
+        let y, m, d;
+        if (rawDate.includes('T')) {
+            const dt = new Date(rawDate);
+            if (isNaN(dt.getTime())) return null;
+            y = dt.getFullYear();
+            m = dt.getMonth() + 1;
+            d = dt.getDate();
+        } else {
+            const parts = rawDate.split('-');
+            if (parts.length !== 3) return null;
+            [y, m, d] = parts.map(Number);
+        }
+
+        let t = pl?.hora || '23:59';
+        if (t.length >= 5) t = t.slice(0, 5); // HH:mm
+        const [hhStr = '23', mmStr = '59'] = t.split(':');
+        let hh = Number(hhStr);
+        let mm = Number(mmStr);
+        if (Number.isNaN(hh)) hh = 23;
+        if (Number.isNaN(mm)) mm = 59;
+
+        const dtLocal = new Date(Number(y), Number(m) - 1, Number(d), hh, mm, 0, 0);
+        return isNaN(dtLocal.getTime()) ? null : dtLocal;
+    };
+
+   const formatCountdown = (pl) => {
+    const target = parseLocalDateTime(pl);
+    if (!target) return 'Fecha u hora no válida';
+
+    const diffMs = target.getTime() - now; // Faltan >= 0, Retraso < 0
+    const abs = Math.abs(diffMs);
+    const totalSec = Math.floor(abs / 1000);
+    const d = Math.floor(totalSec / 86400);
+    const h = Math.floor((totalSec % 86400) / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    const hh = String(h).padStart(2, '0');
+    const mm = String(m).padStart(2, '0');
+    const ss = String(s).padStart(2, '0');
+    const prefix = diffMs >= 0 ? 'Faltan' : 'Retraso';
+    const cuando = `${pl.fecha_programada}${pl.hora ? ` ${pl.hora.slice(0, 5)}` : ' 23:59'}`;
+    return `${prefix} ${d}d ${hh}h ${mm}m ${ss}s • Programada para Inspección: ${cuando}`;
+    };
     
 
     const resetFormData = () => {
@@ -173,6 +233,24 @@ function Planificacion() {
             empleados_ids: Array.isArray(f.empleados_ids) ? f.empleados_ids.map(toId) : []
         }));
     }, [solicitudes, empleados]);
+
+    useEffect(() => {
+        const solId = searchParams.get('solicitudId');
+        if (!solId || initializedFromQuery.current) return;
+
+        if (solicitudOptions.length === 0) return;
+
+        setFormData(prev => ({ ...prev, solicitud_id: String(solId) }));
+        setCurrentModal('planificacion');
+        initializedFromQuery.current = true;
+
+        // Limpia el query y fija tab
+        setSearchParams(p => {
+            p.delete('solicitudId');
+            p.set('tab', 'planificacion');
+            return p;
+        });
+    }, [searchParams, solicitudOptions, setSearchParams]);
 
     // Modal handlers
     const openModal = () => {
@@ -261,6 +339,76 @@ function Planificacion() {
         return { value: String(formData.solicitud_id), label: `Solicitud #${formData.solicitud_id}` };
     };
 
+    const toLocalDateStr = (d) => {
+        const tz = d.getTimezoneOffset();
+        return new Date(d.getTime() - tz * 60000).toISOString().slice(0, 10);
+    };
+    const todayStr = toLocalDateStr(new Date());
+
+     // Calcula rango [lunes..domingo] de una semana ISO (YYYY-Www)
+    const getWeekRangeFromWeekInput = (ws) => {
+        if (!ws) return null; // '2025-W40'
+        const [yearStr, weekPart] = ws.split('-W');
+        const year = parseInt(yearStr, 10);
+        const week = parseInt(weekPart, 10);
+        const jan4 = new Date(year, 0, 4);
+        const day = jan4.getDay() || 7; // lunes=1..domingo=7
+        const mondayWeek1 = new Date(jan4);
+        mondayWeek1.setDate(jan4.getDate() - (day - 1));
+        const monday = new Date(mondayWeek1);
+        monday.setDate(mondayWeek1.getDate() + (week - 1) * 7);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        return { from: toLocalDateStr(monday), to: toLocalDateStr(sunday) };
+    };
+
+    // Semana actual en formato input week (YYYY-Www)
+    const getWeekInputValue = (d) => {
+        const date = new Date(d);
+        const year = date.getFullYear();
+        // Busca primer jueves del año
+        const firstThu = new Date(year, 0, 1);
+        while (firstThu.getDay() !== 4) firstThu.setDate(firstThu.getDate() + 1);
+        const diffDays = Math.floor((date - firstThu) / (1000 * 60 * 60 * 24));
+        const week = Math.floor(diffDays / 7) + 1;
+        return `${year}-W${String(week).padStart(2, '0')}`;
+    };
+
+    // Filtra por semana cuando cambia el weekStr
+  
+        useEffect(() => {
+            if (!weekStr) {
+                setWeekRange(null);
+                setDatosFiltrados(datosOriginales);
+                setCurrentPage(1);
+                return;
+            }
+            const range = getWeekRangeFromWeekInput(weekStr);
+            setWeekRange(range);
+            const filtered = datosOriginales.filter(p =>
+                p.fecha_programada >= range.from && p.fecha_programada <= range.to
+            );
+            setDatosFiltrados(filtered);
+            setCurrentPage(1);
+        }, [weekStr, datosOriginales]);
+
+    // Meta para PDF/Excel (título y nombre)
+    const getReportMeta = () => {
+        if (weekRange) {
+            const { from, to } = weekRange;
+            return {
+                pdfName: `Planificaciones_Semana_${from}_a_${to}.pdf`,
+                xlsName: `Planificaciones_Semana_${from}_a_${to}.xlsx`,
+                title: `Planificaciones de la semana (${from} a ${to})`
+            };
+        }
+        return {
+            pdfName: 'Planificaciones.pdf',
+            xlsName: 'Planificaciones.xlsx',
+            title: 'Listado de Planificaciones'
+        };
+    };
+
     const handleSave = async () => {
         for (const field in formData) {
             const rule = getValidationRule(field);
@@ -274,16 +422,23 @@ function Planificacion() {
                 return;
             }
         }
+        const fechaStr = formData.fecha_programada;
+
         if (!formData.solicitud_id || String(formData.solicitud_id).trim() === '') {
             addNotification('Debe seleccionar una solicitud', 'warning');
             return;
         }
-        if (!formData.fecha_programada) {
+        if (!fechaStr) {
             addNotification('Debe seleccionar la fecha programada', 'warning');
             return;
         }
-        if (!formData.hora) {
-            addNotification('Debe indicar la hora', 'warning');
+        const yearOk = fechaStr.slice(0, 4) === String(new Date().getFullYear());
+        if (!yearOk) {
+            addNotification('Solo puedes registrar fechas en el año actual.', 'warning');
+            return;
+        }
+        if (fechaStr < todayStr) {
+            addNotification('No puedes registrar en días/meses que ya pasaron.', 'warning');
             return;
         }
         if (!formData.actividad?.trim() || !formData.objetivo?.trim() ||
@@ -291,29 +446,7 @@ function Planificacion() {
             addNotification('Complete todos los campos obligatorios', 'warning');
             return;
         }
-        const fecha = formData.fecha_programada;
-        const hoy = new Date();
-        const fechaIngresada = new Date(fecha);
-
-        const añoActual = hoy.getFullYear();
-        const mesActual = hoy.getMonth(); 
-        const diaActual = hoy.getDate();
-
-        if (!fecha || fechaIngresada.getFullYear() !== añoActual) {
-            addNotification('Solo puedes registrar fechas en el año actual.', 'warning');
-            return;
-        }
-        if (fechaIngresada.getMonth() < mesActual) {
-            addNotification('No puedes registrar en meses que ya pasaron.', 'warning');
-            return;
-        }
-        if (
-            fechaIngresada.getMonth() === mesActual &&
-            fechaIngresada.getDate() < diaActual
-        ) {
-            addNotification('No puedes registrar en días que ya pasaron.', 'warning');
-            return;
-        }
+        
         setLoading(true);
         try {
             const payload = {
@@ -359,29 +492,22 @@ function Planificacion() {
                 return;
             }
         }
-        const fecha = formData.fecha_programada;
-        const hoy = new Date();
-        const fechaIngresada = new Date(fecha);
+        const fechaStr = formData.fecha_programada;
 
-        const añoActual = hoy.getFullYear();
-        const mesActual = hoy.getMonth(); // 0-indexed
-        const diaActual = hoy.getDate();
-
-        if (!fecha || fechaIngresada.getFullYear() !== añoActual) {
+        if (!fechaStr) {
+            addNotification('Debe seleccionar la fecha programada', 'warning');
+            return;
+        }
+        const yearOk = fechaStr.slice(0, 4) === String(new Date().getFullYear());
+        if (!yearOk) {
             addNotification('Solo puedes registrar fechas en el año actual.', 'warning');
             return;
         }
-        if (fechaIngresada.getMonth() < mesActual) {
-            addNotification('No puedes registrar en meses que ya pasaron.', 'warning');
+        if (fechaStr < todayStr) {
+            addNotification('No puedes registrar en días/meses que ya pasaron.', 'warning');
             return;
         }
-        if (
-            fechaIngresada.getMonth() === mesActual &&
-            fechaIngresada.getDate() < diaActual
-        ) {
-            addNotification('No puedes registrar en días que ya pasaron.', 'warning');
-            return;
-        }
+
         setLoading(true);
         try {
             const payload = {
@@ -610,8 +736,7 @@ function Planificacion() {
                                         value={formData.fecha_programada}
                                         onChange={handleChange}
                                         className='date'
-                                        min={new Date().toISOString().slice(0, 10)} 
-                                        max={`${new Date().getFullYear()}-12-31`}
+                                        min={todayStr}                
                                     />
                                 </div>
                                 <div className='formGroup'>
@@ -781,16 +906,17 @@ function Planificacion() {
                         <button
                             type='button'
                             onClick={() => {
+                                const { pdfName, title } = getReportMeta();
                                 const blob = exportToPDF({
                                     data: datosFiltrados,
                                     columns: columnsPlanificacion,
-                                    fileName: 'Planificaciones.pdf',
-                                    title: 'Listado de Planificaciones',
+                                    fileName: pdfName,
+                                    title,
                                     preview: true
                                 });
                                 const url = URL.createObjectURL(blob);
                                 setPdfUrl(url);
-                                setPdfFileName('Planificaciones.pdf');
+                                setPdfFileName(pdfName);
                             }}
                             className='btn-estandar'
                             title='Previsualizar PDF'
@@ -800,19 +926,56 @@ function Planificacion() {
                         </button>
                         <button
                             type='button'
-                            onClick={() => exportToExcel({
-                                data: datosFiltrados,
-                                columns: columnsPlanificacion,
-                                fileName: 'Planificaciones.xlsx',
-                                count: true,
-                                totalLabel: 'TOTAL REGISTROS'
-                            })}
+                            onClick={() => {
+                                const { xlsName } = getReportMeta();
+                                exportToExcel({
+                                    data: datosFiltrados,
+                                    columns: columnsPlanificacion,
+                                    fileName: xlsName,
+                                    count: true,
+                                    totalLabel: 'TOTAL REGISTROS'
+                                });
+                            }}
                             className='btn-estandar'
                             title='Descargar Formato Excel'
                         >
                             <img src={icon.excel2} alt="Excel" className='icon' />
                             Excel
                         </button>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 8 }}>
+                            {/* <label>Semana:</label> */}
+                            <input
+                                type="week"
+                                className="date"
+                                value={weekStr}
+                                onChange={(e) => setWeekStr(e.target.value)}
+                                title="Filtrar por semana (ISO)"
+                            />
+                            {/* {weekRange && (
+                                <span style={{ fontSize: 12 }}>
+                                    {weekRange.from} a {weekRange.to}
+                                </span>
+                            )} */}
+                            <button
+                                type="button"
+                                className="btn-estandar"
+                                onClick={() => setWeekStr(getWeekInputValue(new Date()))}
+                                title="Semana actual"
+                            >
+                                Semana
+                            </button>
+                            {weekRange && (
+                                <button
+                                    type="button"
+                                    className="btn-limpiar"
+                                    onClick={() => setWeekStr('')}
+                                    title="Quitar filtro semanal"
+                                >
+                                    Limpiar
+                                </button>
+                            )}
+                        </div>
                     </div>
                     <h2>Planificaciones</h2>
                     <div className='searchContainer'>
@@ -833,42 +996,49 @@ function Planificacion() {
                         </tr>
                     </thead>
                     <tbody>
-                        {currentData.map((item, idx) => (
-                            <tr key={item.id}>
+                        {currentData.map((item, idx) => {
+                            const pendiente = isPendiente(item);
+                            return (
+                                <tr
+                                key={item.id}
+                                className={pendiente ? 'row-pendiente' : ''}
+                                title={pendiente ? formatCountdown(item) : undefined}
+                                >
                                 <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{item.codigo}</td>
                                 <td>{item.solicitud_codigo || item.solicitud_id}</td>
-                                <td>{item.fecha_programada}</td>
+                                <td>{item.fecha_programada}{item.hora ? ` ${item.hora.slice(0,5)}` : ''}</td>
                                 <td>{item.actividad}</td>
                                 <td>
                                     <span className={`badge-estado badge-${item.estado}`}>
-                                        {item.estado}
+                                    {item.estado}
                                     </span>
                                 </td>
                                 <td>
                                     <div className='iconContainer'>
-                                        <img
-                                            onClick={() => openDetalleModal(item)}
-                                            src={icon.ver}
-                                            className='iconver'
-                                            title='Ver más'
-                                        />
-                                        <img
-                                            onClick={() => openEditModal(item)}
-                                            src={icon.editar}
-                                            className='iconeditar'
-                                            title='Editar'
-                                        />
-                                        <img
-                                            onClick={() => openConfirmDeleteModal(item.id)}
-                                            src={icon.eliminar}
-                                            className='iconeliminar'
-                                            title='Eliminar'
-                                        />
+                                    <img
+                                        onClick={pendiente ? undefined : () => openDetalleModal(item)}
+                                        src={icon.ver}
+                                        className={`iconver ${pendiente ? 'iconDisabled' : ''}`}
+                                        title={pendiente ? 'Pendiente (acciones deshabilitadas)' : 'Ver más'}
+                                    />
+                                    <img
+                                        onClick={pendiente ? undefined : () => openEditModal(item)}
+                                        src={icon.editar}
+                                        className={`iconeditar ${pendiente ? 'iconDisabled' : ''}`}
+                                        title={pendiente ? 'Pendiente (acciones deshabilitadas)' : 'Editar'}
+                                    />
+                                    <img
+                                        onClick={pendiente ? undefined : () => openConfirmDeleteModal(item.id)}
+                                        src={icon.eliminar}
+                                        className={`iconeliminar ${pendiente ? 'iconDisabled' : ''}`}
+                                        title={pendiente ? 'Pendiente (acciones deshabilitadas)' : 'Eliminar'}
+                                    />
                                     </div>
                                 </td>
-                            </tr>
-                        ))}
+                                </tr>
+                            );
+                            })}
                     </tbody>
                 </table>
                 <div className='tableFooter'>

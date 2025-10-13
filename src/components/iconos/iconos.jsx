@@ -54,7 +54,7 @@ import eliminar1 from '../../../public/eliminar1.svg';
 import flechaAbajo from '../../../public/flechaAbajo.svg'; 
 import pie from '../../../public/pie.svg'; 
 import picture from '../../../public/picture.svg'; 
-
+import martillito from '../../../public/martillo.svg'
 
 const Iconos = {
     crear,
@@ -112,7 +112,8 @@ const Iconos = {
     eliminar1,
     flechaAbajo,
     pie,
-    picture
+    picture,
+    martillito
 };
 
 export default Iconos;

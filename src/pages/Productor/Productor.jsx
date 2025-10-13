@@ -10,6 +10,7 @@ import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
+import { buildProductorFichaBlob } from '../../components/pdf/Ficha';
 
 function Productor() {
     const navigate = useNavigate();
@@ -85,6 +86,65 @@ function Productor() {
         const url = URL.createObjectURL(blob);
         setPdfUrl(url);
         setPdfFileName(fileName);
+    };
+
+    const handleFichaPDF = async (prod) => {
+        try {
+            // 1) Traer productor completo + propiedades
+            const { data } = await axios.get(`${BaseUrl}/productor/${prod.id}`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+
+            const productorDet = data || prod;
+            const props = Array.isArray(data?.propiedades) ? data.propiedades : [];
+
+            // 2) Normalizar propiedades para el PDF
+            const propiedades = props.map((p) => {
+            const ubicacion = [
+                p.estado_nombre,
+                p.municipio_nombre,
+                p.parroquia_nombre,
+                p.sector_nombre,
+                p.ubicacion || p.direccion
+            ].filter(Boolean).join(' / ');
+
+            const cultivosDetalle = [
+                p.cultivos_nombres || '',
+            ].filter(Boolean).join(' ');
+
+            return {
+                id: p.id,
+                codigo: p.codigo || p.id,
+                rif: p.rif || '',
+                nombre: p.nombre || '',
+                tipo: p.tipo_propiedad_nombre || '',
+                cultivo: cultivosDetalle,                       
+                cultivos_cientificos: p.cultivos_cientificos || '',
+                tipos_cultivo: p.tipos_cultivo_nombres || '',
+                hectareas: p.hectareas ?? '',
+                ubicacion,
+                sitios_asociados: p.sitios_asociados || '',
+                posee_certificado: p.posee_certificado || '',
+                estado_propiedad: p.estado_propiedad || ''
+            };
+            });
+
+            // 3) Generar PDF
+            const blob = await buildProductorFichaBlob({
+            productor: productorDet,
+            propiedades,
+            // logoUrl: '/assets/logo-sisic.png'
+            });
+
+            // 4) Liberar blob previo y abrir visor
+            const url = URL.createObjectURL(blob);
+            try { if (pdfUrl) URL.revokeObjectURL(pdfUrl); } catch (error) {console.error(error);}
+            setPdfUrl(url);
+            setPdfFileName(`Ficha_Productor_${productorDet.codigo || productorDet.cedula || productorDet.id}.pdf`);
+        } catch (e) {
+            console.error('Error generando ficha PDF', e);
+            addNotification('No se pudo generar la ficha PDF', 'error');
+        }
     };
 
     const fetchProductores = async () => {
@@ -218,11 +278,15 @@ function Productor() {
     } catch (err) {
         const backendMessage = err?.response?.data?.message;
             const status = err?.response?.status;
+            const field = err?.response?.data?.field;
             console.error('Error actualizando productor:', err?.response?.data || err?.message);
 
             addNotification(backendMessage || 'Error al actualizar productor', 'error');
 
-            if (status === 409 && backendMessage) {
+            if (status === 409) {
+            if (field) {
+                setErrors(prev => ({ ...prev, [field]: backendMessage || 'Valor duplicado' }));
+            } else if (backendMessage) {
                 const lower = backendMessage.toLowerCase();
                 setErrors(prev => ({
                     ...prev,
@@ -230,6 +294,7 @@ function Productor() {
                     ...(lower.includes('código') || lower.includes('codigo') ? { codigo: backendMessage } : {})
                 }));
             }
+        }
     } finally {
         setLoading(false);
     }
@@ -364,7 +429,7 @@ function Productor() {
                     <span className='cardNumber'>
                         {totales.maxPropiedades}
                     </span>
-                    <p>Top Propiedades</p>
+                    <p>Propiedades Asociadas</p>
                 </div>
             </div>
 
@@ -501,7 +566,7 @@ function Productor() {
                                     Se creó correctamente el productor
                                     {` ${recentProductor?.codigo ? `(${recentProductor.codigo})` : ''} ${recentProductor?.nombre || ''} ${recentProductor?.apellido || ''}`}.
                                 </p>
-                                <p>¿Deseas continuar para culminar el proceso en la siguiente pantalla?</p>
+                                <p>¿Deseas continuar para seguir el proceso en la siguiente pantalla?</p>
                                 <div className='modalActions' style={{ marginTop: 16, display: 'flex', gap: 8 }}>
                                     <button className='btn-estandar' onClick={goToNextScreen}>
                                         Continuar
@@ -617,6 +682,13 @@ function Productor() {
                                             src={icon.ver}
                                             className='iconver'
                                             title='Ver más'
+                                        />
+                                        <img
+                                            onClick={() => handleFichaPDF(prod)}
+                                            src={icon.cliente}
+                                            className='iconver'
+                                            title='Ficha PDF'
+                                            alt='Ficha PDF'
                                         />
                                         <img
                                             onClick={() => openEditModal(prod)}
