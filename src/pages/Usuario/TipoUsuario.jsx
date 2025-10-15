@@ -362,6 +362,7 @@ function TipoUsuario() {
                 <table className='table'>
                     <thead>
                         <tr>
+                            <th>N°</th>
                             <th>Nombre</th>
                             <th>Descripción</th>
                             <th>Permisos</th>
@@ -369,8 +370,9 @@ function TipoUsuario() {
                         </tr>
                     </thead>
                     <tbody>
-                        {currentData.map((tipo) => (
+                        {currentData.map((tipo, idx) => (
                             <tr key={tipo.id} >
+                                <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{tipo.nombre}</td>
                                 <td>{tipo.descripcion}</td>
                                 <td>

@@ -437,6 +437,7 @@ function Empleado() {
                 <table className='table'>
                     <thead>
                         <tr>
+                            <th>Nº</th>
                             <th>Cédula</th>
                             <th>Nombre</th>
                             <th>Apellido</th>
@@ -444,8 +445,9 @@ function Empleado() {
                         </tr>
                     </thead>
                     <tbody>
-                        {currentData.map((empleado) => (
+                        {currentData.map((empleado, idx) => (
                             <tr key={empleado.id}>
+                                <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{empleado.cedula}</td>
                                 <td>{empleado.nombre}</td>
                                 <td>{empleado.apellido}</td>

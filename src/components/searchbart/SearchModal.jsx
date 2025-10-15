@@ -21,10 +21,10 @@ const tipos = [
     { value: 'plaga', label: 'Plagas', pantalla: 'plaga', accion: 'ver', ayuda: 'Busca por nombre, nombre científico, observaciones.' },
     { value: 'laboratorio', label: 'Laboratorios', pantalla: 'laboratorio', accion: 'ver', ayuda: 'Busca por nombre, ubicación, tipo, sector.' },
     { value: 'programa', label: 'Programas', pantalla: 'programa', accion: 'ver', ayuda: 'Busca por nombre, descripción, tipo.' },
-    { value: 'sector', label: 'Sectores', pantalla: 'sector', accion: 'ver', ayuda: 'Busca por nombre, parroquia.' },
-    { value: 'municipio', label: 'Municipios', pantalla: 'municipio', accion: 'ver', ayuda: 'Busca por nombre, estado.' },
-    { value: 'parroquia', label: 'Parroquias', pantalla: 'parroquia', accion: 'ver', ayuda: 'Busca por nombre, municipio.' },
     { value: 'cargo', label: 'Cargos', pantalla: 'cargos', accion: 'ver', ayuda: 'Busca por nombre.' }
+    // { value: 'sector', label: 'Sectores', pantalla: 'sector', accion: 'ver', ayuda: 'Busca por nombre, parroquia.' },
+    // { value: 'municipio', label: 'Municipios', pantalla: 'municipio', accion: 'ver', ayuda: 'Busca por nombre, estado.' },
+    // { value: 'parroquia', label: 'Parroquias', pantalla: 'parroquia', accion: 'ver', ayuda: 'Busca por nombre, municipio.' },
 ];
 
 const camposPorTipo = {
@@ -141,7 +141,6 @@ function SearchModal({ abierto, titulo = 'Buscador Universal', onClose }) {
     // Modal de detalle con copiado en texto plano y notificación
     const DetalleModal = ({ item, onClose }) => {
         const copiarDatos = () => {
-            // Excluye el campo 'id' y copia solo los valores en texto plano
             const textoPlano = campos
                 .filter(campo => campo !== 'id')
                 .map(campo => item[campo] !== undefined && item[campo] !== null && item[campo] !== ''
@@ -285,7 +284,6 @@ function SearchModal({ abierto, titulo = 'Buscador Universal', onClose }) {
                                                     onClick={() => setDetalle(item)}
                                                     title="Ver detalle"
                                                 >
-                                                    <img src={icon.ver} alt="Ver" style={{ width: 18, marginRight: 4 }} />
                                                     Ver detalle
                                                 </button>
                                             </td>

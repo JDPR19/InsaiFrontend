@@ -576,6 +576,7 @@ function Usuario() {
                 <table className='table'>
                     <thead>
                         <tr>
+                            <th>Nº</th>
                             <th>Usuario</th>
                             <th>Correo</th>  
                             <th>Tipo de Usuario</th>
@@ -583,11 +584,12 @@ function Usuario() {
                         </tr>
                     </thead>
                     <tbody>
-                        {currentData.map((usuario) => (
+                        {currentData.map((usuario, idx) => (
                             <tr
                                 key={usuario.id || `${usuario.username}-${usuario.email}`}
                                 className={!usuario.estado ? styles.usuarioDeshabilitado : ''}
                             >
+                                <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{usuario.username}</td>
                                 <td>{usuario.email}</td>
                                 <td>{usuario.roles_nombre}</td>

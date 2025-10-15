@@ -659,21 +659,21 @@ function Productor() {
                 <table className='table'>
                     <thead>
                         <tr>
+                            <th>Nº</th>
                             <th>Código Runsai</th>
                             <th>Cédula</th>
                             <th>Nombre</th>
-                            <th>Apellido</th>
                             <th>Propiedades</th>
                             <th>Acción</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {currentData.map((prod) => (
+                        {currentData.map((prod, idx) => (
                             <tr key={prod.id} >
+                                <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{prod.codigo}</td>
                                 <td>{prod.cedula}</td>
                                 <td>{prod.nombre}</td>
-                                <td>{prod.apellido}</td>
                                 <td>{prod.total_propiedades || 0}</td>
                                 <td>
                                     <div className='iconContainer'>

@@ -586,7 +586,7 @@ function Planificacion() {
     // Buscar y filtrar
     const handleSearch = (searchTerm) => {
         const filtered = filterData(datosOriginales, searchTerm, [
-            'actividad', 'fecha_programada', 'estado', 'objetivo', 'convocatoria', 'ubicacion', 'aseguramiento'
+            'codigo', 'solicitud_codigo','actividad', 'fecha_programada', 'estado', 'objetivo', 'convocatoria', 'ubicacion', 'aseguramiento'
         ]);
         setDatosFiltrados(filtered);
         setCurrentPage(1);
@@ -900,7 +900,7 @@ function Planificacion() {
                             className='btn-estandar'
                             title='Programar Planificación'
                             >
-                            <img src={icon.calendario} alt="Crear" className='icon' />
+                            <img src={icon.plus} alt="Crear" className='icon' />
                             Programar
                         </button>
                         <button
@@ -990,7 +990,6 @@ function Planificacion() {
                             <th>Código</th>
                             <th>Solicitud</th>
                             <th>Fecha Programada</th>
-                            <th>Actividad</th>
                             <th>Estado</th>
                             <th>Acción</th>
                         </tr>
@@ -1008,7 +1007,6 @@ function Planificacion() {
                                 <td>{item.codigo}</td>
                                 <td>{item.solicitud_codigo || item.solicitud_id}</td>
                                 <td>{item.fecha_programada}{item.hora ? ` ${item.hora.slice(0,5)}` : ''}</td>
-                                <td>{item.actividad}</td>
                                 <td>
                                     <span className={`badge-estado badge-${item.estado}`}>
                                     {item.estado}

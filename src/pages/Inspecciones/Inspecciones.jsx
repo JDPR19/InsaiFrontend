@@ -1410,7 +1410,6 @@ function InspeccionesEst() {
               <th>N°</th>
               <th>Código</th>
               <th>N° Control</th>
-              <th>Fecha Inspección</th>
               <th>Estado</th>
               <th>Acción</th>
             </tr>
@@ -1421,7 +1420,6 @@ function InspeccionesEst() {
                 <td>{indexOfFirstItem + idx + 1}</td>
                 <td>{item.codigo_inspeccion}</td>
                 <td>{item.n_control}</td>
-                <td>{item.fecha_inspeccion}</td>
                 <td><span className={`badge-estado badge-${item.estado}`}>{item.estado}</span></td>
                 <td>
                   <div className="iconContainer">

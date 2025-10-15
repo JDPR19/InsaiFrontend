@@ -469,7 +469,7 @@ function Propiedad() {
                 hectareas: formData.hectareas || null,
                 sitios_asociados: formData.sitios_asociados || null,
                 ubicacion: formData.ubicacion || null,
-                tipo_propiedad_id: formData.tipo_propiedad_id?.value || null,
+                tipo_propiedad_id: formData.tipo_propiedad_id ? Number(formData.tipo_propiedad_id) : null,
                 sector_id: formData.sector_id ? Number(formData.sector_id) : null,
                 posee_certificado: formData.posee_certificado || 'NO',
                 cultivos_ids: formData.cultivos_ids,
@@ -1006,10 +1006,7 @@ function Propiedad() {
                         <tr>
                             <th>N°</th>
                             <th>Código</th>
-                            <th>RIF</th>
                             <th>Nombre</th>
-                            <th>Ubicación</th>
-                            <th>Sector</th>
                             <th>Estatus</th>
                             <th>Acción</th>
                         </tr>
@@ -1019,10 +1016,7 @@ function Propiedad() {
                             <tr key={item.id}>
                                 <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{item.codigo}</td>
-                                <td>{item.rif}</td>
                                 <td>{item.nombre}</td>
-                                <td>{item.ubicacion}</td>
-                                <td>{item.sector_nombre}</td>
                                 <td>
                                     <span className={`badge-estado badge-${item.estado}`}>
                                         {item.estado}

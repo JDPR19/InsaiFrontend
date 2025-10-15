@@ -287,15 +287,15 @@ function Cargo() {
                 <table className='table'>
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>Nº</th>
                             <th>Nombre</th>
                             <th>Acción</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {currentData.map((cargo) => (
+                        {currentData.map((cargo, idx) => (
                             <tr key={cargo.id} >
-                                <td>{cargo.id}</td>
+                                <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{cargo.nombre}</td>
                                 <td>
                                     <div className='iconContainer'>

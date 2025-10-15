@@ -16,7 +16,7 @@
   box-shadow: 0 4px 16px var(--modal-shadow-dark);
   padding: 30px 30px 20px 30px;
   min-width: 400px;
-  max-width: 70vw;
+  max-width: 95vw;
   min-height: 300px;
   max-height: 110vh;
   overflow: hidden;
@@ -28,7 +28,7 @@
 }
 
 .searchModalTableWrapper {
-  width: 95%;
+  width: 100%;
   max-width: 100%;
   overflow-x: auto;
   margin-top: 15px;
@@ -161,7 +161,7 @@
   border-radius: 12px;
   box-shadow: 0 4px 16px var(--modal-shadow-dark);
   padding: 32px 32px 40px 32px;
-  max-width: 70vw;              
+  max-width: 60vw;              
   max-height: 85vh;             
   position: relative;
   overflow: auto;
@@ -196,7 +196,7 @@
 .detalleTable th,
 .detalleTable td {
   text-align: left;
-  padding: 10px 20px;
+  padding: 10px;
   border-bottom: 2px solid #cecece6c;
   font-size: 1rem;
   vertical-align: top;
@@ -209,6 +209,8 @@
   background: var(--lithg-green);
   color: #444;
   font-weight: 600;
+  width: 30%;   
+  line-height: 1.2;
 }
 .detalleTable tr:last-child td {
   border-bottom: #b4b4b4c2;

@@ -7,7 +7,6 @@ import TipoSolicitud from '../Solicitud/TipoSolicitud';
 import TipoPermiso from '../Permiso/TipoPermiso';
 import TipoPropiedad from '../Propiedad/TipoPropiedad';
 import TipoEvento from '../Inspecciones/TipoEvento';
-import Tipoinspeccion from '../Inspecciones/TipoInspeccion';
 import TipoCultivo from '../Cultivo/TipoCultivo';
 import TipoPlaga from '../Plagas/TipoPlaga';
 import TipoLaboratorio from '../Labotario/TipoLaboratorio';
@@ -22,7 +21,6 @@ function SeccionFour() {
         tienePermiso('tipo_permiso', 'ver') && { key: 'tipo_permiso', label: 'Tipos de Permiso' },
         tienePermiso('tipo_propiedad', 'ver') && { key: 'tipo_propiedad', label: 'Tipos de Propiedad' },
         tienePermiso('tipo_evento', 'ver') && { key: 'tipo_evento', label: 'Tipos de Evento' },
-        tienePermiso('tipo_inspeccion', 'ver') && { key: 'tipo_inspeccion', label: 'Tipos de Inspección' },
         tienePermiso('tipo_cultivo', 'ver') && { key: 'tipo_cultivo', label: 'Tipos de Cultivo' },
         tienePermiso('tipo_plaga', 'ver') && { key: 'tipo_plaga', label: 'Tipos de Plaga' },
         tienePermiso('tipo_laboratorio', 'ver') && { key: 'tipo_laboratorio', label: 'Tipos de Laboratorio' },
@@ -52,8 +50,6 @@ function SeccionFour() {
         tablaRenderizada = <TipoPropiedad />;
     }else if (activeTab === 'tipo_permiso') {
         tablaRenderizada = <TipoPermiso />;
-    }else if (activeTab === 'tipo_inspeccion') {
-        tablaRenderizada = <Tipoinspeccion />;
     } else if (activeTab === 'tipo_evento') {
         tablaRenderizada = <TipoEvento />;
     } else if (activeTab === 'tipo_cultivo') {
