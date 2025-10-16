@@ -13,6 +13,8 @@ import { usePermiso } from '../../hooks/usePermiso';
 import { BaseUrl } from '../../utils/constans';
 import { useNotification } from '../../utils/NotificationContext';
 import { filterData } from '../../utils/filterData';
+import { buildInspeccionActaBlob } from '../../components/pdf/ActaVigilancia';
+
 
 function InspeccionesEst() {
   // Navegación y permisos
@@ -135,6 +137,88 @@ function InspeccionesEst() {
       totalLabel: 'TOTAL REGISTROS'
     });
   };
+
+  
+const toPdfPayload = (det) => {
+  const d = det || {};
+  return {
+    inspeccion: {
+      id: d.id,
+      codigo_inspeccion: d.codigo_inspeccion,
+      n_control: d.n_control,
+      fecha_inspeccion: d.fecha_inspeccion,     
+      hora_inspeccion: d.hora_inspeccion,       
+      norte: d.norte,                           
+      este: d.este,                             
+      zona: d.zona,                             
+      aspectos: d.aspectos,                     
+      ordenamientos: d.ordenamientos,           
+      anexos: d.anexos,                         
+      area: d.area,                             
+      estado: d.estado,
+      vigencia: d.vigencia,
+      fecha_proxima_inspeccion: d.fecha_proxima_inspeccion,
+      finalidades: Array.isArray(d.finalidades) ? d.finalidades : [], 
+      inspectores: d.inspectores || d.empleados || []                  
+    },
+    
+    propiedad: d.propiedad || {
+      nombre: d.propiedad_nombre,
+      rif: d.propiedad_rif,
+      ubicacion: d.propiedad_ubicacion || d.ubicacion,
+      direccion: d.direccion,
+      sector_nombre: d.sector_nombre || d.sector,
+      municipio_nombre: d.municipio_nombre || d.municipio,
+      parroquia_nombre: d.parroquia_nombre || d.parroquia,
+      estado_nombre: d.estado_nombre || d.estado_propiedad_nombre
+    },
+    
+    representantes: d.propietario ? {
+      propietarioNombre: [d.propietario.nombre, d.propietario.apellido].filter(Boolean).join(' '),
+      propietarioCedula: d.propietario.cedula,
+      runsai: d.propietario.codigo
+    } : {
+      propietarioNombre: [d.productor_nombre, d.productor_apellido].filter(Boolean).join(' '),
+      propietarioCedula: d.productor_cedula,
+      runsai: d.productor_codigo
+    },
+    
+    personaAtiende: {
+      nombre: d.responsable_e,
+      cedula: d.cedula_res,
+      correo: d.correo,
+      telefono: d.tlf
+    }
+  };
+};
+
+
+const finalidadCatalogFromOptions = (options) =>
+  (options || []).map(o => ({ id: String(o.value), nombre: o.label }));
+
+const handleActaPDF = async (item) => {
+  try {
+    setLoading(true);
+
+    const detalle = await axios.get(`${BaseUrl}/inspecciones/${item.id}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    }).then(r => r.data);
+
+    const payload = toPdfPayload(detalle);
+
+    payload.finalidadCatalogo = finalidadCatalogFromOptions(finalidadOptions);
+
+    const blob = await buildInspeccionActaBlob(payload);
+    const url = URL.createObjectURL(blob);
+    setPdfUrl(url);
+    setPdfFileName(`Acta_Inspeccion_Fines_Vigilancia${payload.inspeccion.codigo_inspeccion || payload.inspeccion.n_control || payload.inspeccion.id}.pdf`);
+  } catch (e) {
+    console.error(e);
+    addNotification('No se pudo generar el Acta con los datos del registro.', 'error');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleSeguimiento = (inspeccionId) => {
     if (!puedeVerSeguimiento) {
@@ -1448,11 +1532,11 @@ function InspeccionesEst() {
                     />
                     {tienePermiso('inspecciones', 'exportar') && (
                       <img
-                        onClick={() => openEditModal(item)}
+                        onClick={() => handleActaPDF(item)}
                         src={icon.pdf2}
                         className="iconver"
-                        alt="Tomar Desición"
-                        title="Toma de desiciones"
+                        alt="Acta con Fines de Vigilancia"
+                        title="Exportar Acta Con Fines de Vigilacia"
                       />
                     )}
                   {tienePermiso('inspecciones', 'editar') && (
