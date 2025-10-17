@@ -14,6 +14,12 @@ import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 import { useSearchParams } from 'react-router-dom';
 
 function Planificacion() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const rol = user?.roles_nombre || '';
+    const rolLc = String(rol).toLowerCase();
+    const isAdmin = rolLc === 'administrador';
+    const isInspector = rolLc === 'inspector';
+    const isModerador = rolLc === 'moderador';
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [solicitudes, setSolicitudes] = useState([]);
@@ -144,6 +150,14 @@ function Planificacion() {
     }, []);
 
     const isPendiente = (pl) => String(pl.estado) === 'pendiente';
+
+    const bloqueaPorRol = (pl) => {
+        const pendiente = isPendiente(pl);
+        if (isAdmin) return false;      // admin nunca bloqueado
+        if (isInspector) return false;  // inspector necesita ver/ejecutar
+        if (isModerador) return pendiente; // moderador bloqueado si está pendiente
+        return pendiente; // default
+    };
 
     const parseLocalDateTime = (pl) => {
         const rawDate = pl?.fecha_programada;
@@ -997,6 +1011,8 @@ function Planificacion() {
                     <tbody>
                         {currentData.map((item, idx) => {
                             const pendiente = isPendiente(item);
+                            const bloqueado = bloqueaPorRol(item);
+
                             return (
                                 <tr
                                 key={item.id}
@@ -1014,24 +1030,24 @@ function Planificacion() {
                                 </td>
                                 <td>
                                     <div className='iconContainer'>
-                                    <img
-                                        onClick={pendiente ? undefined : () => openDetalleModal(item)}
-                                        src={icon.ver}
-                                        className={`iconver ${pendiente ? 'iconDisabled' : ''}`}
-                                        title={pendiente ? 'Pendiente (acciones deshabilitadas)' : 'Ver más'}
-                                    />
-                                    <img
-                                        onClick={pendiente ? undefined : () => openEditModal(item)}
-                                        src={icon.editar}
-                                        className={`iconeditar ${pendiente ? 'iconDisabled' : ''}`}
-                                        title={pendiente ? 'Pendiente (acciones deshabilitadas)' : 'Editar'}
-                                    />
-                                    <img
-                                        onClick={pendiente ? undefined : () => openConfirmDeleteModal(item.id)}
-                                        src={icon.eliminar}
-                                        className={`iconeliminar ${pendiente ? 'iconDisabled' : ''}`}
-                                        title={pendiente ? 'Pendiente (acciones deshabilitadas)' : 'Eliminar'}
-                                    />
+                                        <img
+                                            onClick={bloqueado ? undefined : () => openDetalleModal(item)}
+                                            src={icon.ver}
+                                            className={`iconver ${bloqueado ? 'iconDisabled' : ''}`}
+                                            title={bloqueado ? 'Acción deshabilitada por rol/estado' : 'Ver más'}
+                                        />
+                                        <img
+                                            onClick={bloqueado ? undefined : () => openEditModal(item)}
+                                            src={icon.editar}
+                                            className={`iconeditar ${bloqueado ? 'iconDisabled' : ''}`}
+                                            title={bloqueado ? 'Acción deshabilitada por rol/estado' : 'Editar'}
+                                        />
+                                        <img
+                                            onClick={bloqueado ? undefined : () => openConfirmDeleteModal(item.id)}
+                                            src={icon.eliminar}
+                                            className={`iconeliminar ${bloqueado ? 'iconDisabled' : ''}`}
+                                            title={bloqueado ? 'Acción deshabilitada por rol/estado' : 'Eliminar'}
+                                        />
                                     </div>
                                 </td>
                                 </tr>

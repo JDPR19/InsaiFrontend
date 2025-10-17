@@ -159,7 +159,8 @@ const toPdfPayload = (det) => {
       vigencia: d.vigencia,
       fecha_proxima_inspeccion: d.fecha_proxima_inspeccion,
       finalidades: Array.isArray(d.finalidades) ? d.finalidades : [], 
-      inspectores: d.inspectores || d.empleados || []                  
+      inspectores: d.inspectores || d.empleados || [],
+      imagenes: Array.isArray(d.imagenes) ? d.imagenes : []                  
     },
     
     propiedad: d.propiedad || {
@@ -200,13 +201,13 @@ const handleActaPDF = async (item) => {
   try {
     setLoading(true);
 
-    const detalle = await axios.get(`${BaseUrl}/inspecciones/${item.id}`, {
+    const detalle = await axios.get(`${BaseUrl}/inspecciones/${item.id}/ActaVigilancia`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     }).then(r => r.data);
 
     const payload = toPdfPayload(detalle);
-
     payload.finalidadCatalogo = finalidadCatalogFromOptions(finalidadOptions);
+    payload.uploadsBaseUrl = `${BaseUrl}/inspecciones/imagenes/jpg`;
 
     const blob = await buildInspeccionActaBlob(payload);
     const url = URL.createObjectURL(blob);
@@ -389,10 +390,11 @@ const handleActaPDF = async (item) => {
     setPlanificacionActualOpt(null);
   };
 
-  const openModal = () => {
-    resetFormData();
-    setCurrentModal('inspeccion');
-  };
+  const openModal = async () => {
+  resetFormData();
+    try { await fetchPlanificaciones();} catch (error) {console.error(error);}
+  setCurrentModal('inspeccion');
+};
 
   const closeModal = () => {
     resetFormData();
@@ -667,6 +669,7 @@ const handleActaPDF = async (item) => {
         setFormData(prev => ({ ...prev, id: newId }));
         addNotification('Inspección registrada con exito', 'success');
         await fetchInspecciones();
+        await fetchPlanificaciones();
         closeModal()
       } else {
         addNotification('No se pudo obtener el ID de la inspección creada.', 'error');
@@ -688,7 +691,8 @@ const handleActaPDF = async (item) => {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       addNotification('Inspección actualizada con éxito', 'success');
-      fetchInspecciones();
+      await fetchInspecciones();
+      await fetchPlanificaciones();
       closeModal();
     } catch (error) {
       console.error('Error al actualizar inspección:', error);
@@ -704,7 +708,8 @@ const handleActaPDF = async (item) => {
       await axios.delete(`${BaseUrl}/inspecciones/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      fetchInspecciones();
+      await fetchInspecciones();
+      await fetchPlanificaciones();
       addNotification('Inspección eliminada con éxito', 'success');
     } catch (error) {
       console.error('Error al eliminar inspección:', error);

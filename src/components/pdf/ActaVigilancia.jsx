@@ -43,6 +43,10 @@ const styles = StyleSheet.create({
   linedBox: { borderTop: '1 solid #000' },
   line: { height: 16, borderBottom: '1 solid #000', paddingHorizontal: 4, justifyContent: 'center' },
   footer: { position: 'absolute', bottom: 10, left: 18, right: 18, fontSize: 8, textAlign: 'center' },
+  imagesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, padding: 4 },
+  imageThumb: { width: 80, height: 60, objectFit: 'cover', border: '1 solid #000' },
+  footerRow: { position: 'absolute', bottom: 10, left: 18, right: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  footerLogo: { width: 14, height: 14, objectFit: 'contain', marginRight: 6 },
 });
 
 // Mini “celda” con label fijo arriba
@@ -115,6 +119,7 @@ function ActaPage1({
   unidad = 'DIRECCIÓN GENERAL',
 }) {
   const area = upper(inspeccion.area || 'VEGETAL');
+  const isVegetal = area.includes('VEGETAL');
 
   // Checks de área
   const areaChecks = [
@@ -138,6 +143,7 @@ function ActaPage1({
 
   const marcar = (texto) => {
     const t = upper(texto);
+    if (isVegetal && t.includes('FITOSANITARIO')) return true;
     for (const s of finSeleccionadas) {
       if (s.includes(t) || t.includes(s)) return true;
     }
@@ -153,6 +159,15 @@ function ActaPage1({
         codigoInspeccion={inspeccion.codigo_inspeccion}
         unidad={unidad}
       />
+
+      {/* Estado actual de la inspección */}
+      <View style={[styles.table, { marginTop: 4 }]}>
+        <View style={styles.row}>
+          <View style={[styles.cellNoRight, { width: '100%' }]}>
+            <Text style={styles.topSmall}>ESTADO DE LA INSPECCIÓN: {upper(inspeccion.estado || '—')}</Text>
+          </View>
+        </View>
+      </View>
 
       {/* 1. Área */}
       <View style={[styles.table, { marginTop: 6 }]}>
@@ -273,13 +288,39 @@ function ActaPage1({
         </View>
       </View>
 
-      <Text style={styles.footer} render={({ pageNumber, totalPages }) => `SICIC • INSAI • ${new Date().toLocaleDateString()}  •  Página ${pageNumber} de ${totalPages}`} />
+      <View style={styles.footerRow} fixed>
+        <Image src={img.sicic5} style={styles.footerLogo} />
+        <Text render={({ pageNumber, totalPages }) => `SICIC • INSAI • ${new Date().toLocaleDateString()}  •  Página ${pageNumber} de ${totalPages}`} />
+      </View>
+
     </Page>
   );
 }
 
 // Página 2
-function ActaPage2({ inspeccion = {}, unidad = 'DIRECCIÓN GENERAL' }) {
+function ActaPage2({ inspeccion = {}, propiedad = {}, unidad = 'DIRECCIÓN GENERAL', uploadsBaseUrl = '' }) {
+
+  const makeSrc = (img) => {
+    const name = typeof img === 'string' ? img : img?.imagen;
+    if (!name) return null;
+    if (/^https?:\/\//i.test(name)) return name;
+    const base = (uploadsBaseUrl || '').replace(/\/$/, '');
+    return base ? `${base}/${name}` : name;
+  };
+
+  // Derivados de fecha y localidad
+  const d = inspeccion.fecha_inspeccion ? new Date(inspeccion.fecha_inspeccion) : null;
+  const MES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const diaMes = d && !Number.isNaN(d) ? d.getDate() : '';
+  const mesNombre = d && !Number.isNaN(d) ? MES[d.getMonth()] : '';
+  const anio = d && !Number.isNaN(d) ? d.getFullYear() : '';
+
+  const localidad =
+    safe(inspeccion.localidad) ||
+    [propiedad.sector_nombre, propiedad.parroquia_nombre, propiedad.municipio_nombre].filter(Boolean).join(', ');
+
+  const estadoNombre = propiedad?.estado_nombre || '';
+
   return (
     <Page size="A4" style={styles.page}>
       <HeaderGrid
@@ -314,8 +355,22 @@ function ActaPage2({ inspeccion = {}, unidad = 'DIRECCIÓN GENERAL' }) {
       <View style={[styles.table, { marginTop: 6 }]}>
         <View style={styles.row}>
           <View style={[styles.cellNoRight, { width: '100%' }]}>
-            <Text style={styles.sectionTitle}>12. ANEXOS</Text>
-            <LinedBox rows={2} text={safe(inspeccion.anexos)} />
+            <Text style={styles.sectionTitle}>12. ANEXOS (EVIDENCIAS DE LA INSPECCIÓN)</Text>
+
+            {Array.isArray(inspeccion.imagenes) && inspeccion.imagenes.length > 0 && (
+              <View style={[styles.imagesGrid, { marginTop: 4 }]}>
+                {inspeccion.imagenes.map((ii, idx) => {
+                  const src = makeSrc(ii);
+                  return src ? (
+                    <Image key={idx} src={src} style={styles.imageThumb} />
+                  ) : null;
+                })}
+              </View>
+            )} 
+            {safe(inspeccion.anexos) ? (
+              <LinedBox rows={2} text={safe(inspeccion.anexos)} />
+            ) : null}
+            
           </View>
         </View>
       </View>
@@ -326,7 +381,7 @@ function ActaPage2({ inspeccion = {}, unidad = 'DIRECCIÓN GENERAL' }) {
           <View style={[styles.cellNoRight, { width: '100%' }]}>
             <Text style={styles.sectionTitle}>13. CIERRE DEL ACTA</Text>
             <Text style={{ marginTop: 4 }}>
-              Se levanta la presente Acta de Inspección, por duplicado, a las {hhmm(inspeccion.hora_inspeccion)} (m) a los {safe(inspeccion.dia_mes || '')} días del mes de {safe(inspeccion.mes_nombre || '')} del año {safe(inspeccion.anio || '')} en {safe(inspeccion.localidad || '')}, Estado {safe(inspeccion.estado_nombre || '')}.
+              Se levanta la presente Acta de Inspección, por duplicado, a las {hhmm(inspeccion.hora_inspeccion)} (m) a los {safe(diaMes)} días del mes de {safe(mesNombre)} del año {safe(anio)} en {safe(localidad)}, Estado {safe(estadoNombre)}.
             </Text>
           </View>
         </View>
@@ -356,7 +411,11 @@ function ActaPage2({ inspeccion = {}, unidad = 'DIRECCIÓN GENERAL' }) {
         </View>
       </View>
 
-      <Text style={styles.footer} render={({ pageNumber, totalPages }) => `SICIC • INSAI • ${new Date().toLocaleDateString()}  •  Página ${pageNumber} de ${totalPages}`} />
+      <View style={styles.footerRow} fixed>
+        <Image src={img.sicic5} style={styles.footerLogo} />
+        <Text render={({ pageNumber, totalPages }) => `SICIC • INSAI • ${new Date().toLocaleDateString()}  •  Página ${pageNumber} de ${totalPages}`} />
+      </View>
+
     </Page>
   );
 }
@@ -369,6 +428,7 @@ export function InspeccionActaPDF({
   personaAtiende = {},
   finalidadCatalogo = [], 
   unidad = 'DIRECCIÓN GENERAL',
+  uploadsBaseUrl = ''
 }) {
   // Resolver nombres de finalidades desde ids
   const finalidadesNombres =
@@ -394,8 +454,11 @@ export function InspeccionActaPDF({
         finalidadesNombres={finalidadesNombres}
         unidad={unidad}
       />
-      <ActaPage2 inspeccion={inspeccion} 
+      <ActaPage2 
+      inspeccion={inspeccion}
+      propiedad={propiedad} 
       unidad={unidad}
+      uploadsBaseUrl={uploadsBaseUrl}
       />
     </Document>
   );
