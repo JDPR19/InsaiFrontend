@@ -61,7 +61,7 @@
 .reportHint { color: var(--grey4); font-size: .9rem; }
 .reportActions { display: flex; gap: 10px; flex-wrap: wrap; }
 .reportBtn {
-  background: var(--green2);
+  background: var(--lithg-green);
   color: #fff;
   border: none;
   padding: 9px 14px;

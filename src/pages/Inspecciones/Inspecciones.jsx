@@ -17,7 +17,6 @@ import { buildInspeccionActaBlob } from '../../components/pdf/ActaVigilancia';
 
 
 function InspeccionesEst() {
-  // Navegación y permisos
   const navigate = useNavigate();
   const tienePermiso = usePermiso();
   const { addNotification } = useNotification();
@@ -72,12 +71,38 @@ function InspeccionesEst() {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [pdfFileName, setPdfFileName] = useState('');
   const [programasFito, setProgramasFito] = useState([]);
-  const [programasAsociadosIds, setProgramasAsociadosIds] = useState([]); // ids ya asociados
-  const [selectedProgramas, setSelectedProgramas] = useState([]);         // [{value,label}]
+  const [programasAsociadosIds, setProgramasAsociadosIds] = useState([]);
+  const [selectedProgramas, setSelectedProgramas] = useState([]);
+  const [decisionFrases,   setDecisionFrases] = useState([]);
+  const [decisionOtro,     setDecisionOtro]   = useState('');
   const programaOptions = useMemo(
     () => (programasFito || []).map(p => ({ value: String(p.id), label: p.nombre })),
     [programasFito]
   );
+
+  const SUGERENCIAS = useMemo(() => ({
+    default: [
+      'Se realizará seguimiento semanal al programa.',
+      'Monitoreo de humedad y temperatura.',
+      'Muestreo y registro fotográfico.',
+      'Acciones de control conforme a protocolo.'
+    ],
+    'Monitoreo fitosanitario': [
+      'Monitoreo y muestreo semanal.',
+      'Control de humedad y ventilación.',
+      'Registro de focos y tendencia poblacional.'
+    ],
+    'Control de plagas': [
+      'Fumigación según protocolo.',
+      'Aireación controlada.',
+      'Limpieza y desinfección del área.'
+    ],
+    'Buenas prácticas de manufactura': [
+      'Mantenimiento preventivo de equipos.',
+      'Capacitación del personal.',
+      'Registro de lotes y segregación adecuada.'
+    ]
+  }), []);
  
   const columnsInspecciones = [
     { header: 'Código', key: 'codigo_inspeccion' },
@@ -90,6 +115,36 @@ function InspeccionesEst() {
     { header: 'Aspectos', key: 'aspectos' },
     { header: 'Ordenamientos', key: 'ordenamientos' },
   ];
+
+  const frasesPorSeleccion = useMemo(() => {
+    const labels = (selectedProgramas || []).map(s => s.label);
+    const set = new Set();
+    labels.forEach(lbl => (SUGERENCIAS[lbl] || []).forEach(f => set.add(f)));
+    (SUGERENCIAS.default || []).forEach(f => set.add(f));
+    const arr = Array.from(set);
+    if (!arr.includes('Otro')) arr.push('Otro'); // ← agrega “Otro” como en Solicitudes
+    return arr;
+  }, [selectedProgramas, SUGERENCIAS]);
+
+  const toggleFrase = (f) => {
+    setDecisionFrases(prev => {
+      const s = new Set(prev);
+      if (s.has(f)) s.delete(f); else s.add(f);
+      return Array.from(s);
+    });
+    if (f === 'Otro') {
+      // si desmarcan “Otro”, limpia el texto
+      setDecisionOtro(prev => (decisionFrases.includes('Otro') ? '' : prev));
+    }
+  };
+
+  const buildDescripcionAcciones = (frases = [], otro = '') => {
+    const base = (frases || []).filter(m => m && m !== 'Otro');
+    const addOtro = (frases || []).includes('Otro') && (otro || '').trim()
+      ? `Otro: ${otro.trim()}`
+      : null;
+    return [...base, addOtro].filter(Boolean).join(' | ');
+  };
 
   function getPDFInfo() {
     const all = Array.isArray(datosOriginales) ? datosOriginales : [];
@@ -684,8 +739,8 @@ const handleActaPDF = async (item) => {
 
   const handleEdit = async () => {
     if (!validarFormulario()) return;
-    setLoading(true);
     try {
+      setLoading(true);
       const data = buildFormDataPayload(true);
       await axios.put(`${BaseUrl}/inspecciones/${formData.id}`, data, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
@@ -747,44 +802,47 @@ const handleActaPDF = async (item) => {
 
   const handleGuardarEstado = async () => {
     const targetId = estadoModal.id;
-    if (!targetId) {
-      addNotification('No se pudo determinar la inspección a actualizar.', 'warning');
-      return;
-    }
+    if (!targetId) { addNotification('Sin inspección objetivo', 'warning'); return; }
     try {
       setLoading(true);
-      // 1) Cambiar estado
-      await axios.patch(`${BaseUrl}/inspecciones/${targetId}/estado`, { estado: estadoModal.estado }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setDatosOriginales(prev => prev.map(i => i.id === targetId ? { ...i, estado: estadoModal.estado } : i));
-      setDatosFiltrados(prev => prev.map(i => i.id === targetId ? { ...i, estado: estadoModal.estado } : i));
+      const token = localStorage.getItem('token');
 
-      // 2) Asociar programas nuevos (los que no estén ya asociados)
-      const toAddIds = (selectedProgramas || [])
-        .map(o => String(o.value))
-        .filter(id => !programasAsociadosIds.includes(id));
+      await axios.patch(
+        `${BaseUrl}/inspecciones/${targetId}/estado`,
+        { estado: estadoModal.estado },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-      if (toAddIds.length) {
-        await Promise.all(
-          toAddIds.map(pid =>
-            axios.post(`${BaseUrl}/seguimiento/inspeccion/programa`, {
-              inspeccion_est_id: targetId,
-              programa_fito_id: Number(pid),
-              observacion: null,
-              estado: 'seguimiento'
-            }, {
-              headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            })
-          )
+      const toAdd = (selectedProgramas || [])
+        .map(p => Number(p.value))
+        .filter(pid => !programasAsociadosIds.includes(String(pid)));
+
+      const observacion = buildDescripcionAcciones(decisionFrases, decisionOtro);
+
+      for (const programa_fito_id of toAdd) {
+        await axios.post(
+          `${BaseUrl}/seguimiento/inspeccion/programa`,
+          { inspeccion_est_id: targetId, programa_fito_id, observacion, estado: 'seguimiento' },
+          { headers: { Authorization: `Bearer ${token}` } }
         );
       }
 
-      addNotification('Estado actualizado y programas asociados.', 'success');
-      closeEstadoModal();
+      addNotification('Toma de Desición Exitosa', 'success');
+
+      // Limpiar UI ANTES de navegar
+      setSelectedProgramas([]);
+      setDecisionFrases([]);
+      setDecisionOtro('');
+      setEstadoModal(s => ({ ...s, abierto: false }));
+      setLoading(false);
+
+      // Navegar al seguimiento
+      navigate(`/inspecciones/${targetId}/seguimiento`);
+
+      // No más código después de navegar
     } catch (e) {
-      console.error(e);
-      addNotification('No se pudo actualizar el estado o asociar programas.', 'error');
+      const msg = e?.response?.data?.message || e?.response?.data?.error || 'No se pudo actualizar';
+      addNotification(msg, 'error');
     } finally {
       setLoading(false);
     }
@@ -795,14 +853,17 @@ const handleActaPDF = async (item) => {
       abierto: true,
       id: item.id,
       estado: String(item.estado || 'aprobada').toLowerCase()
-    });
+    });    
+    setDecisionFrases([]);           
     fetchProgramasFito().catch(() => {});
     fetchProgramasAsociados(item.id).catch(() => {});
   };
- const closeEstadoModal = () => {
+
+  const closeEstadoModal = () => {
     setEstadoModal({ abierto: false, id: null, estado: 'aprobada' });
     setSelectedProgramas([]);
     setProgramasAsociadosIds([]);
+    setDecisionFrases([]);
   };
 
   return (
@@ -1323,50 +1384,31 @@ const handleActaPDF = async (item) => {
       </div>
 )}
 
- {estadoModal.abierto && (
+  {estadoModal.abierto && (
         <div className='modalOverlay'>
           <div className='modal'>
             <button className='closeButton' onClick={closeEstadoModal}>&times;</button>
-            <h2>Actualizar estado</h2>
+            <h2>Toma de decisiones de la inspección</h2>
             <p style={{ marginTop: 4, marginBottom: 10 }}>Selecciona el estado para esta inspección.</p>
 
-            <div className="radio-group" style={{ marginTop: 6 }}>
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  className="radio-input"
-                  checked={estadoModal.estado === 'aprobada'}
-                  onChange={() => setEstadoModal(s => ({ ...s, estado: 'aprobada' }))}
-                />
-                Aprobada
-              </label>
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  className="radio-input"
-                  checked={estadoModal.estado === 'finalizada'}
-                  onChange={() => setEstadoModal(s => ({ ...s, estado: 'finalizada' }))}
-                />
-                Finalizada
-              </label>
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  className="radio-input"
-                  checked={estadoModal.estado === 'rechazada'}
-                  onChange={() => setEstadoModal(s => ({ ...s, estado: 'rechazada' }))}
-                />
-                Rechazada
-              </label>
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  className="radio-input"
-                  checked={estadoModal.estado === 'cuarentena'}
-                  onChange={() => setEstadoModal(s => ({ ...s, estado: 'cuarentena' }))}
-                />
-                Cuarentena
-              </label>
+            <div className="radio-group" style={{ marginTop: 6, display: 'grid', gridTemplateColumns: 'repeat(2, minmax(160px, 1fr))', gap: 6 }}>
+              {[
+                { val: 'aprobada', label: 'Aprobada' },
+                { val: 'seguimiento', label: 'Seguimiento' },
+                { val: 'cuarentena', label: 'Cuarentena' },
+                { val: 'rechazada', label: 'No Apta' },
+                { val: 'finalizada', label: 'Finalizada' },
+              ].map(op => (
+                <label key={op.val} className="radio-label">
+                  <input
+                    type="radio"
+                    className="radio-input"
+                    checked={estadoModal.estado === op.val}
+                    onChange={() => setEstadoModal(s => ({ ...s, estado: op.val }))}
+                  />
+                  {op.label}
+                </label>
+              ))}
             </div>
 
             <div className='formGroup' style={{ marginTop: 12 }}>
@@ -1389,15 +1431,55 @@ const handleActaPDF = async (item) => {
             )}
           </div>
 
+          {frasesPorSeleccion.length > 0 && (
+            <div className="formGroup" style={{ marginTop: 10 }}>
+              <label>Acciones sugeridas:</label>
+              <div className="finalidades-group" style={{ maxHeight: 220 }}>
+                {frasesPorSeleccion.map((f) => (
+                  <label key={f} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="checkbox"
+                      className="finalidad-checkbox"
+                      checked={(decisionFrases || []).includes(f)}
+                      onChange={() => toggleFrase(f)}
+                    />
+                    {f}
+                  </label>
+                ))}
+                {(decisionFrases || []).includes('Otro') && (
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Especifique la acción"
+                    value={decisionOtro}
+                    onChange={(e) => setDecisionOtro(e.target.value)}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Vista previa automática (concatena selecciones + “Otro”) */}
+          <div className="formGroup" style={{ marginTop: 10 }}>
+            <label>Vista previa descripción:</label>
+            <textarea
+              className="textarea"
+              disabled
+              value={buildDescripcionAcciones(decisionFrases, decisionOtro)}
+              placeholder="Se generará automáticamente a partir de las acciones seleccionadas"
+            />
+          </div>
+
             <div className="modalActions">
               <button
-                className="confirmButton"
+                className="cancelButton"
                 onClick={handleGuardarEstado}
+                title='Guardar Registro'
                 disabled={loading}
               >
-                Guardar estado
+                {loading ? 'Procesando...' : 'Guardar estado'}
               </button>
-              <button className="cancelButton" onClick={closeEstadoModal}>Cancelar</button>
+              <button className="confirmButton" title='cancelar Registro' onClick={closeEstadoModal}>Cancelar</button>
             </div>
           </div>
         </div>
@@ -1518,7 +1600,7 @@ const handleActaPDF = async (item) => {
                         onClick={() => handleSeguimiento(item.id)}
                         alt="Seguimiento"
                         className="iconver"
-                        title="Dar Seguimiento a esta Inspección"
+                        title="Monitorear Seguimiento de esta Inspección"
                       />
                     )}
                     <img

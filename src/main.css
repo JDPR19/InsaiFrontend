@@ -166,6 +166,17 @@ html, body {
     filter: invert(1) brightness(1.2);
 }
 
+.iconDisabled {
+  opacity: 0.5 !important;
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+  filter: grayscale(100%) brightness(0.9);
+  transform: none !important;
+}
+
+.iconDisabled:hover {
+  transform: none !important;
+}
 
 /* Letras */
 .poppins-thin {
@@ -397,7 +408,7 @@ html, body {
   font-size: 1.9rem;
   cursor: pointer;
   color: #e70d0d;
-  z-index: 120000;
+  z-index: 5000;
 }
 
 .modalActions {
@@ -733,6 +744,19 @@ html, body {
 .searchInput:focus {
   border-color: #98c79a;
   box-shadow: 0 0 5px rgba(152, 199, 154, 0.5);
+}
+
+.btn-estandar--lg {
+  padding: 25px;           
+  min-height: 50px;       
+  border-radius: 10px;     
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 1.2rem;       
+}
+.btn-estandar--lg .icon {
+  width: 30px;
+  height: 30px;
 }
 /* boton estandar */
 .btn-estandar {
@@ -1357,7 +1381,7 @@ html, body {
   justify-content: center;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   transition: background 0.2s, transform 0.2s;
-  z-index: 2;
+  /* z-index: 2; */
 }
 
 .closeButton2:hover {
@@ -2169,13 +2193,17 @@ html, body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 12px;
+  position: relative;
+  overflow: visible;
 }
 .progCard {
   border: 1px solid var(--grey2, #e5e7eb);
-  background: #fff;
+  background: var(--white1);
   border-radius: 10px;
   padding: 12px;
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  position: relative;
+  overflow: visible;
 }
 .progCardTitle {
   display: flex;
@@ -2183,11 +2211,12 @@ html, body {
   align-items: baseline;
   gap: 8px;
   margin-bottom: 6px;
+  color: var(--black1);
 }
 .progCardTitle .progType { color: var(--grey4, #6b7280); }
 .chipsRow { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
 .chip {
-  background: #eef2ff; color: #3730a3; border: 1px solid #e0e7ff;
+  background: var(--white1); color: var(--black1); border: 1px solid var(--lithg-green);
   border-radius: 999px; padding: 2px 8px; font-size: 12px; line-height: 18px;
 }
 .progCardMeta { color: var(--grey4, #6b7280); font-size: 13px; display: grid; gap: 4px; }
@@ -2200,3 +2229,85 @@ html, body {
         max-width: 180px;
     }
 }
+
+.progHoverCard {
+  position: absolute;
+  bottom: calc(100% + 10px);   
+  left: 50%;
+  transform: translateX(-50%); 
+  background: var(--white1);
+  border: 1px solid var(--white);
+  border-radius: 10px;
+  padding: 10px;
+  min-width: 280px;
+  max-width: 380px;
+  width: max-content;
+  box-shadow: 0 10px 20px rgba(16, 24, 40, 0.12);
+  z-index: 20;
+  animation: fadeInUp 120ms ease-out;
+}
+
+.progHoverCard.pinned {
+  box-shadow: 0 12px 24px rgba(16, 24, 40, 0.18);
+}
+
+.progHoverHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.progHoverCard::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 8px 8px 8px;          
+  border-style: solid;
+  border-color: transparent transparent #fff transparent;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.06));
+}
+
+.progHoverHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px;}
+.progHoverTitle { font-weight: 700; font-size: 14px; line-height: 1.2; }
+.progHoverSub   { color: #6B7280; font-size: 12px; margin-top: 5px; line-height: 1;}
+.progHoverClose { border: none; background: var(--grey3); color: var(--black1); width: 22px; height: 22px; border-radius: 50%; cursor: pointer; font-weight: 700; }
+.progHoverBody  { font-size: 12px; color: var(--black1); }
+.progHoverRow   { display: block; margin-top: 4px; }
+.progHoverRow > span { font-weight: 600; margin-right: 6px; }
+.progHoverObs   { margin-top: 4px; padding: 6px 8px; border: 1px solid var(--badge-aprobada-border); border-radius: 6px; white-space: pre-wrap; color: var(--black1); }
+
+.plagasList {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  max-height: 160px;         
+  overflow: auto;
+}
+.plagaItem {
+  background: #929b8e29;
+  border: 1px solid var(--white1);
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+.plagaCommon {
+  font-weight: 600;
+  line-height: 1.2;
+}
+.plagaScientific {
+  font-style: italic;
+  color: #6B7280;
+  font-size: 12px;
+  line-height: 1.2;
+}
+/* Animación sutil */
+/* @keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+} */

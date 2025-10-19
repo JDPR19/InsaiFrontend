@@ -13,7 +13,9 @@ import { validateField, getValidationRule } from '../../utils/validation';
 import { BaseUrl } from '../../utils/constans';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 
+
 function Propiedad() {
+    const UNIDADES_MEDIDA = ['kg', 't', 'sacos', 'm³', 'L', 'unid'];
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const initializedFromQuery = useRef(false);
@@ -39,6 +41,7 @@ function Propiedad() {
         rif: '',
         nombre: '',
         c_cultivo: '',
+        c_cultivo_unidad: '',
         hectareas: '',
         sitios_asociados: '',
         ubicacion: '',
@@ -67,6 +70,7 @@ function Propiedad() {
     const parroquiasOptions = parroquias.map(p => ({ value: String(p.id), label: p.nombre }));
     const productoresOptions = productores.map(p => ({ value: String(p.id), label: `${p.cedula || ''} - ${p.nombre} ${p.apellido || ''}`.trim() }));
     const sectoresOptions = sectores.map(s => ({ value: String(s.id), label: s.nombre }));
+    const unidadesOptions = UNIDADES_MEDIDA.map(u => ({ value: u, label: u }));
 
     const [totales, setTotales] = useState({
         total: 0,
@@ -79,6 +83,15 @@ function Propiedad() {
         seguimiento: 0,
         cuarentena: 0
     });
+
+
+    const splitCantidadUnidad = (str) => {
+    const s = String(str || '').trim();
+    // número (con punto/coma) + opcional unidad (letras y símbolos comunes)
+    const m = s.match(/^([\d.,]+)\s*([a-zA-Z%°/µ³]+)?$/);
+    if (!m) return { amount: s, unit: '' };
+    return { amount: m[1] || '', unit: m[2] || '' };
+};
 
     // Definición de columnas para PDF/Excel
     const columnsPropiedad = [
@@ -331,6 +344,7 @@ function Propiedad() {
             rif: '',
             nombre: '',
             c_cultivo: '',
+            c_cultivo_unidad: '',
             hectareas: '',
             sitios_asociados: '',
             ubicacion: '',
@@ -407,10 +421,12 @@ function Propiedad() {
         }
         setLoading(true);
         try {
+            const cCultivoConcat = [formData.c_cultivo, formData.c_cultivo_unidad].filter(Boolean).join(' ').trim();
+            
             const payload = {
                 rif: formData.rif,
                 nombre: formData.nombre,
-                c_cultivo: formData.c_cultivo || null,
+                c_cultivo: cCultivoConcat || null,
                 hectareas: formData.hectareas || null,
                 sitios_asociados: formData.sitios_asociados || null,
                 ubicacion: formData.ubicacion || null,
@@ -462,10 +478,12 @@ function Propiedad() {
         }
         setLoading(true);
         try {
+            const cCultivoConcat = [formData.c_cultivo, formData.c_cultivo_unidad].filter(Boolean).join(' ').trim();
+
             const payload = {
                 rif: formData.rif,
                 nombre: formData.nombre,
-                c_cultivo: formData.c_cultivo || null,
+                c_cultivo: cCultivoConcat || null,
                 hectareas: formData.hectareas || null,
                 sitios_asociados: formData.sitios_asociados || null,
                 ubicacion: formData.ubicacion || null,
@@ -545,12 +563,13 @@ function Propiedad() {
         if (propiedad.estado_id) await fetchMunicipios(propiedad.estado_id);
         if (propiedad.municipio_id) await fetchParroquias(propiedad.municipio_id);
         if (propiedad.parroquia_id) await fetchSectores(propiedad.parroquia_id);
-
+        const parsedCC = splitCantidadUnidad(propiedad.c_cultivo || '');
         setFormData({
             id: propiedad.id,
             rif: propiedad.rif || '',
             nombre: propiedad.nombre || '',
-            c_cultivo: propiedad.c_cultivo || '',
+            c_cultivo: parsedCC.amount || '',
+            c_cultivo_unidad: parsedCC.unit || '', 
             hectareas: propiedad.hectareas || '',
             sitios_asociados: propiedad.sitios_asociados || '',
             ubicacion: propiedad.ubicacion || '',
@@ -663,7 +682,7 @@ function Propiedad() {
                                 </div>
                                 <div className='formGroup'>
                                     <label>Cantidad de Cultivos:</label>
-                                    <input type="number" value={detalleModal.propiedad.c_cultivo || ''} className='input' disabled />
+                                    <input type="text" value={detalleModal.propiedad.c_cultivo || ''} className='input' disabled />  
                                 </div>
                                 <div className='formGroup'>
                                     <label>Cultivos:</label>
@@ -801,9 +820,32 @@ function Propiedad() {
                                             <input type="number" id="hectareas" value={formData.hectareas} onChange={handleChange} className='input' placeholder='Hectáreas'/>
                                         </div>
                                         <div className='formGroup'>
-                                            <label htmlFor="c_cultivo"><span className='Unique'  title='Campos Obligatorios'>*</span>Cantidad de Cultivos:</label>
-                                            <input type="number" id="c_cultivo" value={formData.c_cultivo} onChange={handleChange} className='input' placeholder='Cantidad de cultivos'/>
-                                        </div>
+                                            <label htmlFor="c_cultivo">
+                                                <span className='Unique' title='Campos Obligatorios'>*</span>
+                                                Cantidad de Cultivos:
+                                            </label>
+                                            <div style={{ display: 'flex', gap: 8 }}>
+                                                <input
+                                                    type="text"
+                                                    id="c_cultivo"
+                                                    className="input"
+                                                    placeholder="Ej: 1000"
+                                                    value={formData.c_cultivo}
+                                                    onChange={handleChange}
+                                                    style={{ flex: 1 }}
+                                                />
+                                                <SingleSelect
+                                                    options={unidadesOptions}
+                                                    value={selectedFrom(unidadesOptions, formData.c_cultivo_unidad)}
+                                                    onChange={(opt) =>
+                                                        setFormData(prev => ({ ...prev, c_cultivo_unidad: opt?.value || '' }))
+                                                    }
+                                                    placeholder="Unidad"
+                                                    isClearable
+                                                />
+                                            </div>
+                                            {errors.c_cultivo && <span className='errorText'>{errors.c_cultivo}</span>}
+                                            </div>
                                         <div className='formGroup'>
                                             <label><span className='Unique'  title='Campos Obligatorios'>*</span>Cultivos:</label>
                                             <MultiSelect

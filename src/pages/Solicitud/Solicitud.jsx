@@ -39,6 +39,8 @@ function Solicitud() {
         propiedad_id: null,
         fecha_programada: '',
         estado: '',
+        motivos: [],
+        motivo_otro: ''
     });
     const [errors, setErrors] = useState({});
     const itemsPerPage = 8;
@@ -66,6 +68,44 @@ function Solicitud() {
         { header: 'Tipo de Solicitud', key: 'tipo_solicitud_nombre' },
         { header: 'Propiedad', key: 'propiedad_nombre' }
     ];
+
+    const MOTIVOS = [
+        'Vigilancia fitosanitaria',
+        'Reinspección/Seguimiento',
+        'Fiscalización post-registro',
+        'Control de movilización',
+        'Atención de denuncia',
+        'Inspección por solicitud del productor',
+        'Planificación sanitaria periódica',
+        'Emitir constancia/permiso',
+        'Otro'
+    ];
+
+    const buildDescripcionFromMotivos = (motivos = [], otro = '') => {
+        const base = (motivos || []).filter(m => m && m !== 'Otro');
+        const addOtro = motivos.includes('Otro') && otro ? `Otro: ${otro}` : null;
+        return [...base, addOtro].filter(Boolean).join(' | ');
+    };
+
+    const parseDescripcionToMotivos = (desc = '') => {
+    const raw = String(desc || '');
+    if (!raw) return { motivos: [], otro: '' };
+    const parts = raw.split('|').map(s => s.trim()).filter(Boolean);
+    const motivos = [];
+    let otro = '';
+    for (const p of parts) {
+      if (/^otro:/i.test(p)) {
+        otro = p.replace(/^otro:\s*/i, '');
+        motivos.push('Otro');
+      } else {
+        // Coincide con alguno del catálogo (tolerante a mayúsculas)
+        const match = MOTIVOS.find(m => m.toLowerCase() === p.toLowerCase());
+        if (match) motivos.push(match);
+        else motivos.push(p); // deja el literal si no coincide
+    }
+    }
+    return { motivos, otro };
+};
 
     // Fetchers
     const fetchSolicitudes = async () => {
@@ -150,6 +190,8 @@ function Solicitud() {
         tipo_solicitud_id: null,
         propiedad_id: null,
         estado: '',
+        motivos: [],
+        motivo_otro: ''
     });
     setErrors({});
 };
@@ -234,6 +276,7 @@ function Solicitud() {
     };
 
     const openEditModal = (item) => {
+        const parsed = parseDescripcionToMotivos(item.descripcion || '');
         setFormData({
             id: item.id,
             descripcion: item.descripcion || '',
@@ -247,9 +290,19 @@ function Solicitud() {
                 ? propiedadOptions.find(opt => String(opt.value) === String(item.propiedad_id)) || null
                 : null,
             estado: item.estado || 'creada',
+            motivos: parsed.motivos,
+            motivo_otro: parsed.otro
         });
         setErrors({});
         setCurrentModal('solicitud');
+    };
+
+    const toggleMotivo = (motivo) => {
+        setFormData(prev => {
+        const sel = new Set(prev.motivos || []);
+        if (sel.has(motivo)) sel.delete(motivo); else sel.add(motivo);
+        return { ...prev, motivos: Array.from(sel) };
+        });
     };
 
     // Modal eliminar
@@ -275,6 +328,10 @@ function Solicitud() {
     if (!formData.propiedad_id || !formData.propiedad_id.value) {
         newErrors.propiedad_id = 'Debe seleccionar una propiedad';
     }
+    const descFromMotivos = buildDescripcionFromMotivos(formData.motivos, formData.motivo_otro);
+    if (!descFromMotivos) {
+        newErrors.descripcion = 'Debe seleccionar al menos un motivo';
+    }
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) {
         addNotification('Completa todos los campos obligatorios', 'warning');
@@ -283,7 +340,7 @@ function Solicitud() {
     setLoading(true);
     try {
         const cleanFormData = {
-            descripcion: formData.descripcion,
+            descripcion: descFromMotivos,
             tipo_solicitud_id: formData.tipo_solicitud_id.value,
             propiedad_id: formData.propiedad_id.value,
             fecha_resolucion: formData.fecha_resolucion || null,
@@ -308,6 +365,10 @@ function Solicitud() {
 
     
     const handleEdit = async () => {
+
+        const descFromMotivos = buildDescripcionFromMotivos(formData.motivos, formData.motivo_otro);
+        setFormData(prev => ({ ...prev, descripcion: descFromMotivos }));
+        
         let newErrors = {};
         for (const field of ['descripcion', 'tipo_solicitud_id', 'propiedad_id']) {
             if (validationRules[field]) {
@@ -322,11 +383,13 @@ function Solicitud() {
             addNotification('Completa todos los campos obligatorios', 'warning');
             return;
         }
+        if (!descFromMotivos) newErrors.descripcion = 'Debe seleccionar al menos un motivo';
+
         setLoading(true);
         try {
             // Construye el objeto limpio
             const cleanFormData = {
-                descripcion: formData.descripcion,
+                descripcion: descFromMotivos,
                 tipo_solicitud_id: formData.tipo_solicitud_id?.value || '',
                 propiedad_id: formData.propiedad_id?.value || '',
                 fecha_resolucion: formData.fecha_resolucion || null,
@@ -369,16 +432,16 @@ function Solicitud() {
         }
     };
 
-    const handleChange = (e) => {
-            const { id, value } = e.target;
-            setFormData(prev => ({ ...prev, [id]: value }));
+    // const handleChange = (e) => {
+    //         const { id, value } = e.target;
+    //         setFormData(prev => ({ ...prev, [id]: value }));
     
-            if (validationRules[id]) {
-                const { regex, errorMessage } = validationRules[id];
-                const { valid, message } = validateField(value, regex, errorMessage);
-                setErrors(prev => ({ ...prev, [id]: valid ? '' : message }));
-            }
-        };
+    //         if (validationRules[id]) {
+    //             const { regex, errorMessage } = validationRules[id];
+    //             const { valid, message } = validateField(value, regex, errorMessage);
+    //             setErrors(prev => ({ ...prev, [id]: valid ? '' : message }));
+    //         }
+    //     };
 
     // Buscar y filtrar
     const handleSearch = (searchTerm) => {
@@ -495,9 +558,42 @@ function Solicitud() {
                                             />
                                         </div>
                                         <div className='formGroup'>
-                                            <label htmlFor="descripcion"><span className='Unique' title='Campo Obligatorio'>*</span>Descripción:</label>
-                                            <textarea id="descripcion" value={formData.descripcion} onChange={handleChange} className='textarea' placeholder='Descripción'/>
+                                            <label>
+                                                <span className='Unique' title='Campo Obligatorio'>*</span>
+                                                Motivo(s) de la solicitud:
+                                            </label>
+                                            <div className='finalidades-group' style={{ maxHeight: 220 }}>
+                                                {MOTIVOS.map((m) => (
+                                                <label key={m} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                    <input
+                                                    type="checkbox"
+                                                    className="finalidad-checkbox"
+                                                    checked={formData.motivos.includes(m)}
+                                                    onChange={() => toggleMotivo(m)}
+                                                    />
+                                                    {m}
+                                                </label>
+                                                ))}
+                                                {formData.motivos.includes('Otro') && (
+                                                <input
+                                                    type="text"
+                                                    className="input"
+                                                    placeholder="Especifique el motivo"
+                                                    value={formData.motivo_otro}
+                                                    onChange={(e) => setFormData(prev => ({ ...prev, motivo_otro: e.target.value }))}
+                                                />
+                                                )}
+                                            </div>
                                             {errors.descripcion && <span className='errorText'>{errors.descripcion}</span>}
+
+                                            {/* Vista previa de lo que se guardará en 'descripcion' */}
+                                            <label style={{ marginTop: 10 }}>Vista previa descripción:</label>
+                                            <textarea
+                                                className='textarea'
+                                                disabled
+                                                value={buildDescripcionFromMotivos(formData.motivos, formData.motivo_otro)}
+                                                placeholder='Se generará automáticamente a partir de los motivos seleccionados'
+                                            />
                                         </div>
                                     </div>
                                     <button 

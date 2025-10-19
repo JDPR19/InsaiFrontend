@@ -1035,7 +1035,7 @@ function Home() {
             </span>
             <span>
                 <span className={`${styles.iconLeyenda} ${styles['iconLeyenda-rechazada']}`}>❌</span>
-                Rechazada
+                No Apta
             </span>
             <span>
                 <span className={`${styles.iconLeyenda} ${styles['iconLeyenda-aprobada']}`}>✔️</span>

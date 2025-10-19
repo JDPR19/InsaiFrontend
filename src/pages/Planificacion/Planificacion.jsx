@@ -15,11 +15,6 @@ import { useSearchParams } from 'react-router-dom';
 
 function Planificacion() {
     const user = JSON.parse(localStorage.getItem('user'));
-    const rol = user?.roles_nombre || '';
-    const rolLc = String(rol).toLowerCase();
-    const isAdmin = rolLc === 'administrador';
-    const isInspector = rolLc === 'inspector';
-    const isModerador = rolLc === 'moderador';
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [solicitudes, setSolicitudes] = useState([]);
@@ -54,6 +49,20 @@ function Planificacion() {
     const itemsPerPage = 8;
     const { addNotification } = useNotification();
     const [errors, setErrors] = useState({});
+
+    const norm = (v) => String(v ?? '').trim().toLowerCase();
+
+    const rolRaw =
+    user?.roles_nombre ??
+    user?.rol ??
+    user?.role ??
+    user?.roles?.[0]?.nombre ??
+    '';
+    const rolLc = norm(rolRaw);
+
+    
+    const isModerador = rolLc === 'moderador' || rolLc === 'moderator';
+
 
     // Opciones para selects
     const solicitudOptions = solicitudes.map(s => ({
@@ -99,9 +108,9 @@ function Planificacion() {
 
             setTotales({
                 planificacionesTotales: response.data.length,
-                planificacionesPendientes: response.data.filter(p => p.estado === 'pendiente').length,
-                planificacionesAprobadas: response.data.filter(p => p.estado === 'aprobada').length,
-                planificacionesRechazadas: response.data.filter(p => p.estado === 'rechazada').length
+                planificacionesPendientes: response.data.filter(p => norm(p.estado) === 'pendiente').length,
+                planificacionesAprobadas: response.data.filter(p => norm(p.estado) === 'aprobada').length,
+                planificacionesRechazadas: response.data.filter(p => norm(p.estado) === 'rechazada').length
             });
         } catch (error) {
             console.error('Error al obtener todas las planificaciones',error);
@@ -149,15 +158,9 @@ function Planificacion() {
         return () => clearInterval(id);
     }, []);
 
-    const isPendiente = (pl) => String(pl.estado) === 'pendiente';
+    const isPendiente = (pl) => norm(pl?.estado) === 'pendiente';
 
-    const bloqueaPorRol = (pl) => {
-        const pendiente = isPendiente(pl);
-        if (isAdmin) return false;      // admin nunca bloqueado
-        if (isInspector) return false;  // inspector necesita ver/ejecutar
-        if (isModerador) return pendiente; // moderador bloqueado si está pendiente
-        return pendiente; // default
-    };
+    const bloqueaPorRol = (pl) => isModerador && isPendiente(pl);
 
     const parseLocalDateTime = (pl) => {
         const rawDate = pl?.fecha_programada;
@@ -958,7 +961,7 @@ function Planificacion() {
                         </button>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 8 }}>
-                            {/* <label>Semana:</label> */}
+                            
                             <input
                                 type="week"
                                 className="date"
@@ -966,11 +969,7 @@ function Planificacion() {
                                 onChange={(e) => setWeekStr(e.target.value)}
                                 title="Filtrar por semana (ISO)"
                             />
-                            {/* {weekRange && (
-                                <span style={{ fontSize: 12 }}>
-                                    {weekRange.from} a {weekRange.to}
-                                </span>
-                            )} */}
+                            
                             <button
                                 type="button"
                                 className="btn-estandar"
@@ -1016,7 +1015,7 @@ function Planificacion() {
                             return (
                                 <tr
                                 key={item.id}
-                                className={pendiente ? 'row-pendiente' : ''}
+                                className={bloqueado ? 'row-pendiente' : ''}
                                 title={pendiente ? formatCountdown(item) : undefined}
                                 >
                                 <td>{indexOfFirstItem + idx + 1}</td>

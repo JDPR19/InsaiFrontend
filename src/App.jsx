@@ -50,7 +50,7 @@ import SeccionSix from './pages/Seccion/SeccionSix';
 import SeccionSeven from './pages/Seccion/SeccionSeven';
 import SeguimientoInspeccion from './pages/Inspecciones/SeguimientoInspeccion';
 import Informativa from './pages/Informativa/Informativa';
-import ActaSilosWizard from './pages/Inspecciones/ActaSilosWizard';
+
 
 function AppContent() {
 
@@ -92,14 +92,6 @@ function AppContent() {
               <Informativa />           
           }
         />
-        <Route
-        path="/inspecciones/:id/acta-silos"
-        element={
-          <ProtectedRoute pantalla="inspecciones">
-              <ActaSilosWizard /> 
-          </ProtectedRoute>
-        }
-      />
         <Route 
         path="/SeccionOne" 
         element={

@@ -27,6 +27,7 @@ export const campos = [
     {id: 'actividad', tipo: 'codigo'}, 
     {id: 'convocatoria', tipo: 'codigo'}, 
     {id: 'aseguramiento', tipo: 'codigo'}, 
+    {id: 'c_cultivo', tipo: 'codigo'}, 
 ];
 
 // Función para obtener la regla de validación por campo

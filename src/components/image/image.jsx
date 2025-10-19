@@ -7,6 +7,7 @@ import sicic4 from '../../../public/assets/logo-sisic4.png';
 import insai from '../../../public/assets/insai.png';
 import insai3 from '../../../public/assets/insai3.png';
 import insai4 from '../../../public/assets/insai4.jpg';
+import cintillo from '../../../public/assets/cintillo insai.png';
 
 const img = {
     logoInsai,
@@ -18,6 +19,7 @@ const img = {
     insai,
     insai3,
     insai4,
+    cintillo,
 };
 
 export default img;
