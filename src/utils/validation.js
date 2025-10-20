@@ -53,10 +53,10 @@ export const validationRules = {
         regex: /^[VJEGP]-\d{8}-\d$/,
         errorMessage: 'El RIF debe tener el formato: V-12345678-9, J-12345678-9, E-12345678-9, G-12345678-9 o P-12345678-9'
     },
-    rif: {
-        regex: /^[VJEGP]-\d{8}-\d$/,
-        errorMessage: 'El RIF debe tener el formato: V-12345678-9, J-12345678-9, E-12345678-9, G-12345678-9 o P-12345678-9'
-    },
+    // rif: {
+    //     regex: /^[VJEGP]-\d{8}-\d$/,
+    //     errorMessage: 'El RIF debe tener el formato: V-12345678-9, J-12345678-9, E-12345678-9, G-12345678-9 o P-12345678-9'
+    // },
     nombre: {
         regex: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/,
         errorMessage: 'El nombre solo puede contener letras y espacios'

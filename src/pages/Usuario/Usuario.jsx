@@ -12,6 +12,7 @@ import { getCurrentUser } from '../../utils/usernameauth';
 import { usePermiso } from '../../hooks/usePermiso';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
+import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
 
 function Usuario() {
     const [datosOriginales, setDatosOriginales] = useState([]);

@@ -12,10 +12,12 @@ import Spinner from '../../components/spinner/Spinner';
 import { validateField, getValidationRule } from '../../utils/validation';
 import { BaseUrl } from '../../utils/constans';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
+import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
 
 
 function Propiedad() {
     const UNIDADES_MEDIDA = ['kg', 't', 'sacos', 'm³', 'L', 'unid'];
+    const RIF_PREFIJOS = ['V-', 'E-', 'J-', 'G-', 'P-'];
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const initializedFromQuery = useRef(false);
@@ -39,6 +41,8 @@ function Propiedad() {
     const [formData, setFormData] = useState({
         id: '',
         rif: '',
+        rif_tipo: 'J-',
+        rif_numero: '',
         nombre: '',
         c_cultivo: '',
         c_cultivo_unidad: '',
@@ -61,6 +65,17 @@ function Propiedad() {
     const [errors, setErrors] = useState({});
     const [step, setStep] = useState(1);
     const [recentPropiedad, setRecentPropiedad] = useState(null);
+    const prefijosOptions = RIF_PREFIJOS.map(p => ({ value: p, label: p }));
+
+    const splitRif = (str) => {
+    const s = String(str || '').trim();
+    // Acepta "J-123...", "G123...", etc.
+        const m = s.match(/^([VEJGP])[-\s]?(\d{1,15})$/i);
+        return {
+        tipo: m ? `${m[1].toUpperCase()}-` : 'J-',
+        numero: m ? m[2] : ''
+        };
+    };
 
     // Opciones para selects
     const cultivosOptions = cultivos.map(c => ({ value: String(c.id), label: c.nombre }));
@@ -342,6 +357,8 @@ function Propiedad() {
         setFormData({
             id: '',
             rif: '',
+            rif_tipo: '',
+            rif_numero: '',
             nombre: '',
             c_cultivo: '',
             c_cultivo_unidad: '',
@@ -402,11 +419,15 @@ function Propiedad() {
     };
 
     const handleSave = async () => {
-        if (!formData.rif || !formData.nombre) {
-            addNotification('RIF y Nombre son obligatorios', 'warning');
+        if (!formData.rif_tipo || !formData.rif_numero) {
+            setErrors(prev => ({ ...prev, rif_numero: 'Debe seleccionar el prefijo y colocar el número de RIF' }));
+            addNotification('Debe seleccionar el prefijo y colocar el número de RIF', 'warning');
             return;
         }
         
+        // Si pasa la validación, limpia el error:
+        setErrors(prev => ({ ...prev, rif_numero: '' }));
+
         for (const field in formData) {
             const rule = getValidationRule(field);
             if (!rule || !rule.regex) continue;
@@ -424,7 +445,7 @@ function Propiedad() {
             const cCultivoConcat = [formData.c_cultivo, formData.c_cultivo_unidad].filter(Boolean).join(' ').trim();
             
             const payload = {
-                rif: formData.rif,
+                rif: `${formData.rif_tipo}${formData.rif_numero}`.trim(),
                 nombre: formData.nombre,
                 c_cultivo: cCultivoConcat || null,
                 hectareas: formData.hectareas || null,
@@ -460,10 +481,11 @@ function Propiedad() {
     };
 
     const handleEdit = async () => {
-        if (!formData.rif || !formData.nombre) {
-            addNotification('RIF y Nombre son obligatorios', 'warning');
+        if (!formData.rif_tipo || !formData.rif_numero) {
+            addNotification('Debe seleccionar el prefijo y colocar el número de RIF', 'warning');
             return;
         }
+        
         for (const field in formData) {
             const rule = getValidationRule(field);
             if (!rule || !rule.regex) continue;
@@ -481,7 +503,7 @@ function Propiedad() {
             const cCultivoConcat = [formData.c_cultivo, formData.c_cultivo_unidad].filter(Boolean).join(' ').trim();
 
             const payload = {
-                rif: formData.rif,
+                rif: `${formData.rif_tipo}${formData.rif_numero}`.trim(),
                 nombre: formData.nombre,
                 c_cultivo: cCultivoConcat || null,
                 hectareas: formData.hectareas || null,
@@ -564,9 +586,12 @@ function Propiedad() {
         if (propiedad.municipio_id) await fetchParroquias(propiedad.municipio_id);
         if (propiedad.parroquia_id) await fetchSectores(propiedad.parroquia_id);
         const parsedCC = splitCantidadUnidad(propiedad.c_cultivo || '');
+        const rifParts = splitRif(propiedad.rif || '');
         setFormData({
             id: propiedad.id,
             rif: propiedad.rif || '',
+            rif_tipo: rifParts.tipo || '',
+            rif_numero: rifParts.numero || '',
             nombre: propiedad.nombre || '',
             c_cultivo: parsedCC.amount || '',
             c_cultivo_unidad: parsedCC.unit || '', 
@@ -635,12 +660,25 @@ function Propiedad() {
                 </div>
             </div>
 
+            {/*/////////////////// Tabla ///////////*/}
+                <div className='tituloH' 
+                style={{marginTop: 20, marginBottom: 20, gap: 20}}
+                >
+                    <img src={icon.homeIcon} alt="" className='iconTwo'/>
+                    <h1 className='title' title='Propiedades'> Resumen de Propiedades</h1>
+                
+                {/* Ayudante informativo de Pantalla */}
+                    <div >
+                        <AyudaTooltip descripcion="En esta sección puedes visualizar, registrar y gestionar todas las propiedades. Usa los filtros, la búsqueda y las opciones de exportación para organizar y consultar la información de manera eficiente." />
+                    </div>
+                </div>
+
             {/* Modal Detalle */}
             {detalleModal.abierto && detalleModal.propiedad && (
                 <div className='modalOverlay'>
                     <div className='modal_tree'>
                         <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
-                        <h2>Detalles de la Propiedad</h2>
+                        <h2>Detalles de la propiedad</h2>
                         <form className='modalForm'>
                             <div className='formColumns_tree'>
                                 <div className='formGroup'>
@@ -796,10 +834,30 @@ function Propiedad() {
                                             )}
                                         </div>
                                         <div className='formGroup'>
-                                            <label htmlFor="rif"><span className='Unique'  title='Campos Obligatorios'>*</span>RIF:</label>
-                                            <input type="text" id="rif" value={formData.rif} onChange={handleChange} className='input' placeholder='RIF'/>
+                                            <label htmlFor="rif_numero"><span className='Unique' title='Campos Obligatorios'>*</span>RIF:</label>
+                                            <div style={{ display: 'flex', gap: 8 }}>
+                                                <SingleSelect
+                                                options={prefijosOptions}
+                                                value={formData.rif_tipo ? { value: formData.rif_tipo, label: formData.rif_tipo } : null}
+                                                onChange={(opt) => setFormData(prev => ({ ...prev, rif_tipo: opt?.value || 'J-' }))}
+                                                placeholder="Prefijo"
+
+                                                />
+                                                <input
+                                                    type="text"
+                                                    id="rif_numero"
+                                                    className='input'
+                                                    placeholder="Ej: 12345678"
+                                                    value={formData.rif_numero}
+                                                    onChange={(e) => {
+                                                        const v = e.target.value.replace(/[^0-9-]/g, '');
+                                                        setFormData(prev => ({ ...prev, rif_numero: v }));
+                                                    }}
+                                                    style={{ flex: 1 }}
+                                                />
+                                            </div>
                                             {errors.rif && <span className='errorText'>{errors.rif}</span>}
-                                        </div>
+                                            </div>
                                         <div className='formGroup'>
                                             <label htmlFor="nombre"><span className='Unique'  title='Campos Obligatorios'>*</span>Nombre:</label>
                                             <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Nombre'/>
@@ -1037,7 +1095,6 @@ function Propiedad() {
                             Excel
                         </button>
                     </div>
-                    <h2>Propiedades</h2>
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />

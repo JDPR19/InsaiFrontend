@@ -7,7 +7,7 @@ import icon from '../../components/iconos/iconos';
 import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
 import { useNotification } from '../../utils/NotificationContext';
-import { BaseUrl } from '../../utils/constans';
+import { BaseUrl } from '../../utils/constans'; 
 
 function Bitacora() {
     const [datosOriginales, setDatosOriginales] = useState([]); 

@@ -3,137 +3,133 @@
     width: 100% !important;
     display: flex;
     align-items: center;
-    justify-content: space-between; 
-    padding: 5px 25px 3px 25px; 
-    background-color: var(--grey2); 
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.253); 
-    position: fixed; 
+    justify-content: space-between;
+    padding: 8px 32px 8px 32px;
+    background: linear-gradient(90deg, #f6fff6 0%, #e9ecef 100%);
+    box-shadow: 0 2px 8px rgba(83,158,67,0.13);
+    position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 1000;
+    min-height: 68px;
 }
 
-.dark .header {
-    background-color: var(--grey2);
-    color: #fff;
-}
 
 .logoContainer {
-    flex: 0 0 auto; 
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
 }
 
 .logo {
-    height: 50px;
+    height: 48px;
     width: auto;
+    filter: drop-shadow(0 2px 8px #98c79a33);
+    border-radius: 50%;
+    background-repeat: no-repeat;
+    background-size: auto;
+    background-position: center;
+}
+
+.titleContainer {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    margin: 0 10px;
 }
 
 .title {
-    flex: 1; 
-    text-align: center; 
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #343434;
-    white-space: nowrap; 
-    overflow: hidden; 
-    text-overflow: ellipsis; 
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--green6);
+    text-align: center;
+    letter-spacing: 1.5px;
+    text-shadow: 0 2px 8px #b0b4ab2a;
+    margin: 0;
+    padding: 8px 32px;
+    background: linear-gradient(90deg, #e9ecef 0%, #f6fff6 100%);
+    border-radius: 18px;
+    box-shadow: 0 2px 8px #98c79a22;
+    min-width: 220px;
+    max-width: 600px;
+    overflow: hidden;
+    white-space: nowrap;
+    border: 1.5px solid #98c79a;
+    display: inline-block;
 }
 
+.tituloSistema{
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--green6);
+    background: linear-gradient(90deg, #e9ecef 0%, #f6fff6 100%);
+    padding: 6px 18px;
+    border-radius: 14px;
+    margin-left: 5px;
+    margin-top: 0;
+    margin-bottom: 0;
+    box-shadow: 0 2px 8px #98c79a22;
+    letter-spacing: 1px;
+    line-height: 1.5;
+    display: inline-block;
+    text-align: left;
+    max-width: 420px;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;    
+    border: 1.5px solid #98c79a;
+}
 .dark .title {
-    color: #fff;
+    color: #e4e6eb;
+    text-shadow: 0 2px 8px #23272f;
 }
 
 .userMenu {
-    flex: 0 0 auto; 
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    white-space: nowrap; 
-    gap: 10px; 
+    gap: 12px;
+    white-space: nowrap;
 }
 
 .campanaIcon,
 .iconoEstandar,
 .lupaIcon,
 .menuIcon {
-    height: 35px; 
-    width: auto;
-    padding: 3px 3px;
-    background: #a7d199dc;
-    border: 1px solid #709c73fa;
+    height: 36px;
+    width: 36px;
+    padding: 4px;
+    background: #d8f3dc;
+    border: 1px solid #98c79a;
     cursor: pointer;
     transition: background 0.2s, box-shadow 0.2s, filter 0.3s;
     border-radius: 50%;
     outline: none;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.438);
+    box-shadow: 0px 2px 8px rgba(83,158,67,0.13);
     filter: invert(0);
 }
 
-.dark .campanaIcon,
-.dark .iconoEstandar,
-.dark .lupaIcon,
-.dark .menuIcon {
-    filter: invert(1) brightness(1.2);
-    background: var(--grey2);
-    border-color: var(--grey4);
-}
-
+.campanaIcon:hover,
 .iconoEstandar:hover,
-.iconoEstandar:focus,
-.campanaIcon:hover,
-.campanaIcon:focus,
 .lupaIcon:hover,
-.lupaIcon:focus {
-    background: var(--lithg-green);
-    box-shadow: 0 0 8px var(--lithg-green);
-}
-
-.campanaIcon:active,
-.lupaIcon:active {
-    background: var(--green8);
-    box-shadow: 0 0 8px var(--lithg-green);
-}
-
-.lupaIcon:focus {
-    transform: rotate(360deg);
+.menuIcon:hover {
+    background: #98c79a;
+    box-shadow: 0 0 8px #98c79a;
 }
 
 
-
-.campanaIcon:hover,
-.campanaIcon:focus,
-.lupaIcon:hover {
-    animation: campanaShake 0.5s;
-}
-
-.username {
-    font-size: 1rem;
-    font-weight: 500;
-    color: #555;
-    text-align: right;
-    border-bottom: 1px solid #a7d199dc;
-    padding: 10px 8px 10px 8px;
-}
-
-.dark .username {
-    color: #fff;
-    border-bottom: 1px solid var(--grey4);
-}
-
-/* Dropdown de notificaciones */
-.campanaWrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
 
 .badge {
     position: absolute;
     top: -7px;
     right: -7px;
-    background: var(--vino-red);
+    background: #9a031e;
     color: #fff;
     border-radius: 50%;
     min-width: 20px;
@@ -150,226 +146,190 @@
 
 .dark .badge {
     color: #fff;
+    border-color: #23272f;
 }
 
-.dropdown {
-    position: absolute;
-    top: 38px;
-    right: 0;
-    background: var(--white);
-    color: #444;
-    min-width: 400px;
-    max-width: 600px;
-    max-height: 750px;
-    border-radius: 12px;
-    word-break: break-word;
-    box-sizing: border-box;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-    padding: 18px 18px 10px 18px;
-    font-family: 'Poppins', sans-serif;
-    z-index: 100;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: #a5cfa7 #e8ece6;
+.campanaWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
-.dark .dropdown {
-    background: var(--grey2);
-    color: #fff;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-}
-
-.dropdown::-webkit-scrollbar {
-    width: 6px;
+/* Bloque de usuario con avatar y cargo */
+.userInfoBox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: 22px;
     background: #e9ecef;
-    border-radius: 8px;
-}
-.dropdown::-webkit-scrollbar-thumb {
-    background: #a5cfa7;
-    border-radius: 8px;
-}
-.dropdown::-webkit-scrollbar-thumb:hover{
-    background: #6ba55a;
+    border-radius: 18px;
+    padding: 6px 18px 6px 8px;
+    box-shadow: 0 2px 8px #b0b4ab2a;
 }
 
-.dropdown::-webkit-scrollbar-button {
-    display: none;
-    height: 0;
-    width: 0;
+.dark .userInfoBox {
+    background: #23272f;
+    box-shadow: 0 2px 8px #23272f;
 }
 
-.dropdown h4 {
-    margin: 0 0 10px 0;
-    font-size: 1.1rem;
-    color: var(--lithg-green);
-    font-weight: 600;
-    border-bottom: 1px solid var(--grey2);
-    padding-bottom: 6px;
+.avatarMini {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #98c79a;
+    background: #f4f4f4;
+    box-shadow: 0 2px 8px #98c79a33;
 }
 
-.dark .dropdown h4 {
-    color: #fff;
-    border-bottom: 1px solid var(--grey4);
-}
-
-.empty {
-    color: var(--grey4);
-    text-align: center;
-    padding: 18px 0;
-    font-size: 1rem;
-}
-
-.dark .empty {
-    color: #fff;
-}
-
-.notificacionItem {
-    padding: 10px 8px;
-    margin-bottom: 6px;
-    border-radius: 7px;
-    background: var(--green8);
-    color: #444;
-    font-size: 0.98rem;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s;
+.userTextos {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: 2px;
-    position: relative;
-    max-width: 100%;
-    word-break: break-word;      
-    white-space: pre-line;       
-    overflow-wrap: break-word;   
-    box-sizing: border-box;
 }
 
-.dark .notificacionItem {
-    background: var(--grey3);
+.username {
+    font-size: 1.12rem;
+    font-weight: 600;
+    color: #343434;
+    margin-bottom: 0;
+    border: none;
+    padding: 0;
+    letter-spacing: 0.5px;
+}
+
+.cargo {
+    font-size: 0.98rem;
+    color: #6C757D;
+    font-weight: 400;
+    margin-top: -2px;
+    letter-spacing: 0.2px;
+}
+
+.dark .username {
+    color: #e4e6eb;
+}
+
+.dark .cargo {
+    color: #adb5bdd3;
+}
+
+:global(.dark) .header {
+    background: linear-gradient(90deg, #23272f 0%, #2c313a 100%);
     color: #fff;
+    box-shadow: 0 2px 8px rgba(83,158,67,0.23);
 }
 
-.notificacionItem:hover {
-    background: var(--lithg-green);
-    color: var(--white);
+:global(.dark) .title {
+    color: #e4e6eb;
+    background: linear-gradient(90deg, #23272f 0%, #2c313a 100%);
+    border: 1.5px solid #6C757D;
+    text-shadow: 0 2px 8px #23272f;
+    box-shadow: 0 2px 8px #23272f33;
 }
 
-.dark .notificacionItem:hover {
-    background: var(--grey4);
-    color: #fff;
+:global(.dark) .tituloSistema {
+    color: #b7ffb7;
+    background: linear-gradient(90deg, #23272f 0%, #2c313a 100%);
+    border: 1.5px solid #6C757D;
+    box-shadow: 0 2px 8px #23272f33;
 }
 
-.leida {
-    background: var(--grey2);
-    color: #888;
-}
-
-.dark .leida {
-    background: var(--grey4);
-    color: #b0b3b8;
-}
-
-.fecha {
-    font-size: 0.85em;
-    color: var(--grey4);
-    margin-top: 2px;
-    word-break: break-word;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-}
-
-.dark .fecha {
-    color: #fff;
-}
-
-.nueva {
-    color: var(--vino-red);
-    font-size: 1.1em;
-    font-weight: bold;
-    margin-left: 6px;
-    vertical-align: middle;
-}
-
-.dark .nueva {
-    color: #fff;
-}
-
-.modalDetalleNotificacion{
-    position: fixed;
-    top: 0; 
-    left: 0; 
-    right: 0; 
-    bottom: 0;
-    background: rgba(0,0,0,0.4);
-    display: flex;
-    z-index: 9999;
-    align-items: center;
-    justify-Content: center;
-}
-
-.detalleNotificacion {
-    background: var(--white1);
-    color: var(--black2);
-    border-radius: 10px;
-    max-width: 700px;
-    width: 100vw;
-    max-height: 100vh;
-    overflow-y: auto;
-    padding: 30px;
-    position: relative;
-    scrollbar-width: thin;
-    scrollbar-color: #a5cfa7 #e8ece6;
-}
-
-.detalleNotificacion::-webkit-scrollbar {
-    width: 6px;
-    background: #e9ecef;
-    border-radius: 8px;
-}
-.detalleNotificacion::-webkit-scrollbar-thumb {
-    background: #a5cfa7;
-    border-radius: 8px;
-}
-.detalleNotificacion::-webkit-scrollbar-thumb:hover{
-    background: #6ba55a;
-}
-
-.detalleNotificacion::-webkit-scrollbar-button {
-    display: none;
-    height: 0;
-    width: 0;
-}
-
-@keyframes campanaShake {
-    0% { transform: rotate(0deg); }
-    20% { transform: rotate(-15deg); }
-    40% { transform: rotate(15deg); }
-    60% { transform: rotate(-10deg); }
-    80% { transform: rotate(10deg); }
-    100% { transform: rotate(0deg); }
-}
-
-:global(.dark) .header,
-:global(.dark) .title,
-:global(.dark) .username,
-:global(.dark) .dropdown,
-:global(.dark) .notificacionItem,
-:global(.dark) .empty,
-:global(.dark) .dropdown h4,
-:global(.dark) .fecha {
-    color: #fff !important;
-    border-color: var(--grey4) !important;
-}
-
-:global(.dark) .iconoEstandar,
 :global(.dark) .campanaIcon,
+:global(.dark) .iconoEstandar,
 :global(.dark) .lupaIcon,
 :global(.dark) .menuIcon {
-    color: #fff !important; /* SVG con fill="currentColor" será blanco */
-    filter: invert(0.1) brightness(2.8) !important;
-    background: var(--grey1) !important; 
-    border-color: var(--grey4) !important;
+    background: transparent !important;
+    border: 2px solid #fff !important;
+    box-shadow: 0 2px 8px #fff !important;
+    filter: brightness(0) invert(1) !important;
+    /* Si usas SVG, puedes probar también: filter: invert(1) brightness(2); */
+    transition: background 0.2s, box-shadow 0.2s, border 0.2s, filter 0.2s;
 }
 
-/* Responsividad */
+:global(.dark) .badge {
+    color: #fff;
+    border-color: #23272f;
+}
+
+:global(.dark) .userInfoBox {
+    background: #23272f;
+    box-shadow: 0 2px 8px #23272f;
+}
+
+:global(.dark) .username {
+    color: #e4e6eb;
+}
+
+:global(.dark) .cargo {
+    color: #adb5bdd3;
+}
+/* Responsive para header */
+@media (max-width: 900px) {
+    .header {
+        padding: 8px 10px 8px 10px;
+        min-height: 58px;
+    }
+    .logo {
+        height: 38px;
+    }
+    .title {
+        font-size: 1.2rem;
+        padding: 0 4px;
+    }
+    .userInfoBox {
+        padding: 4px 10px 4px 4px;
+        gap: 8px;
+    }
+    .avatarMini {
+        width: 32px;
+        height: 32px;
+    }
+    .username {
+        font-size: 1rem;
+    }
+    .cargo {
+        font-size: 0.92rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 6px 2vw 6px 2vw;
+        min-height: 0;
+    }
+    .logoContainer {
+        margin-right: 8px;
+    }
+    .titleContainer {
+        width: 100%;
+        justify-content: flex-start;
+        margin-bottom: 4px;
+    }
+    .title {
+        font-size: 1.05rem;
+        padding: 0 2px;
+    }
+    .userMenu {
+        gap: 6px;
+    }
+    .userInfoBox {
+        margin-left: 0;
+        margin-top: 6px;
+        padding: 4px 8px 4px 4px;
+        gap: 6px;
+    }
+    .avatarMini {
+        width: 28px;
+        height: 28px;
+    }
+    .username {
+        font-size: 0.95rem;
+    }
+    .cargo {
+        font-size: 0.85rem;
+    }
+}

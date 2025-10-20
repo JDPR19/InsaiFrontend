@@ -9,6 +9,7 @@ import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
+import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
 
 function Parroquia() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -321,6 +322,20 @@ function Parroquia() {
 
     return (
         <div className='mainContainer'>
+
+            {/*/////////////////// Tabla ///////////*/}
+                <div className='tituloH' 
+                style={{marginTop: 20, marginBottom: 20, gap: 20}}
+                >
+                    <img src={icon.mundo} alt="" className='iconTwo'/>
+                    <h1 className='title' title='Parroquias'>Resumen de Parroquias</h1>
+                
+                {/* Ayudante informativo de Pantalla */}
+                    <div >
+                        <AyudaTooltip descripcion="En esta sección puedes visualizar, registrar y gestionar todas las parroquias agregadas. Usa los filtros, la búsqueda y las opciones de exportación para organizar y consultar la información de manera eficiente." />
+                    </div>
+                </div>
+
             {loading && <Spinner text="Procesando..." />}
             {currentModal === 'parroquia' && (
                 <div className='modalOverlay'>
@@ -413,7 +428,6 @@ function Parroquia() {
                         Agregar
                     </button>
 
-                    <h2>Parroquias</h2>
 
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />

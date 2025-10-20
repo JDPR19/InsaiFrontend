@@ -14,6 +14,7 @@ import { BaseUrl } from '../../utils/constans';
 import { useNotification } from '../../utils/NotificationContext';
 import { filterData } from '../../utils/filterData';
 import { buildInspeccionActaBlob } from '../../components/pdf/ActaVigilancia';
+import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
 
 
 function InspeccionesEst() {
@@ -868,6 +869,20 @@ const handleActaPDF = async (item) => {
 
   return (
     <div className="mainContainer">
+
+              {/*/////////////////// Tabla ///////////*/}
+                <div className='tituloH' 
+                style={{marginTop: 20, marginBottom: 20, gap: 20}}
+                >
+                    <img src={icon.farmer} alt="" className='iconTwo'/>
+                    <h1 className='title' title='Inspecciones'>Resumen de Inspecciones</h1>
+                
+                {/* Ayudante informativo de Pantalla */}
+                    <div >
+                        <AyudaTooltip descripcion="En esta sección puedes visualizar, registrar y gestionar todas las inspecciones realizadas. Usa los filtros, la búsqueda y las opciones de exportación para organizar y consultar la información de manera eficiente." />
+                    </div>
+                </div>
+
       {loading && <Spinner text="Procesando..." />}
 
       {/* Modal Detalle */}

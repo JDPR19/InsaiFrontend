@@ -215,9 +215,7 @@ const CertificadoTecnicoDoc = ({
               <View style={styles.firmaBox}>
                 <View style={styles.firmaLine} />
                 <Text style={styles.firmaText}>
-                  {t
-                    ? `${[t?.nombre, t?.apellido].filter(Boolean).join(' ') || '—'}`
-                    : 'Responsable de la inspección'}
+                  {'Responsable de la inspección'}
                 </Text>
                 {t?.cargo && <Text style={styles.firmaTextMuted}>{t.cargo}</Text>}
               </View>

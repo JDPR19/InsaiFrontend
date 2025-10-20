@@ -12,6 +12,8 @@ import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 import { useSearchParams } from 'react-router-dom';
+import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
+
 
 function Planificacion() {
     const user = JSON.parse(localStorage.getItem('user'));
@@ -907,7 +909,20 @@ function Planificacion() {
                     <p>Rechazadas</p>
                 </div>
             </div>
-            {/* Tabla */}
+
+                {/*/////////////////// Tabla ///////////*/}
+                <div className='tituloH' 
+                style={{marginTop: 20, marginBottom: 20, gap: 20}}
+                >
+                    <img src={icon.calendario} alt="" className='iconTwo'/>
+                    <h1 className='title' title='Operaciones Planificadas'>Resumen de Planificaciones</h1>
+                
+                {/* Ayudante informativo de Pantalla */}
+                    <div >
+                        <AyudaTooltip descripcion="En esta sección puedes visualizar, registrar y gestionar todas las planificaciones de inspección programadas. Usa los filtros, la búsqueda y las opciones de exportación para organizar y consultar la información de manera eficiente." />
+                    </div>
+                </div>
+
             <div className='tableSection' id="tablaPlanificacion">
                 <div className='filtersContainer'>
                     <div className='filtersButtons'>
@@ -990,7 +1005,6 @@ function Planificacion() {
                             )}
                         </div>
                     </div>
-                    <h2>Planificaciones</h2>
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />

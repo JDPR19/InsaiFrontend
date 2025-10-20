@@ -1,6 +1,6 @@
 
 .modal {
-    background: #fff;
+    background: var(--white1);
     border-radius: 16px;
     padding: 40px 32px 32px 32px;
     max-width: 1180px;
@@ -34,7 +34,7 @@
 .formGroup label {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #333;
+    color: var(--black);
     margin-bottom: 4px;
     display: block;
 }
@@ -66,3 +66,230 @@
     display: flex;
     align-items: center;
 }
+
+.miUsuarioContainer {
+    max-width: auto;
+    margin: 120px 0 40px 110px;
+    background:var(--white1);
+    border-radius: 18px;
+    box-shadow: 0 4px 24px 0 rgba(60, 120, 60, 0.10);
+    padding: 32px 36px 36px 36px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.headerSection {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+    margin-bottom: 32px;
+    border-bottom: 1.5px solid #e0e0e0;
+    padding-bottom: 24px;
+}
+
+.fotoPerfilBox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 160px;
+}
+
+.fotoPerfil {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #90ce6f;
+    background: #f4f4f4;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(60, 120, 60, 0.08);
+}
+
+.fotoActions {
+    display: flex;
+    gap: 10px;
+}
+
+.btnFoto, .btnFotoEliminar {
+    background: var(--lithg-green);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 16px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
+    font-family: 'Poppins', sans-serif;
+}
+
+.btnFotoEliminar {
+    background: #c0392b;
+}
+
+.btnFoto:hover {
+    background: #508b32ac;
+}
+.btnFotoEliminar:hover {
+    background: #a93226;
+}
+
+.datosPrincipales {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    font-size: 16px;
+}
+
+.datosPrincipales h2 {
+    margin: 0 0 6px 0;
+    font-size: 2rem;
+    color: var(--black1);
+    font-family: 'Poppins', sans-serif;
+}
+
+.btnEditar {
+    margin-top: 14px;
+    background: var(--lithg-green);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: 'Poppins', sans-serif;
+}
+.btnEditar:hover {
+    background: #508b32ac;
+}
+
+.section {
+    margin-top: 32px;
+    background: var(--white);
+    border-radius: 10px;
+    padding: 22px 24px 18px 24px;
+    box-shadow: 0 1px 8px rgba(1, 1, 1, 0.249);
+}
+
+.section h3 {
+    margin-top: 0;
+    color: var(--black1);
+    font-size: 1.25rem;
+    margin-bottom: 12px;
+}
+
+.textoSecundario {
+    color: var(--lithg-green);
+    font-size: 15px;
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.listaNotificaciones, .listaHistorial, .listaSesiones {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.listaNotificaciones li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 15px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.notificacionNoLeida {
+    background: var(--white);
+    font-weight: 500;
+}
+.notificacionLeida {
+    background: transparent;
+    color: #888;
+}
+
+.fechaNotificacion {
+    font-size: 13px;
+    color: var(--lithg-green);
+    margin-left: 16px;
+}
+
+.listaHistorial li {
+    padding: 8px 0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Poppins', sans-serif;
+}
+
+.fechaHistorial {
+    font-size: 13px;
+    color: var(--lithg-green);
+    margin-left: 16px;
+    min-width: 160px;
+    text-align: right;
+}
+
+.listaSesiones li {
+    padding: 7px 0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 15px;
+    color: var(--black1);
+    font-family: 'Poppins', sans-serif;
+}
+
+.btnFichaPDF {
+    width: 20%;
+    background: var(--lithg-green);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 0;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.2s;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+}
+.btnFichaPDF:hover {
+    background: #508b32ac;
+}
+
+.formEdit {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 12px;
+}
+
+.formEdit label {
+    font-size: 15px;
+    color: var(--black1);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.btnGuardar {
+    background: var(--lithg-green);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 0;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.2s;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+}
+.btnGuardar:hover {
+    background: #508b32ac;
+}
+

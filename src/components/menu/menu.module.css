@@ -14,7 +14,7 @@
     position: fixed; 
     top: 5px; 
     left: 0; 
-    background-color: var(--grey); 
+    background: linear-gradient(90deg, #f6fff6 0%, #e9ecef 100%);
     color: var(--black); 
     width: 320px; 
     height: 100vh; 
@@ -26,13 +26,19 @@
     z-index: 200;
 }
 
+:global(.dark) .sidebar {
+    background: linear-gradient(90deg, #23272f 0%, #2c313a 100%);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(83,158,67,0.23);
+}
+
 .container.collapsed .sidebar {
     width: 60px; 
 }
 
 .navList {
     position: relative;
-    top: 60px;
+    top: 80px;
     list-style: none;
     padding: 0;
     margin: 0;
@@ -76,13 +82,16 @@
 }
 
 .navItem:hover {
-    background-color: #6c6b6b7c;
+    background-color: #d8f3dc;
     color: #343434;
+    box-shadow: 0 2px 8px #98c79a33;
 }
 
+/* Hover en modo oscuro: verde oscuro y sombra blanca suave */
 :global(.dark) .navItem:hover {
-    background-color: var(--grey3);
+    background-color: #344e41;
     color: #fff !important;
+    box-shadow: 0 2px 8px #fff2;
 }
 
 .navItem.selected {
@@ -112,7 +121,7 @@
 }
 
 .container.collapsed .icon {
-    margin-right: 0; /* Elimina el margen en el menú colapsado */
+    margin-right: 0; 
 }
 
 .icon, .menuIcon {

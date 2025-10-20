@@ -3,7 +3,7 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 import styles from './header.module.css';
 import icon from '../../components/iconos/iconos';
-import sicic from '../../../public/assets/logo-sisic5.png';
+import sicic from '../../../public/assets/logo-sisic4.png';
 import NotificationDropdown from './NotificationDropdown';
 import { BaseUrl } from '../../utils/constans';
 import { useTheme } from 'next-themes'; 
@@ -29,6 +29,29 @@ function Header() {
             setUser({ name: storedUser.username, roles_nombre: storedUser.roles_nombre, id: storedUser.id });
         }
     }, []);
+
+    useEffect(() => {
+        const fetchUsuario = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await axios.get(`${BaseUrl}/miusuario/ficha/completa`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const usuario = res.data;
+                setUser({
+                    name: usuario.username,
+                    roles_nombre: usuario.rol,
+                    id: usuario.usuario_id,
+                    avatar_imagen: usuario.avatar_imagen,
+                    cargo_nombre: usuario.cargo || usuario.cargo_nombre || '—'
+                });
+            } catch (error) {
+                console.error('Error Obteniendo imagen de avatar del usuario', error);
+                setUser({ name: '', roles_nombre: '', id: null });
+            }
+        };
+        fetchUsuario();
+}, []);
 
     useEffect(() => {
         if (user.id) {
@@ -82,6 +105,7 @@ function Header() {
         <header className={styles.header}>
             <div className={styles.logoContainer}>
                 <img src={sicic} alt="Logo Institucional" className={styles.logo} />
+                <span className={styles.tituloSistema}>• SICIC-INSAI • "Comprometidos con la sanidad agrícola de Venezuela"</span>
             </div>
             <div className={styles.titleContainer}>
                 <h1 className={styles.title}>{getPanelTitle()}</h1>
@@ -140,8 +164,22 @@ function Header() {
                     />
                 </div>
                 
-                <hr />
-                <span className={styles.username}>Hola, {user.name}</span>
+            </div>
+
+            <div className={styles.userInfoBox}>
+                <img
+                    src={
+                        user.avatar_imagen
+                            ? `${BaseUrl}/uploads/usuarios/${user.avatar_imagen}`
+                            : icon.userDefault
+                    }
+                    alt="Avatar"
+                    className={styles.avatarMini}
+                />
+                <div className={styles.userTextos}>
+                    <span className={styles.username}>Hola, {user.name}</span>
+                    <span className={styles.cargo}>{user.cargo_nombre || '—'}</span>
+                </div>
             </div>
             {/* Modal del buscador universal */}
             <SearchModal

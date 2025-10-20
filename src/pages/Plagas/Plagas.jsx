@@ -9,6 +9,7 @@ import { validateField, getValidationRule } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
 import { BaseUrl } from '../../utils/constans';
+import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
 
 function Plagas() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -269,13 +270,25 @@ function Plagas() {
     return (
         <div className='mainContainer'>
 
+            {/*/////////////////// Tabla ///////////*/}
+                <div className='tituloH' 
+                style={{marginTop: 20, marginBottom: 20, gap: 20}}
+                >
+                    <img src={icon.hormiga} alt="" className='iconTwo'/>
+                    <h1 className='title' title='plagas'>Resumen de Plagas</h1>
+                
+                {/* Ayudante informativo de Pantalla */}
+                    <div >
+                        <AyudaTooltip descripcion="En esta sección puedes visualizar, registrar y gestionar todas las plagas registradas. Usa los filtros, la búsqueda y las opciones de exportación para organizar y consultar la información de manera eficiente." />
+                    </div>
+                </div>
+
             {loading && <Spinner text="Procesando..." />}
             {/* Modal Detalle */}
             {detalleModal.abierto && detalleModal.plaga && (
                 <div className='modalOverlay'>
                     <div className='modal'>
                         <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
-                        <h2>Detalles de la Plaga</h2>
                         <form className='modalForm'>
                             <div className='formColumns'>
                                 <div className='formGroup'>
@@ -391,8 +404,6 @@ function Plagas() {
                         <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
-
-                    <h2>Plagas Fitosanitarias</h2>
 
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />

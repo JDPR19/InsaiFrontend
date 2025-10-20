@@ -11,6 +11,7 @@ import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
 
 function Solicitud() {
     const navigate = useNavigate();
@@ -463,6 +464,20 @@ function Solicitud() {
 
     return (
         <div className='mainContainer'>
+
+            {/*/////////////////// Tabla ///////////*/}
+                <div className='tituloH' 
+                style={{marginTop: 20, marginBottom: 20, gap: 20}}
+                >
+                    <img src={icon.crear} alt="" className='iconTwo'/>
+                    <h1 className='title' title='Solicitudes'>Resumen de Solicitudes</h1>
+                
+                {/* Ayudante informativo de Pantalla */}
+                    <div >
+                        <AyudaTooltip descripcion="En esta sección puedes visualizar, registrar y gestionar todas las solicitudes creadas. Usa los filtros, la búsqueda y las opciones de exportación para organizar y consultar la información de manera eficiente." />
+                    </div>
+                </div>
+
             {loading && <Spinner text="Procesando..." />}
               {/* Modal Detalle */}
             {detalleModal.abierto && (
@@ -701,7 +716,7 @@ function Solicitud() {
                         </button>
                     </div>
                     
-                    <h2>Solicitudes</h2>
+
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />

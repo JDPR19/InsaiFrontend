@@ -11,6 +11,7 @@ import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 import { buildProductorFichaBlob } from '../../components/pdf/Ficha';
+import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
 
 function Productor() {
     const navigate = useNavigate();
@@ -433,6 +434,19 @@ function Productor() {
                 </div>
             </div>
 
+                {/* /////////////////// Tabla /////////// */}
+                    <div className='tituloH' 
+                    style={{marginTop: 20, marginBottom: 20, gap: 20}}
+                    >
+                        <img src={icon.cliente} alt="" className='iconTwo'/>
+                        <h1 className='title' title='Operaciones Planificadas'>Resumen de Productores</h1>
+                    
+                    {/* Ayudante informativo de Pantalla */}
+                        <div >
+                            <AyudaTooltip descripcion="En esta sección puedes visualizar, registrar y gestionar todos los productores registrados. Usa los filtros, la búsqueda y las opciones de exportación para organizar y consultar la información de manera eficiente." />
+                        </div>
+                    </div>
+
             {/* modal detalle */}
             {detalleModal.abierto && detalleModal.productor && (
                 <div className='modalOverlay'>
@@ -650,7 +664,7 @@ function Productor() {
                             Excel
                         </button>
                     </div>
-                    <h2>Productores</h2>
+                  
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
