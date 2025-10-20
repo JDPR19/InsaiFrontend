@@ -292,7 +292,6 @@ function TipoInspeccion() {
                         Agregar
                     </button>
 
-                    <h2>Tipos de Inspección</h2>
 
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
