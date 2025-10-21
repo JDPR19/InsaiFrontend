@@ -12,7 +12,7 @@
     padding: 10px 12px;
     border-radius: 8px;
     background: var(--green);
-    color: var(--lithg-green);
+    color: var(--light-green);
     font-weight: 500;
     font-size: 1rem;
     transition: background 0.2s, color 0.2s;
@@ -23,7 +23,7 @@
     filter: drop-shadow(0 0 2px #b7f5ba);
 }
 .activo {
-    background: var(--lithg-green);
+    background: var(--light-green);
     color: #fff;
     box-shadow: 0 2px 8px rgba(84, 158, 67, 0.349);
     transition: filter 0.2s;

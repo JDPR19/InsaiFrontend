@@ -110,7 +110,7 @@
 }
 
 .btnFoto, .btnFotoEliminar {
-    background: var(--lithg-green);
+    background: var(--light-green);
     color: #fff;
     border: none;
     border-radius: 6px;
@@ -149,7 +149,7 @@
 
 .btnEditar {
     margin-top: 14px;
-    background: var(--lithg-green);
+    background: var(--light-green);
     color: #fff;
     border: none;
     border-radius: 6px;
@@ -179,7 +179,7 @@
 }
 
 .textoSecundario {
-    color: var(--lithg-green);
+    color: var(--light-green);
     font-size: 15px;
     margin: 0;
     font-family: 'Poppins', sans-serif;
@@ -213,7 +213,7 @@
 
 .fechaNotificacion {
     font-size: 13px;
-    color: var(--lithg-green);
+    color: var(--light-green);
     margin-left: 16px;
 }
 
@@ -229,7 +229,7 @@
 
 .fechaHistorial {
     font-size: 13px;
-    color: var(--lithg-green);
+    color: var(--light-green);
     margin-left: 16px;
     min-width: 160px;
     text-align: right;
@@ -245,7 +245,7 @@
 
 .btnFichaPDF {
     width: 20%;
-    background: var(--lithg-green);
+    background: var(--light-green);
     color: #fff;
     border: none;
     border-radius: 6px;
@@ -277,7 +277,7 @@
 }
 
 .btnGuardar {
-    background: var(--lithg-green);
+    background: var(--light-green);
     color: #fff;
     border: none;
     border-radius: 6px;

@@ -743,7 +743,7 @@ const confirmarEliminarPrograma = async () => {
 
       <div className={`SectionSeguimiento ${styles.sectionHeader}`}>
         <div className={`ss-left ${styles.headerLeft}`}>
-          <button className={`create btn-estandar btn-estandar--lg`} onClick={() => navigate('/SeccionTwo')}>
+          <button className={`create btn-estandar btn-estandar--lg`} onClick={() => navigate('/SeccionOne')}>
             <img src={Icon.flecha} alt="Regresar" className='icon' />
             Regresar
           </button>

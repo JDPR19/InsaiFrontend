@@ -405,14 +405,14 @@ function Productor() {
                     <p>Total</p>
                 </div>
 
-                <div
+                {/* <div
                     className='card'
                     title='Productores sin propiedades asociadas'
                     onClick={() => setDatosFiltrados(datosOriginales.filter(p => (p.total_propiedades || 0) === 0))}
                 >
                     <span className='cardNumber'>{totales.sinPropiedad}</span>
                     <p>Sin Propiedad</p>
-                </div>
+                </div> */}
 
                 <div
                     className='card'
@@ -438,7 +438,7 @@ function Productor() {
                     <div className='tituloH' 
                     style={{marginTop: 20, marginBottom: 20, gap: 20}}
                     >
-                        <img src={icon.cliente} alt="" className='iconTwo'/>
+                        <img src={icon.productor} alt="" className='iconTwo'/>
                         <h1 className='title' title='Operaciones Planificadas'>Resumen de Productores</h1>
                     
                     {/* Ayudante informativo de Pantalla */}

@@ -13,6 +13,7 @@ import { BaseUrl } from '../../utils/constans';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 import { useSearchParams } from 'react-router-dom';
 import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
+import { usePermiso } from '../../hooks/usePermiso';
 
 
 function Planificacion() {
@@ -51,6 +52,7 @@ function Planificacion() {
     const itemsPerPage = 8;
     const { addNotification } = useNotification();
     const [errors, setErrors] = useState({});
+    const tienePermiso = usePermiso();
 
     const norm = (v) => String(v ?? '').trim().toLowerCase();
 
@@ -926,7 +928,7 @@ function Planificacion() {
             <div className='tableSection' id="tablaPlanificacion">
                 <div className='filtersContainer'>
                     <div className='filtersButtons'>
-                        <button
+                        {tienePermiso('planificacion', 'crear') && (<button
                             type='button'
                             onClick={openModal}
                             className='btn-estandar'
@@ -935,7 +937,8 @@ function Planificacion() {
                             <img src={icon.plus} alt="Crear" className='icon' />
                             Programar
                         </button>
-                        <button
+                        )}
+                        {tienePermiso('planificacion', 'exportar') && (<button
                             type='button'
                             onClick={() => {
                                 const { pdfName, title } = getReportMeta();
@@ -956,7 +959,8 @@ function Planificacion() {
                             <img src={icon.pdf5} alt="PDF" className='icon' />
                             PDF
                         </button>
-                        <button
+                        )}
+                        {tienePermiso('planificacion', 'exportar') && (<button
                             type='button'
                             onClick={() => {
                                 const { xlsName } = getReportMeta();
@@ -974,6 +978,7 @@ function Planificacion() {
                             <img src={icon.excel2} alt="Excel" className='icon' />
                             Excel
                         </button>
+                        )}
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 8 }}>
                             
@@ -1049,18 +1054,20 @@ function Planificacion() {
                                             className={`iconver ${bloqueado ? 'iconDisabled' : ''}`}
                                             title={bloqueado ? 'Acción deshabilitada por rol/estado' : 'Ver más'}
                                         />
-                                        <img
+                                        {tienePermiso('planificacion', 'editar') && (<img
                                             onClick={bloqueado ? undefined : () => openEditModal(item)}
                                             src={icon.editar}
                                             className={`iconeditar ${bloqueado ? 'iconDisabled' : ''}`}
                                             title={bloqueado ? 'Acción deshabilitada por rol/estado' : 'Editar'}
                                         />
-                                        <img
+                                        )}
+                                        {tienePermiso('planificacion', 'eliminar') && (<img
                                             onClick={bloqueado ? undefined : () => openConfirmDeleteModal(item.id)}
                                             src={icon.eliminar}
                                             className={`iconeliminar ${bloqueado ? 'iconDisabled' : ''}`}
                                             title={bloqueado ? 'Acción deshabilitada por rol/estado' : 'Eliminar'}
                                         />
+                                        )}
                                     </div>
                                 </td>
                                 </tr>

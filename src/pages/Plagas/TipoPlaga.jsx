@@ -9,6 +9,7 @@ import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
 import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
+import { usePermiso } from '../../hooks/usePermiso';
 
 function TipoPlaga() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -24,6 +25,7 @@ function TipoPlaga() {
     const [selectedTipoPlagaId, setSelectedTipoPlagaId] = useState(null);
     const { addNotification } = useNotification();
     const itemsPerPage = 8;
+    const tienePermiso = usePermiso();
 
     // Reiniciar el modal luego de cerrar
     const resetFormData = () => {
@@ -283,7 +285,7 @@ function TipoPlaga() {
 
             <div className='tableSection'>
                 <div className='filtersContainer'>
-                    <button 
+                     {tienePermiso('tipo_plaga', 'crear') && (<button 
                         type='button'
                         onClick={openModal} 
                         className='create'
@@ -291,6 +293,7 @@ function TipoPlaga() {
                         <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
+                    )}
 
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
@@ -312,18 +315,20 @@ function TipoPlaga() {
                                 <td>{tipo_plaga.nombre}</td>
                                 <td>
                                     <div className='iconContainer'>
-                                        <img
+                                        {tienePermiso('tipo_plaga', 'editar') && (<img
                                             onClick={() => openEditModal(tipo_plaga)}
                                             src={icon.editar}
                                             className='iconeditar'
                                             title='Editar'
                                         />
-                                        <img 
+                                        )}
+                                        {tienePermiso('tipo_plaga', 'eliminar') && (<img 
                                             onClick={() => openConfirmDeleteModal(tipo_plaga.id)} 
                                             src={icon.eliminar} 
                                             className='iconeliminar' 
                                             title='eliminar'
                                         />
+                                        )}
                                     </div>
                                 </td>
                             </tr>

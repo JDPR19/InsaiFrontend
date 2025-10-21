@@ -8,6 +8,18 @@ import insai from '../../../public/assets/insai.png';
 import insai3 from '../../../public/assets/insai3.png';
 import insai4 from '../../../public/assets/insai4.jpg';
 import cintillo from '../../../public/assets/cintillo insai.png';
+import importancia from '../../../public/assets/impor.png';
+import cafe from '../../../public/assets/cafe.png';
+import perro from '../../../public/assets/perro.png'; 
+import gaceta from '../../../public/assets/gacetaoficial.png'; 
+import conver from '../../../public/assets/conversatorios.png'; 
+import inspeccion from '../../../public/assets/inspecciones.png'; 
+import inspeccion2 from '../../../public/assets/inspeccion2.jpg'; 
+import loquehacemos from '../../../public/assets/loquehacemos.png'; 
+import runsai from '../../../public/assets/runsai.png'; 
+import sigensai from '../../../public/assets/sigensai.jfif'; 
+import sigmav from '../../../public/assets/SIGMAV.jpg'; 
+import React from 'react';
 
 const img = {
     logoInsai,
@@ -20,6 +32,19 @@ const img = {
     insai3,
     insai4,
     cintillo,
+    importancia,
+    cafe,
+    perro,
+    gaceta,
+    conver,
+    inspeccion,
+    inspeccion2,
+    loquehacemos,
+    runsai,
+    sigmav,
+    sigensai
+
 };
 
 export default img;
+

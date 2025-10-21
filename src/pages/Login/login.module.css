@@ -73,8 +73,8 @@
     outline: none;
 }
 .inputField:focus{
-    border-color: var(--lithg-green); 
-    box-shadow: 0 0 5px var(--lithg-green);
+    border-color: var(--light-green); 
+    box-shadow: 0 0 5px var(--light-green);
 }
 
 .submitButton {
@@ -201,8 +201,8 @@
 }
 
 :global(.dark) .inputField:focus {
-    border-color: var(--lithg-green) !important;
-    box-shadow: 0 0 5px var(--lithg-green) !important;
+    border-color: var(--light-green) !important;
+    box-shadow: 0 0 5px var(--light-green) !important;
 }
 
 :global(.dark) .submitButton {
@@ -210,7 +210,7 @@
     color: #fff !important;
 }
 :global(.dark) .submitButton:hover {
-    background-color: var(--lithg-green) !important; /* Verde clarito en hover modo oscuro */
+    background-color: var(--light-green) !important; /* Verde clarito en hover modo oscuro */
     color: #fff !important;
 }
 
@@ -232,11 +232,11 @@
 }
 
 :global(.dark) .footer a {
-    color: var(--lithg-green) !important;
+    color: var(--light-green) !important;
 }
 
 :global(.dark) .oldpass button {
-    color: var(--lithg-green) !important;
+    color: var(--light-green) !important;
 }
 
 :global(.dark) ::placeholder {

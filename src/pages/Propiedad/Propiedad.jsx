@@ -13,6 +13,7 @@ import { validateField, getValidationRule } from '../../utils/validation';
 import { BaseUrl } from '../../utils/constans';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
+import { usePermiso } from '../../hooks/usePermiso';
 
 
 function Propiedad() {
@@ -37,6 +38,10 @@ function Propiedad() {
     const [pdfFileName, setPdfFileName] = useState('');
     const { fileName } = getPDFInfo();
     const excelFileName = fileName.replace('.pdf', '.xlsx');
+    const tienePermiso = usePermiso();
+    const user = JSON.parse(localStorage.getItem('user'));
+    const rol = user?.roles_nombre;
+    const puedeVerSeguimiento = ['Administrador', 'Moderador'].includes(rol); 
     const [detalleModal, setDetalleModal] = useState({ abierto: false, propiedad: null });
     const [formData, setFormData] = useState({
         id: '',
@@ -152,6 +157,14 @@ function Propiedad() {
         setPdfUrl(url);
         setPdfFileName(fileName);
     };
+
+    const handleSeguimiento = (inspeccionId) => {
+  if (!puedeVerSeguimiento) {
+    addNotification('No tiene permiso para ver el seguimiento.', 'error');
+    return;
+  }
+  navigate(`/inspecciones/${inspeccionId}/seguimiento`);
+};
 
     
 
@@ -654,10 +667,10 @@ function Propiedad() {
                     <span className='cardNumber'>{totales.inspeccionando}</span>
                     <p>Inspeccionando</p>
                 </div>
-                <div className='card' onClick={() => setDatosFiltrados(datosOriginales.filter(p => p.estado === 'rechazada'))} title='Rechazadas'>
+                {/* <div className='card' onClick={() => setDatosFiltrados(datosOriginales.filter(p => p.estado === 'rechazada'))} title='Rechazadas'>
                     <span className='cardNumber'>{totales.rechazadas}</span>
                     <p>Rechazadas</p>
-                </div>
+                </div> */}
             </div>
 
             {/*/////////////////// Tabla ///////////*/}
@@ -1059,7 +1072,7 @@ function Propiedad() {
             <div className='tableSection'>
                 <div className='filtersContainer'>
                     <div className='filtersButtons'>
-                        <button 
+                        {tienePermiso('propiedad','crear') && (<button 
                             type='button'
                             onClick={openModal} 
                             className='create'
@@ -1068,8 +1081,9 @@ function Propiedad() {
                             <img src={icon.plus} alt="Crear" className='icon' />
                             Agregar
                         </button>
+                        )}
 
-                        <button
+                        {tienePermiso('propiedad','exportar') && (<button
                             type='button'
                             onClick={handlePreviewPDF}
                             className='btn-estandar'
@@ -1078,8 +1092,9 @@ function Propiedad() {
                             <img src={icon.pdf5} alt="PDF" className='icon' />
                             PDF
                         </button>
+                        )}
 
-                        <button
+                        {tienePermiso('propiedad','exportar') && (<button
                             type='button'
                             onClick={() => exportToExcel({
                                 data: datosFiltrados,
@@ -1094,6 +1109,7 @@ function Propiedad() {
                             <img src={icon.excel2} alt="Excel" className='icon' />
                             Excel
                         </button>
+                        )}
                     </div>
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
@@ -1108,43 +1124,64 @@ function Propiedad() {
                             <th>Nombre</th>
                             <th>Estatus</th>
                             <th>Acción</th>
+                            
                         </tr>
                     </thead>
                     <tbody>
-                        {(Array.isArray(currentData) ? currentData : []).map((item, idx) => (
-                            <tr key={item.id}>
-                                <td>{indexOfFirstItem + idx + 1}</td>
-                                <td>{item.codigo}</td>
-                                <td>{item.nombre}</td>
-                                <td>
-                                    <span className={`badge-estado badge-${item.estado}`}>
-                                        {item.estado}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div className='iconContainer'>
-                                        <img
-                                            onClick={() => openDetalleModal(item)}
-                                            src={icon.ver}
-                                            className='iconver'
-                                            title='Ver más'
-                                        />
-                                        <img
-                                            onClick={() => openEditModal(item)}
-                                            src={icon.editar}
-                                            className='iconeditar'
-                                            title='Editar'
-                                        />
-                                        <img 
-                                            onClick={() => openConfirmDeleteModal(item.id)} 
-                                            src={icon.eliminar} 
-                                            className='iconeliminar' 
-                                            title='eliminar'
-                                        />
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
+                        {(Array.isArray(currentData) ? currentData : []).map((item, idx) => {
+                            // Log para depuración
+                            console.log('Inspecciones de propiedad', item.id, item.inspecciones);
+
+                            return (
+                                <tr key={item.id}>
+                                    <td>{indexOfFirstItem + idx + 1}</td>
+                                    <td>{item.codigo}</td>
+                                    <td>{item.nombre}</td>
+                                    <td>
+                                        <span className={`badge-estado badge-${item.estado}`}>
+                                            {item.estado}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div className='iconContainer'>
+                                            {puedeVerSeguimiento && Array.isArray(item.inspecciones) && item.inspecciones.length > 0 && (
+                                                <img
+                                                    src={icon.ojito}
+                                                    onClick={() => handleSeguimiento(item.inspecciones[0].id)}
+                                                    alt="Seguimiento"
+                                                    className="iconver"
+                                                    title="Monitorear Seguimiento de esta Propiedad"
+                                                />
+                                            )}
+                                            {tienePermiso('propiedad','editar') && (
+                                                <img
+                                                    onClick={() => openDetalleModal(item)}
+                                                    src={icon.ver}
+                                                    className='iconver'
+                                                    title='Ver más'
+                                                />
+                                            )}
+                                            {tienePermiso('propiedad','editar') && (
+                                                <img
+                                                    onClick={() => openEditModal(item)}
+                                                    src={icon.editar}
+                                                    className='iconeditar'
+                                                    title='Editar'
+                                                />
+                                            )}
+                                            {tienePermiso('propiedad','eliminar') && (
+                                                <img
+                                                    onClick={() => openConfirmDeleteModal(item.id)}
+                                                    src={icon.eliminar}
+                                                    className='iconeliminar'
+                                                    title='eliminar'
+                                                />
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
                 <div className='tableFooter'>

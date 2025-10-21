@@ -24,7 +24,7 @@
 }
 
 :global(.dark) .footer a {
-    color: var(--lithg-green) !important;
+    color: var(--light-green) !important;
 }
 
 /* Asegura que el footer sea visible en pantallas pequeñas */

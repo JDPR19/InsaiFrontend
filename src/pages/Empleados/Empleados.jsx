@@ -10,6 +10,7 @@ import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner'; 
 import { BaseUrl } from '../../utils/constans';
 import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
+import { usePermiso } from '../../hooks/usePermiso';
 
 
 function Empleado() {
@@ -41,6 +42,7 @@ function Empleado() {
     const { addNotification } = useNotification();
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
+    const tienePermiso = usePermiso();
 
     
     const resetFormData = () => {
@@ -677,7 +679,7 @@ const handleFichaEmpleadoPDF = async (empleado) => {
 
             <div className='tableSection'>
                 <div className='filtersContainer'>
-                    <button 
+                    {tienePermiso('empleados', 'crear') && (<button 
                         type='button'
                         onClick={openModal} 
                         className='create'
@@ -685,6 +687,7 @@ const handleFichaEmpleadoPDF = async (empleado) => {
                         <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
+                    )}
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
@@ -709,36 +712,41 @@ const handleFichaEmpleadoPDF = async (empleado) => {
                                 <td>{empleado.apellido}</td>
                                 <td>
                                     <div className='iconContainer'>
-                                        <img
+                                        {tienePermiso('empleados', 'ver') && (<img
                                             onClick={() => openDetalleModal(empleado)}
                                             src={icon.ver}
                                             className='iconver'
                                             title='Ver más'
                                         />
-                                        <img
+                                        )}
+                                        {tienePermiso('empleados', 'ver') && (<img
                                             onClick={() => openImagenesModal(empleado)}
                                             src={icon.picture}
                                             className='iconver'
                                             title='Ver Imagenes'
                                         />
-                                        <img
+                                        )}
+                                        {tienePermiso('empleados', 'exportar') && (<img
                                             onClick={() => handleFichaEmpleadoPDF(empleado)}
                                             src={icon.pdf2}
                                             className='iconeditar'
                                             title='Descargar Ficha de Empleado'
                                         />
-                                        <img
+                                        )}
+                                        {tienePermiso('empleados', 'crear') && (<img
                                             onClick={() => openEditModal(empleado)}
                                             src={icon.editar}
                                             className='iconeditar'
                                             title='Editar'
                                         />
-                                        <img 
+                                        )}
+                                        {tienePermiso('empleados', 'eliminar') && (<img 
                                             onClick={() => openConfirmDeleteModal(empleado.id)} 
                                             src={icon.eliminar} 
                                             className='iconeliminar' 
                                             title='eliminar'
                                         />
+                                        )}
                                     </div>
                                 </td>
                             </tr>

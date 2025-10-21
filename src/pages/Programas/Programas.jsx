@@ -11,6 +11,8 @@ import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
 import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
+import { usePermiso } from '../../hooks/usePermiso';
+import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 
 function Programas() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -37,7 +39,25 @@ function Programas() {
     const { addNotification } = useNotification();
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
+    const tienePermiso = usePermiso();
 
+const columnsProgramas = [
+    { header: 'Nombre', key: 'nombre' },
+    { header: 'Tipo de Programa', key: 'tipo_programa_nombre' },
+    { header: 'Plagas', key: 'plagas', render: p => (p.plagas || []).map(x => x.nombre).join(', ') || 'N/A'},
+    { header: 'Cultivos', key: 'cultivos', render: p => (p.cultivos || []).map(x => x.nombre).join(', ') || 'N/A'},
+    { header: 'Empleados', key: 'empleados', render: p => (p.empleados || []).map(x => x.nombre).join(', ') || 'N/A'},
+    { header: 'Descripción', key: 'descripcion' }
+];
+
+const [pdfUrl, setPdfUrl] = useState(null);
+const [pdfFileName, setPdfFileName] = useState('');
+
+const getReportMeta = () => ({
+    pdfName: 'Programas.pdf',
+    xlsName: 'Programas.xlsx',
+    title: 'Listado de Programas'
+});
     const fetchProgramas = async () => {
         setLoading(true);
         try {
@@ -538,9 +558,71 @@ function Programas() {
                 </div>
             )}
 
+            {pdfUrl && (
+                <div className="modalOverlay">
+                    <div className="modalDetalle">
+                        <button className="closeButton" onClick={() => setPdfUrl(null)}>&times;</button>
+                        <iframe src={pdfUrl} width="100%" height="600px" title="Vista previa PDF" />
+                        <a
+                            href={pdfUrl}
+                            download={pdfFileName}
+                            className="btn-estandar"
+                            style={{ marginTop: 16, display: 'inline-block', textDecoration: 'none' }}
+                        >
+                            Descargar PDF
+                        </a>
+                    </div>
+                </div>
+            )}
+
+
             <div className='tableSection'>
                 <div className='filtersContainer'>
-                    <button 
+                    <div className='filtersButtons'>
+                        {tienePermiso('programa', 'exportar') && (
+                            <button
+                                type='button'
+                                onClick={() => {
+                                    const { pdfName, title } = getReportMeta();
+                                    const blob = exportToPDF({
+                                        data: datosFiltrados,
+                                        columns: columnsProgramas,
+                                        fileName: pdfName,
+                                        title,
+                                        preview: true
+                                    });
+                                    const url = URL.createObjectURL(blob);
+                                    setPdfUrl(url);
+                                    setPdfFileName(pdfName);
+                                }}
+                                className='btn-estandar'
+                                title='Previsualizar PDF'
+                            >
+                                <img src={icon.pdf5} alt="PDF" className='icon' />
+                                PDF
+                            </button>
+                        )}
+                        {tienePermiso('programa', 'exportar') && (
+                            <button
+                                type='button'
+                                onClick={() => {
+                                    const { xlsName } = getReportMeta();
+                                    exportToExcel({
+                                        data: datosFiltrados,
+                                        columns: columnsProgramas,
+                                        fileName: xlsName,
+                                        count: true,
+                                        totalLabel: 'TOTAL REGISTROS'
+                                    });
+                                }}
+                                className='btn-estandar'
+                                title='Descargar Formato Excel'
+                            >
+                                <img src={icon.excel2} alt="Excel" className='icon' />
+                                Excel
+                            </button>
+                        )}
+                    {tienePermiso('programa', 'crear') && (<button 
                         type='button'
                         onClick={openModal} 
                         className='create'
@@ -548,6 +630,8 @@ function Programas() {
                         <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
+                    )}
+                    </div>
 
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
@@ -558,8 +642,11 @@ function Programas() {
                     <thead>
                         <tr>
                             <th>N°</th>
-                            <th>Nombre</th>
+                            <th>Nombres</th>
                             <th>Tipo de Programa</th>
+                            <th>Plagas</th>
+                            <th>Cultivos</th>
+                            <th>Empleados</th>
                             <th>Acción</th>
                         </tr>
                     </thead>
@@ -569,8 +656,9 @@ function Programas() {
                                 <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>{programa.nombre}</td>
                                 <td>{programa.tipo_programa_nombre}</td>
-                                {/* <td>{(programa.plagas || []).map(p => p.nombre).join(', ')}</td> */}
-                                {/* <td>{(programa.empleados || []).map(e => e.nombre).join(', ')}</td> */}
+                                <td>{(programa.plagas || []).map(p => p.nombre).join(', ')}</td>
+                                <td>{(programa.cultivos || []).map(c => c.nombre).join(', ')}</td>
+                                <td>{(programa.empleados || []).map(e => e.nombre).join(', ') || 'N/A'}</td>
                                 <td>
                                     <div className='iconContainer'>
                                         <img
@@ -579,18 +667,20 @@ function Programas() {
                                             className='iconver'
                                             title='Ver más'
                                         />
-                                        <img
+                                        {tienePermiso('programa', 'editar') && (<img
                                             onClick={() => openEditModal(programa)}
                                             src={icon.editar}
                                             className='iconeditar'
                                             title='Editar'
                                         />
-                                        <img 
+                                        )}
+                                        {tienePermiso('programa', 'eliminar') && (<img 
                                             onClick={() => openConfirmDeleteModal(programa.id)} 
                                             src={icon.eliminar} 
                                             className='iconeliminar' 
                                             title='eliminar'
                                         />
+                                        )}
                                     </div>
                                 </td>
                             </tr>

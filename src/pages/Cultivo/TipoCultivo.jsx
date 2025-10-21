@@ -9,6 +9,7 @@ import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
 import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
+import { usePermiso } from '../../hooks/usePermiso';
 
 function TipoCultivo() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -24,6 +25,7 @@ function TipoCultivo() {
     const [selectedTipoCultivoId, setSelectedTipoCultivoId] = useState(null);
     const { addNotification } = useNotification();
     const itemsPerPage = 8;
+    const tienePermiso = usePermiso();
 
     // Reiniciar el modal luego de cerrar
     const resetFormData = () => {
@@ -226,15 +228,15 @@ function TipoCultivo() {
                 <div className='tituloH' 
                 style={{marginTop: 20, marginBottom: 20, gap: 20}}
                 >
-                    <img src={icon.calendario} alt="" className='iconTwo'/>
-                    <h1 className='title' title='Operaciones Planificadas'>Resumen de Planificaciones</h1>
+                    <img src={icon.planta2} alt="" className='iconTwo'/>
+                    <h1 className='title' title='Tipos de cultivo'>Resumen de Tipos de cultivo</h1>
                 
                 {/* Ayudante informativo de Pantalla */}
                     <div >
-                        <AyudaTooltip descripcion="En esta sección puedes visualizar, registrar y gestionar todas las planificaciones de inspección programadas. Usa los filtros, la búsqueda y las opciones de exportación para organizar y consultar la información de manera eficiente." />
+                        <AyudaTooltip descripcion="En esta sección puedes visualizar, registrar y gestionar todos los tipos de cultivo. Usa los filtros, la búsqueda y las opciones de exportación para organizar y consultar la información de manera eficiente." />
                     </div>
                 </div>
-                
+
             {loading && <Spinner text="Procesando..." />}
             {/* modal registro y editar */}
             {currentModal === 'tipo_cultivo' && (
@@ -283,7 +285,7 @@ function TipoCultivo() {
 
             <div className='tableSection'>
                 <div className='filtersContainer'>
-                    <button 
+                    {tienePermiso('tipo_cultivo', 'crear') && (<button 
                         type='button'
                         onClick={openModal} 
                         className='create'
@@ -291,8 +293,7 @@ function TipoCultivo() {
                         <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
-
-                    <h2>Tipos de Cultivo</h2>
+                    )}
 
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
@@ -314,18 +315,20 @@ function TipoCultivo() {
                                 <td>{tipo_cultivo.nombre}</td>
                                 <td>
                                     <div className='iconContainer'>
-                                        <img
+                                        {tienePermiso('tipo_cultivo', 'editar') && (<img
                                             onClick={() => openEditModal(tipo_cultivo)}
                                             src={icon.editar}
                                             className='iconeditar'
                                             title='Editar'
                                         />
-                                        <img 
+                                        )}
+                                        {tienePermiso('tipo_cultivo', 'eliminar') && (<img 
                                             onClick={() => openConfirmDeleteModal(tipo_cultivo.id)} 
                                             src={icon.eliminar} 
                                             className='iconeliminar' 
                                             title='eliminar'
                                         />
+                                        )}
                                     </div>
                                 </td>
                             </tr>

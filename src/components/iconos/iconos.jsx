@@ -54,9 +54,22 @@ import eliminar1 from '../../../public/eliminar1.svg';
 import flechaAbajo from '../../../public/flechaAbajo.svg'; 
 import pie from '../../../public/pie.svg'; 
 import picture from '../../../public/picture.svg'; 
-import martillito from '../../../public/martillo.svg'
+import martillito from '../../../public/martillo.svg';
+import productor from '../../../public/productor.svg';
+import plantaenmaceta from '../../../public/plantaenmaceta.svg';
+import planta2 from '../../../public/planta2.svg';
+import link from '../../../public/link.svg';
+import web from '../../../public/web.svg';
+import telefono from '../../../public/telefono.svg';
+import mapa from '../../../public/mapa.svg';
+import laboratorio from '../../../public/laboratorio.svg';
 
 const Iconos = {
+    link,
+    web,
+    telefono,
+    mapa,
+    laboratorio,
     crear,
     editar,
     eliminar,
@@ -100,6 +113,7 @@ const Iconos = {
     habilitar,
     plus,
     planta,
+    planta2,
     pdf3,
     pdf4,
     pdf5,
@@ -113,7 +127,9 @@ const Iconos = {
     flechaAbajo,
     pie,
     picture,
-    martillito
+    martillito,
+    productor,
+    plantaenmaceta,
 };
 
 export default Iconos;

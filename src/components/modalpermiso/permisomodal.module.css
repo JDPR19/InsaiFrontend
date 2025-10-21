@@ -1,6 +1,6 @@
 .saveButton {
     padding: 5px 5px;
-    background-color: var(--lithg-green);
+    background-color: var(--light-green);
     color: #ffffff;
     border: none;
     border-radius: 5px;
@@ -77,7 +77,7 @@
 }
 
 .modal::-webkit-scrollbar-thumb {
-    background: var(--lithg-green);
+    background: var(--light-green);
     border-radius: 4px;
 }
 

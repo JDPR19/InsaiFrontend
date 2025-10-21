@@ -21,9 +21,9 @@ function InspeccionesEst() {
   const navigate = useNavigate();
   const tienePermiso = usePermiso();
   const { addNotification } = useNotification();
-  const user = JSON.parse(localStorage.getItem('user'));
-  const rol = user?.roles_nombre;
-  const puedeVerSeguimiento = ['Administrador', 'Moderador'].includes(rol);
+  // const user = JSON.parse(localStorage.getItem('user'));
+  // const rol = user?.roles_nombre;
+  // const puedeVerSeguimiento = ['Administrador', 'Moderador'].includes(rol);
 
   // Estado de datos
   const [datosOriginales, setDatosOriginales] = useState([]);
@@ -277,13 +277,13 @@ const handleActaPDF = async (item) => {
   }
 };
 
-  const handleSeguimiento = (inspeccionId) => {
-    if (!puedeVerSeguimiento) {
-      addNotification('No tiene permiso para ver el seguimiento.', 'error');
-      return;
-    }
-    navigate(`/inspecciones/${inspeccionId}/seguimiento`);
-  };
+  // const handleSeguimiento = (inspeccionId) => {
+  //   if (!puedeVerSeguimiento) {
+  //     addNotification('No tiene permiso para ver el seguimiento.', 'error');
+  //     return;
+  //   }
+  //   navigate(`/inspecciones/${inspeccionId}/seguimiento`);
+  // };
 
   useEffect(() => {
     const arr = Array.isArray(datosOriginales) ? datosOriginales : [];
@@ -869,19 +869,6 @@ const handleActaPDF = async (item) => {
 
   return (
     <div className="mainContainer">
-
-              {/*/////////////////// Tabla ///////////*/}
-                <div className='tituloH' 
-                style={{marginTop: 20, marginBottom: 20, gap: 20}}
-                >
-                    <img src={icon.farmer} alt="" className='iconTwo'/>
-                    <h1 className='title' title='Inspecciones'>Resumen de Inspecciones</h1>
-                
-                {/* Ayudante informativo de Pantalla */}
-                    <div >
-                        <AyudaTooltip descripcion="En esta sección puedes visualizar, registrar y gestionar todas las inspecciones realizadas. Usa los filtros, la búsqueda y las opciones de exportación para organizar y consultar la información de manera eficiente." />
-                    </div>
-                </div>
 
       {loading && <Spinner text="Procesando..." />}
 
@@ -1538,6 +1525,20 @@ const handleActaPDF = async (item) => {
         </div>
       </div>
 
+      {/*/////////////////// Tabla ///////////*/}
+                <div className='tituloH' 
+                style={{marginTop: 20, marginBottom: 20, gap: 20}}
+                >
+                    <img src={icon.farmer} alt="" className='iconTwo'/>
+                    <h1 className='title' title='Inspecciones'>Resumen de Inspecciones</h1>
+                
+                {/* Ayudante informativo de Pantalla */}
+                    <div >
+                        <AyudaTooltip descripcion="En esta sección puedes visualizar, registrar y gestionar todas las inspecciones realizadas. Usa los filtros, la búsqueda y las opciones de exportación para organizar y consultar la información de manera eficiente." />
+                    </div>
+                </div>
+
+
       {pdfUrl && (
         <div className="modalOverlay">
           <div className="modalDetalle">
@@ -1609,7 +1610,7 @@ const handleActaPDF = async (item) => {
                 <td><span className={`badge-estado badge-${item.estado}`}>{item.estado}</span></td>
                 <td>
                   <div className="iconContainer">
-                  {puedeVerSeguimiento && (
+                  {/* {puedeVerSeguimiento && (
                       <img
                         src={icon.ojito}
                         onClick={() => handleSeguimiento(item.id)}
@@ -1617,21 +1618,23 @@ const handleActaPDF = async (item) => {
                         className="iconver"
                         title="Monitorear Seguimiento de esta Inspección"
                       />
-                    )}
-                    <img
+                    )} */}
+                     {tienePermiso('inspecciones', 'ver') && (<img
                       onClick={() => openDetalleModal(item)}
                       src={icon.ver}
                       className="iconver"
                       alt="Detalle"
                       title="Ver más"
                     />
-                    <img
+                    )}
+                     {tienePermiso('inspecciones', 'ver') && (<img
                       src={icon.picture}
                       onClick={() => openGaleriaModal(item.id)}   
                       alt="Imágenes"
                       className="iconver"
                       title="Ver imágenes"
                     />
+                    )}
                     {tienePermiso('inspecciones', 'exportar') && (
                       <img
                         onClick={() => handleActaPDF(item)}

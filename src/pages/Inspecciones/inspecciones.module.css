@@ -61,7 +61,7 @@
 .reportHint { color: var(--grey4); font-size: .9rem; }
 .reportActions { display: flex; gap: 10px; flex-wrap: wrap; }
 .reportBtn {
-  background: var(--lithg-green);
+  background: var(--light-green);
   color: #fff;
   border: none;
   padding: 9px 14px;
@@ -86,7 +86,7 @@
 .prodHeader { display: flex; align-items: center; justify-content: space-between; }
 .prodTitle { font-weight: 700; color: var(--green5); }
 .prodCount {
-  background: var(--lithg-green);
+  background: var(--light-green);
   color: #fff;
   padding: 2px 10px;
   border-radius: 999px;
@@ -156,7 +156,7 @@
   height: 16px;
   border: 2px solid var(--grey2);
   border-radius: 50%;
-  background: var(--lithg-green);
+  background: var(--light-green);
   position: relative;
   left: 2px;
   box-shadow: 0 0 0 4px rgba(152, 199, 154, 0.15);
@@ -324,7 +324,7 @@
   top: 0;
   bottom: 0;
   width: 6px;
-  background: linear-gradient(180deg, var(--green2), var(--lithg-green));
+  background: linear-gradient(180deg, var(--green2), var(--light-green));
   opacity: 0.85;
   border-top-left-radius: 14px;
   border-bottom-left-radius: 14px;
@@ -378,7 +378,7 @@
   background: var(--white2);
   color: var(--black2);
 }
-.btnPrimary { background: var(--lithg-green); color: #fff; font-weight: 700; }
+.btnPrimary { background: var(--light-green); color: #fff; font-weight: 700; }
 
 .grid {
   display: grid;

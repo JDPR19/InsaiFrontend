@@ -104,11 +104,11 @@ function Header() {
     return (
         <header className={styles.header}>
             <div className={styles.logoContainer}>
-                <img src={sicic} alt="Logo Institucional" className={styles.logo} />
-                <span className={styles.tituloSistema}>• SICIC-INSAI • "Comprometidos con la sanidad agrícola de Venezuela"</span>
+                <img src={sicic} alt="Logo Institucional" title='Logo SICIC-INSAI • Sistema de Información para el Control de Operaciones de Campo' className={styles.logo} />
+                <span className={styles.tituloSistema} title='Eslogan' >• SICIC-INSAI • "Comprometidos con la sanidad agrícola de Venezuela"</span>
             </div>
             <div className={styles.titleContainer}>
-                <h1 className={styles.title}>{getPanelTitle()}</h1>
+                <h1 className={styles.title} title='Titulo Panel'>{getPanelTitle()}</h1>
             </div>
             <div className={styles.userMenu}>
 
@@ -174,9 +174,10 @@ function Header() {
                             : icon.userDefault
                     }
                     alt="Avatar"
+                    title='Avatar Del Usuario'
                     className={styles.avatarMini}
                 />
-                <div className={styles.userTextos}>
+                <div className={styles.userTextos} title='Saludo Usuario'>
                     <span className={styles.username}>Hola, {user.name}</span>
                     <span className={styles.cargo}>{user.cargo_nombre || '—'}</span>
                 </div>

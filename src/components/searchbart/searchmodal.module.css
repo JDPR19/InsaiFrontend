@@ -145,7 +145,7 @@
 .searchModal::-webkit-scrollbar-thumb,
 .searchModalTableWrapper::-webkit-scrollbar-thumb,
 .searchModalTable::-webkit-scrollbar-thumb {
-    background: var(--lithg-green);
+    background: var(--light-green);
     border-radius: 12px;
 }
 .searchModal::-webkit-scrollbar-thumb:hover,
@@ -178,7 +178,7 @@
   border-radius: 15px;
 }
 .modalDetalle::-webkit-scrollbar-thumb {
-  background: var(--lithg-green);
+  background: var(--light-green);
   border-radius: 4px;
 }
 .modalDetalle::-webkit-scrollbar-thumb:hover {
@@ -206,7 +206,7 @@
   overflow-wrap: break-word;
 }
 .detalleTable th {
-  background: var(--lithg-green);
+  background: var(--light-green);
   color: #444;
   font-weight: 600;
   width: 30%;   

@@ -44,7 +44,7 @@ axios.interceptors.response.use(
             localStorage.removeItem('user');
             localStorage.removeItem('permisos');
             setTimeout(() => {
-                window.location.href = '/'; 
+                window.location.href = '/Login'; 
             }, 5000); 
         }
         return Promise.reject(error);

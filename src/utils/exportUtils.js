@@ -5,6 +5,14 @@ import { saveAs } from 'file-saver';
 import sisic from '../../public/assets/logo-sisic5.png';
 import cintillo from '../../public/assets/cintillo insai.png'
 
+function getRowValues(data, columns) {
+    return data.map(row =>
+        columns.map(col =>
+            col.render ? col.render(row) : row[col.key]
+        )
+    );
+}
+
 export function exportToPDF({
     data,
     columns,
@@ -12,8 +20,9 @@ export function exportToPDF({
     title = '',
     preview = false
 }) {
+    const rows = getRowValues(data, columns); // CORREGIDO: usa render
     const useLandscape = (columns?.length || 0) > 6;
-    const doc = new jsPDF({ orientation: useLandscape ? 'landscape' : 'portrait' });
+    const doc = new jsPDF({ format: 'legal', orientation: 'landscape' });
 
     // Más margen superior para despegar tabla del header
     const margin = { top: 36, left: 10, right: 10, bottom: 12 };
@@ -24,15 +33,15 @@ export function exportToPDF({
     // Configura alturas/posiciones del header y tabla
     const CINTILLO_Y = 6;
     const CINTILLO_HEIGHT = 15;     // más flaco
-    const TITLE_Y = 38;           
-    const TABLE_START_Y = 44;       // más espacio antes de la tabla
+    const TITLE_Y = 30;           
+    const TABLE_START_Y = 40;       // más espacio antes de la tabla
 
     // Cabecera: cintillo + título
     const drawHeader = () => {
         try {
             const w = pageWidth - (margin.left + margin.right);
             doc.addImage(cintillo, 'PNG', margin.left, CINTILLO_Y, w, CINTILLO_HEIGHT);
-        } catch (e) {e} // ignora si no carga la imagen
+        } catch (e) {e}
         doc.setTextColor(0, 0, 0);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(15);
@@ -52,16 +61,15 @@ export function exportToPDF({
         doc.setFontSize(footFont);
 
         const textWidth = doc.getTextWidth(text);
-        const imgW = 7;     // más pequeño
+        const imgW = 7;
         const imgH = 7;
-        const gap = 2;      // pequeño espacio entre logo y texto
+        const gap = 2;
         const totalW = imgW + gap + textWidth;
 
         const x = (pageWidth - totalW) / 2;
-        const y = pageHeight - 6; // margen inferior
+        const y = pageHeight - 6;
 
         try {
-            // coloca el logo alineado verticalmente con el texto
             doc.addImage(sisic, 'PNG', x, y - imgH + 2.5, imgW, imgH);
         } catch (e) {e}
 
@@ -72,16 +80,13 @@ export function exportToPDF({
     drawHeader();
 
     const tableColumn = columns.map(col => col.header);
-    const tableRows = data.map(row => columns.map(col => {
-        const v = row[col.key];
-        return v == null ? '' : String(v);
-    }));
+    const tableRows = rows.map(row => row.map(v => v == null ? '' : String(v))); // CORREGIDO
 
     const baseFont = 12;
     const fontSize = Math.max(7, baseFont - Math.floor((columns.length - 4) / 2));
 
-    const minColW = 14;
-    const maxColW = useLandscape ? 70 : 55;
+    const minColW = 20;
+    const maxColW = useLandscape ? 90 : 70;
     const rawLens = columns.map((col, i) => {
         const headerLen = String(col.header || '').length;
         const maxCellLen = tableRows.reduce((m, r) => Math.max(m, (r[i] || '').length), 0);
@@ -124,7 +129,7 @@ export function exportToPDF({
     autoTable(doc, {
         head: [tableColumn],
         body: tableRows,
-        startY: TABLE_START_Y, // más espacio bajo el cintillo/título
+        startY: TABLE_START_Y,
         theme: 'grid',
         tableWidth: 'auto',
         margin,
@@ -132,7 +137,7 @@ export function exportToPDF({
             font: 'helvetica',
             fontSize,
             cellPadding: 2,
-            overflow: 'hidden',
+            overflow: 'linebreak',
             halign: 'left',
             valign: 'middle',
             lineWidth: 0.1,
@@ -156,7 +161,7 @@ export function exportToPDF({
             const idx = column.index;
             const content = Array.isArray(cell.text) ? cell.text.join(' ') : String(cell.text || '');
             let fs = fontSize;
-            const maxW = Math.max(6, widths[idx] - 2 * 2); // resta padding aprox
+            const maxW = Math.max(6, widths[idx] - 2 * 2);
             let w = measure(content, fs);
             while (w > maxW && fs > 6) {
                 fs -= 0.5;
@@ -174,7 +179,6 @@ export function exportToPDF({
     doc.save(fileName);
 }
 
-
 export function exportToExcel({
     data,
     columns,
@@ -183,13 +187,10 @@ export function exportToExcel({
     totalLabel = 'TOTAL',
     count = false
 }) {
-    const rows = data.map(row => columns.map(col => {
-        const v = row[col.key];
-        return v === null || v === undefined ? '' : String(v);
-    }));
+    const rows = getRowValues(data, columns); // CORREGIDO: usa render
     const worksheetData = [
         columns.map(col => col.header.toUpperCase()),
-        ...rows
+        ...rows.map(row => row.map(v => v == null ? '' : String(v))) // CORREGIDO
     ];
 
     // Conteo de registros al final (opcional)
@@ -215,8 +216,8 @@ export function exportToExcel({
     // Autoancho por columna según contenido (limitado)
     worksheet['!cols'] = columns.map((col, cIdx) => {
         const headerLen = String(col.header || '').length;
-        const maxCellLen = rows.reduce((max, r) => Math.max(max, (r[cIdx] || '').length), 0);
-        const wch = Math.min(40, Math.max(10, Math.max(headerLen, maxCellLen) + 2));
+        const maxCellLen = worksheetData.reduce((max, r) => Math.max(max, (r[cIdx] || '').length), 0);
+        const wch = Math.min(60, Math.max(15, Math.max(headerLen, maxCellLen) + 2)); // <-- más ancho máximo
         return { wch };
     });
 

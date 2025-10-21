@@ -5,10 +5,10 @@ function BitacoraModal({ registro, onClose }) {
 
     const etiquetas = {
         cedula: 'Cédula',
-        nombre: 'Nombre',
-        contacto: 'Contacto',
-        apellido: 'Apellido',
-        inspeccion: 'Inspeccion',
+        nombre: 'Nombres',
+        contacto: 'Numero de Contacto',
+        apellido: 'Apellidos',
+        inspeccion: 'Inspección',
         laboratorio: 'Laboratorio',
         empleado_id: 'Empleado',
         cargo_id: 'Cargo',
@@ -17,7 +17,7 @@ function BitacoraModal({ registro, onClose }) {
         username: 'Usuario',
         cultivo_id: 'Cultivo',
         tipo_cultivo_id: 'Tipo de Cultivo',
-        nombre_cientifico: 'Nombre Cientifico',
+        nombre_cientifico: 'Nombre Científico',
         tipo_plaga_fito_id: 'Tipo de Plaga',
         observaciones: 'Observaciones',
         tipo_programa_fito_id: 'Tipo de Programa',
@@ -29,7 +29,7 @@ function BitacoraModal({ registro, onClose }) {
         sector_id: 'Sector',
         hora_inspeccion: 'Hora de Inspección',
         n_control: 'Número de Control',
-        cedula_res: 'Cédula del Responble que atiende',
+        cedula_res: 'Cédula del Responsable que atiende',
         tlf:'Telefono',
         area:'Area',
         este:'Este',
@@ -43,7 +43,7 @@ function BitacoraModal({ registro, onClose }) {
         finalidad4:'Finaidad de Movilización',
         finalidad5:'Finaidad de Buenas Prácticas',
         finalidad6:'Otra Finaidad',
-        propiedad_id: 'Propiedad',
+        propiedad: 'Propiedad',
         ordenamientos: 'Ordenamientos',
         responsable_e:'Responsable Encargado',
         aplica_programa: 'Aplica Programa',
@@ -63,6 +63,8 @@ function BitacoraModal({ registro, onClose }) {
         tipo_propiedad_id: 'Tipo de Propiedad',
         plaga_fito_ids: 'Plagas Asociadas',
         descripcion:'Descripción',
+        avatar_imagen: 'Avatar',
+    
 
     };
 

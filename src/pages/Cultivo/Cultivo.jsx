@@ -10,6 +10,7 @@ import Spinner from '../../components/spinner/Spinner';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
 import { BaseUrl } from '../../utils/constans';
 import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
+import { usePermiso } from '../../hooks/usePermiso';
 
 function Cultivo() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -32,6 +33,7 @@ function Cultivo() {
     const { addNotification } = useNotification();
     const itemsPerPage = 8;
     const [errors, setErrors] = useState({});
+    const tienePermiso = usePermiso();
 
     // Opciones para select
     const tiposOptions = tipos.map(tipo => ({
@@ -274,15 +276,15 @@ function Cultivo() {
                 <div className='tituloH' 
                 style={{marginTop: 20, marginBottom: 20, gap: 20}}
                 >
-                    <img src={icon.calendario} alt="" className='iconTwo'/>
-                    <h1 className='title' title='Operaciones Planificadas'>Resumen de Planificaciones</h1>
+                    <img src={icon.planta2} alt="" className='iconTwo'/>
+                    <h1 className='title' title='Cultivos'>Resumen de Cultivos</h1>
                 
                 {/* Ayudante informativo de Pantalla */}
                     <div >
-                        <AyudaTooltip descripcion="En esta sección puedes visualizar, registrar y gestionar todas las planificaciones de inspección programadas. Usa los filtros, la búsqueda y las opciones de exportación para organizar y consultar la información de manera eficiente." />
+                        <AyudaTooltip descripcion="En esta sección puedes visualizar, registrar y gestionar todos los cultivos registrados. Usa los filtros, la búsqueda y las opciones de exportación para organizar y consultar la información de manera eficiente." />
                     </div>
                 </div>
-                
+
             {loading && <Spinner text="Procesando..." />}
             {/* Modal Detalle */}
             {detalleModal.abierto && detalleModal.cultivo && (
@@ -397,7 +399,7 @@ function Cultivo() {
             
             <div className='tableSection'>
                 <div className='filtersContainer'>
-                    <button 
+                    {tienePermiso('cultivo', 'crear') && (<button 
                         type='button'
                         onClick={openModal} 
                         className='create'
@@ -405,8 +407,8 @@ function Cultivo() {
                         <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
+                    )}
 
-                    <h2>Cultivos</h2>
 
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
@@ -432,25 +434,28 @@ function Cultivo() {
                                 <td>{cultivo.tipo_cultivo_nombre}</td>
                                 <td>
                                     <div className='iconContainer'>
-                                        <img
+                                        {tienePermiso('cultivo', 'ver') && (<img
                                             onClick={() => openDetalleModal(cultivo)}
                                             src={icon.ver}
                                             className='iconver'
                                             title='Ver más'
                                             style={{ cursor: 'pointer' }}
                                         />
-                                        <img
+                                        )}
+                                        {tienePermiso('cultivo', 'editar') && (<img
                                             onClick={() => openEditModal(cultivo)}
                                             src={icon.editar}
                                             className='iconeditar'
                                             title='Editar'
                                         />
-                                        <img 
+                                        )}
+                                        {tienePermiso('cultivo', 'eliminar') && (<img 
                                             onClick={() => openConfirmDeleteModal(cultivo.id)} 
                                             src={icon.eliminar} 
                                             className='iconeliminar' 
                                             title='eliminar'
                                         />
+                                        )}
                                     </div>
                                 </td>
                             </tr>

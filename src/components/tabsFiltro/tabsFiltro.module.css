@@ -21,7 +21,7 @@
     border-radius: 10px;
     overflow-x: auto;
     scrollbar-width: thin;
-    scrollbar-color: var(--lithg-green) #e9ecef;
+    scrollbar-color: var(--light-green) #e9ecef;
 }
 
 .tabsContainer::-webkit-scrollbar {
@@ -30,7 +30,7 @@
     border-radius: 8px;
 }
 .tabsContainer::-webkit-scrollbar-thumb {
-    background: var(--lithg-green);
+    background: var(--light-green);
     border-radius: 8px;
 }
 .tabsContainer::-webkit-scrollbar-thumb:hover {

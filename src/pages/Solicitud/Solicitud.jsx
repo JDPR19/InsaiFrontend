@@ -12,6 +12,7 @@ import { BaseUrl } from '../../utils/constans';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
+import { usePermiso } from '../../hooks/usePermiso';
 
 function Solicitud() {
     const navigate = useNavigate();
@@ -51,6 +52,7 @@ function Solicitud() {
 
     const tipoSolicitudOptions = tipoSolicitudes.map(t => ({ value: String(t.id), label: t.nombre }));
     const propiedadOptions = propiedades.map(p => ({ value: String(p.id), label: p.nombre }));
+    const tienePermiso = usePermiso();
 
      // Cartas dinámicas
     const [totales, setTotales] = useState({
@@ -465,19 +467,6 @@ function Solicitud() {
     return (
         <div className='mainContainer'>
 
-            {/*/////////////////// Tabla ///////////*/}
-                <div className='tituloH' 
-                style={{marginTop: 20, marginBottom: 20, gap: 20}}
-                >
-                    <img src={icon.crear} alt="" className='iconTwo'/>
-                    <h1 className='title' title='Solicitudes'>Resumen de Solicitudes</h1>
-                
-                {/* Ayudante informativo de Pantalla */}
-                    <div >
-                        <AyudaTooltip descripcion="En esta sección puedes visualizar, registrar y gestionar todas las solicitudes creadas. Usa los filtros, la búsqueda y las opciones de exportación para organizar y consultar la información de manera eficiente." />
-                    </div>
-                </div>
-
             {loading && <Spinner text="Procesando..." />}
               {/* Modal Detalle */}
             {detalleModal.abierto && (
@@ -674,12 +663,26 @@ function Solicitud() {
                     <p>Solicitudes Rechazadas</p>
                 </div>
             </div>
+
+            {/*/////////////////// Tabla ///////////*/}
+                <div className='tituloH' 
+                style={{marginTop: 20, marginBottom: 20, gap: 20}}
+                >
+                    <img src={icon.ver} alt="" className='iconTwo'/>
+                    <h1 className='title' title='Solicitudes'>Resumen de Solicitudes</h1>
+                
+                {/* Ayudante informativo de Pantalla */}
+                    <div >
+                        <AyudaTooltip descripcion="En esta sección puedes visualizar, registrar y gestionar todas las solicitudes creadas. Usa los filtros, la búsqueda y las opciones de exportación para organizar y consultar la información de manera eficiente." />
+                    </div>
+                </div>
+                
             {/* Tabla */}
             <div className='tableSection'>
                 <div className='filtersContainer'>
                     <div className='filtersButtons'>
 
-                        <button
+                        {tienePermiso('solicitud', 'crear') && (<button
                             type='button'
                             onClick={openModal}
                             className='btn-estandar'
@@ -688,8 +691,9 @@ function Solicitud() {
                             <img src={icon.plus} alt="Crear" className='icon' />
                             Agregar
                         </button>
+                        )}
                         
-                        <button
+                        {tienePermiso('solicitud', 'exportar') && (<button
                             type='button'
                             onClick={handlePreviewPDF}
                             className='btn-estandar'
@@ -698,8 +702,9 @@ function Solicitud() {
                             <img src={icon.pdf5} alt="PDF" className='icon' />
                             PDF
                         </button>
+                        )}
 
-                        <button
+                        {tienePermiso('solicitud', 'exportar') && (<button
                             type='button'
                             onClick={() => exportToExcel({
                                 data: datosFiltrados,
@@ -714,6 +719,7 @@ function Solicitud() {
                             <img src={icon.excel2} alt="Excel" className='icon' />
                             Excel
                         </button>
+                        )}
                     </div>
                     
 
@@ -753,18 +759,20 @@ function Solicitud() {
                                             className='iconver'
                                             title='Ver más'
                                         />
-                                        <img
+                                        {tienePermiso('solicitud', 'editar') && (<img
                                             onClick={() => openEditModal(item)}
                                             src={icon.editar}
                                             className='iconeditar'
                                             title='Editar'
                                         />
-                                        <img 
+                                        )}
+                                        {tienePermiso('solicitud', 'eliminar') && (<img 
                                             onClick={() => openConfirmDeleteModal(item.id)} 
                                             src={icon.eliminar} 
                                             className='iconeliminar' 
                                             title='eliminar'
                                         />
+                                        )}
                                     </div>
                                 </td>
                             </tr>

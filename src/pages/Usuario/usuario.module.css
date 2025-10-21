@@ -29,7 +29,7 @@
 
 .table th {
     text-align: center;
-    background-color: var(--lithg-green);
+    background-color: var(--light-green);
     color: #343434;
 }
 
@@ -120,7 +120,7 @@
     flex-direction: column;
     align-items: flex-start;
     min-width: 180px;
-    border: 1px var(--lithg-green) solid;
+    border: 1px var(--light-green) solid;
 }
 
 .permisoPantalla strong {
@@ -142,7 +142,7 @@
 }
 
 .permisoCheckbox input[type="checkbox"] {
-    accent-color: var(--lithg-green);
+    accent-color: var(--light-green);
     width: 16px;
     height: 16px;
     margin-right: 4px;
@@ -163,7 +163,7 @@
 }
 
 .modal::-webkit-scrollbar-thumb {
-    background: var(--lithg-green);
+    background: var(--light-green);
     border-radius: 4px;
 }
 
@@ -177,7 +177,7 @@
 .btnPermiso {
     padding: 5px 10px;
     border-radius: 5px;
-    background: var(--lithg-green);
+    background: var(--light-green);
     color: #ffff;
     font-size: 0.9rem;
     font-family: 'Poppins', sans-serif;

@@ -17,7 +17,7 @@
 }
 
 .notification.success {
-    background-color: var(--lithg-green); 
+    background-color: var(--light-green); 
 }
 
 .notification.error {
@@ -78,7 +78,7 @@
 
 .progressBar {
     height: 100%;
-    background: var(--lithg-green);
+    background: var(--light-green);
     transition: width 0.1s linear;
 }
 

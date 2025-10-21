@@ -9,6 +9,7 @@ import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
 import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
+import { usePermiso } from '../../hooks/usePermiso';
 
 function TipoSolicitud() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -24,6 +25,7 @@ function TipoSolicitud() {
     const [selectedTipoSolicitudId, setSelectedTipoSolicitudId] = useState(null);
     const { addNotification } = useNotification();
     const itemsPerPage = 8;
+    const tienePermiso = usePermiso();
 
     // Reiniciar el modal luego de cerrar
     const resetFormData = () => {
@@ -283,7 +285,7 @@ function TipoSolicitud() {
 
             <div className='tableSection'>
                 <div className='filtersContainer'>
-                    <button 
+                     {tienePermiso('tipo_solicitud', 'crear') && (<button 
                         type='button'
                         onClick={openModal} 
                         className='create'
@@ -291,6 +293,7 @@ function TipoSolicitud() {
                         <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
+                    )}
 
 
                     <div className='searchContainer'>
@@ -313,18 +316,20 @@ function TipoSolicitud() {
                                 <td>{tipo_solicitud.nombre}</td>
                                 <td>
                                     <div className='iconContainer'>
-                                        <img
+                                        {tienePermiso('tipo_solicitud', 'editar') && (<img
                                             onClick={() => openEditModal(tipo_solicitud)}
                                             src={icon.editar}
                                             className='iconeditar'
                                             title='Editar'
                                         />
-                                        <img 
+                                        )}
+                                        {tienePermiso('tipo_solicitud', 'eliminar') && (<img 
                                             onClick={() => openConfirmDeleteModal(tipo_solicitud.id)} 
                                             src={icon.eliminar} 
                                             className='iconeliminar' 
                                             title='eliminar'
                                         />
+                                        )}
                                     </div>
                                 </td>
                             </tr>

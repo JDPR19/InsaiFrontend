@@ -50,7 +50,7 @@ import SeccionSix from './pages/Seccion/SeccionSix';
 import SeccionSeven from './pages/Seccion/SeccionSeven';
 import SeguimientoInspeccion from './pages/Inspecciones/SeguimientoInspeccion';
 import Informativa from './pages/Informativa/Informativa';
-
+import Landing from './pages/landing/landing.jsx';
 
 function AppContent() {
 
@@ -73,8 +73,8 @@ function AppContent() {
         <AutoLogout />
       <Routes>
         {/* Ruta pública: Login */}
-        <Route path="/" element={<Login />} />
-        
+        <Route path="/Login" element={<Login />} />
+        <Route path="/" element={<Landing />} />
         {/* Rutas protegidas con permisos */}
         <Route
           path="/Home"

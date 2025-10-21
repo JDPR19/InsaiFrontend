@@ -29,7 +29,7 @@ const preguntasInfo = [
 
 const colores = [
     { nombre: 'Verde institucional', color: '#539E43', var: '--green9' },
-    { nombre: 'Verde claro', color: '#98c79a', var: '--lithg-green' },
+    { nombre: 'Verde claro', color: '#98c79a', var: '--light-green' },
     { nombre: 'Rojo vino', color: '#9a031e', var: '--vino-red' },
     { nombre: 'Mostaza', color: '#cca011', var: '--mostaza' },
     { nombre: 'Gris claro', color: '#DEE2E6', var: '--grey' },

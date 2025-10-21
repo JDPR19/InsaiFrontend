@@ -28,7 +28,7 @@ html, body {
 }
 
 :root {
-  --lithg-green:#98c79a;
+  --light-green:#98c79a;
   --vino-red: #9a031e;
   --mostaza: #cca011;
 /* escala de blanco,grises,negro */
@@ -63,13 +63,13 @@ html, body {
 --modal-shadow: rgba(0, 0, 0, 0.2);
   --modal-shadow-dark: rgba(0, 0, 0, 0.431);
   --input-border: var(--grey2);
-  --input-border-focus: var(--lithg-green);
+  --input-border-focus: var(--light-green);
   --input-bg: var(--white);
   --input-bg-dark: var(--grey3);
   --input-text: var(--black2);
   --input-text-dark: var(--black);
   --table-hover: var(--green8);
-  --table-header-bg: var(--lithg-green);
+  --table-header-bg: var(--light-green);
   --table-header-text: var(--black);
   --table-row-bg: var(--white);
   --table-row-bg-dark: var(--grey3);
@@ -77,17 +77,17 @@ html, body {
   --modal-close: #e70d0d;
   --modal-close-dark: #b10b0b;
   --error-text: #f44336;
-  --badge-bg: var(--lithg-green);
+  --badge-bg: var(--light-green);
   --badge-text: var(--black);
-  --badge-border: var(--lithg-green);
+  --badge-border: var(--light-green);
   --badge-pendiente-bg: #ffd466bb;
   --badge-pendiente-border: #fbc12d;
   --badge-diagnosticada-bg: #67b0fa81;
   --badge-diagnosticada-border: #67b0fa;
   --badge-rechazada-bg: #f5afaee1;
   --badge-rechazada-border: #fd5250;
-  --badge-aprobada-bg: var(--lithg-green);
-  --badge-aprobada-border: var(--lithg-green);
+  --badge-aprobada-bg: var(--light-green);
+  --badge-aprobada-border: var(--light-green);
 }
 
 /* Modo oscuro con next-themes */
@@ -383,7 +383,7 @@ html, body {
 .modal_mono::-webkit-scrollbar-thumb,
 .modal_tree::-webkit-scrollbar-thumb,
 .modal_i::-webkit-scrollbar-thumb {
-    background: var(--lithg-green);
+    background: var(--light-green);
     border-radius: 4px;
 }
 
@@ -434,7 +434,7 @@ html, body {
 }
 
 .cancelButton {
-  background: var(--lithg-green);
+  background: var(--light-green);
   color: white;
   border: none;
   padding: 10px 20px;
@@ -518,7 +518,7 @@ html, body {
 
 .saveButton {
   padding: 5px 5px;
-  background-color: var(--lithg-green);
+  background-color: var(--light-green);
   color: #ffffff;
   border: none;
   border-radius: 5px;
@@ -551,7 +551,7 @@ html, body {
     flex-direction: column;
     align-items: stretch;
     scrollbar-width: thin;
-    scrollbar-color: var(--lithg-green) #e9ecef;
+    scrollbar-color: var(--light-green) #e9ecef;
 }
 .detalleTable {
     width: 100%;
@@ -574,7 +574,7 @@ html, body {
 }
 
 .detalleTable th {
-    background: var(--lithg-green);
+    background: var(--light-green);
     color: #444;
     font-weight: 600;
 }
@@ -598,7 +598,7 @@ html, body {
 }
 
 .modalDetalle::-webkit-scrollbar-thumb {
-    background: var(--lithg-green);
+    background: var(--light-green);
     border-radius: 4px;
 }
 
@@ -763,7 +763,7 @@ html, body {
   display: flex; 
   align-items: center; 
   justify-content: center; 
-  background-color: var(--lithg-green);
+  background-color: var(--light-green);
   width: fit-content; 
   padding: 8px 8px; 
   border-radius: 10px;
@@ -790,7 +790,7 @@ html, body {
   display: flex; 
   align-items: center; 
   justify-content: center; 
-  background-color: var(--lithg-green);
+  background-color: var(--light-green);
   width: 100px; 
   padding: 8px 0; 
   border-radius: 10px;
@@ -955,7 +955,7 @@ html, body {
     height: 35px; 
     width: auto;
     padding: 8px 8px;
-    background: var(--lithg-green);
+    background: var(--light-green);
     cursor: pointer;
     transition: background 0.2s, box-shadow 0.2s;
     border-radius: 30%;
@@ -972,8 +972,8 @@ html, body {
 
 .btn-icon-Estandar:hover,
 .btn-icon-Estandar:focus {
-    background: var(--lithg-green);
-    box-shadow: 0 0 8px var(--lithg-green);
+    background: var(--light-green);
+    box-shadow: 0 0 8px var(--light-green);
 }
 /* Estilos para inputs */
 
@@ -1067,7 +1067,7 @@ html, body {
   appearance: none;
   width: 18px;
   height: 18px;
-  border: 2px solid var(--lithg-green);
+  border: 2px solid var(--light-green);
   border-radius: 50%;
   background: #fff;
   transition: border-color 0.2s;
@@ -1077,7 +1077,7 @@ html, body {
 
 .radio-input:checked {
   border-color: var(--green-hover1);
-  background: var(--lithg-green);
+  background: var(--light-green);
 }
 
 .radio-input:checked::after {
@@ -1333,7 +1333,7 @@ html, body {
   appearance: none;
   width: 18px;
   height: 18px;
-  border: 2px solid var(--lithg-green);
+  border: 2px solid var(--light-green);
   border-radius: 5px;
   background: #fff;
   transition: border-color 0.2s, background 0.2s;
@@ -1343,7 +1343,7 @@ html, body {
 
 .finalidad-checkbox:checked {
   border-color: var(--green-hover1);
-  background: var(--lithg-green);
+  background: var(--light-green);
 }
 
 .finalidad-checkbox:checked::after {
@@ -1367,7 +1367,7 @@ html, body {
   position: absolute;
   top: -10px;
   right: -10px;
-  background: var(--lithg-green);
+  background: var(--light-green);
   color: #fff;
   border: none;
   border-radius: 50%;
@@ -1452,7 +1452,7 @@ html, body {
 .badge-solicitada  { background: var(--badge-pendiente-bg);    color: var(--badge-text); border: 1px solid var(--badge-pendiente-border); }  
 .badge-seguimiento { background: var(--badge-diagnosticada-bg);color: var(--badge-text); border: 1px solid var(--badge-diagnosticada-border);}
 .badge-cuarentena  { background: var(--badge-rechazada-bg);    color: var(--badge-text); border: 1px solid var(--badge-rechazada-border); }  
-.badge-finalizada   { background: var(--lithg-green); color: var(--badge-text); border: 1px solid var(--badge-border); }
+.badge-finalizada   { background: var(--light-green); color: var(--badge-text); border: 1px solid var(--badge-border); }
 /* Graficas ///////////////777*/
 
 .chartSection {
@@ -1535,8 +1535,8 @@ html, body {
     gap: 14px;
     background: #ffffff;
     border-radius: 12px;
-    border-right: 2px solid var(--lithg-green);
-    border-left: 2px solid var(--lithg-green);
+    border-right: 2px solid var(--light-green);
+    border-left: 2px solid var(--light-green);
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.431);
     padding: 15px 15px;
     justify-items: center;
@@ -1555,8 +1555,8 @@ html, body {
     text-align: right;
     background: #ffffff;
     border-radius: 12px;
-    border-right: 2px solid var(--lithg-green);
-    border-left: 2px solid var(--lithg-green);
+    border-right: 2px solid var(--light-green);
+    border-left: 2px solid var(--light-green);
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.431);
     padding: 15px 15px;
     width: fit-content;
@@ -1706,7 +1706,7 @@ html, body {
     background: var(--white2);
     border-radius: 14px;
     box-shadow: 0 4px 18px rgba(83,158,67,0.13);
-    border: 1.5px solid var(--lithg-green);
+    border: 1.5px solid var(--light-green);
     font-family: 'Poppins', sans-serif;
     font-size: 0.95rem; 
     padding: 8px 2px 8px 2px;
@@ -1723,7 +1723,7 @@ html, body {
 }
 
 .react-calendar__navigation button {
-    background: var(--lithg-green);
+    background: var(--light-green);
     color: var(--black1);
     border-radius: 8px;
     border: none;
@@ -2045,7 +2045,7 @@ html, body {
   height: 8px;
 }
 .carouselTrack::-webkit-scrollbar-thumb {
-  background: var(--lithg-green);
+  background: var(--light-green);
   border-radius: 6px;
 }
 .carouselTrack::-webkit-scrollbar-track {
@@ -2103,7 +2103,7 @@ html, body {
   height: 34px;
   border-radius: 50%;
   border: none;
-  background: var(--lithg-green);
+  background: var(--light-green);
   color: #fff;
   font-size: 22px;
   line-height: 34px;
@@ -2216,7 +2216,7 @@ html, body {
 .progCardTitle .progType { color: var(--grey4, #6b7280); }
 .chipsRow { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
 .chip {
-  background: var(--white1); color: var(--black1); border: 1px solid var(--lithg-green);
+  background: var(--white1); color: var(--black1); border: 1px solid var(--light-green);
   border-radius: 999px; padding: 2px 8px; font-size: 12px; line-height: 18px;
 }
 .progCardMeta { color: var(--grey4, #6b7280); font-size: 13px; display: grid; gap: 4px; }

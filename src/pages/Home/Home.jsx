@@ -871,7 +871,7 @@ function Home() {
             <div className={styles.cardsContainer}>
                 <div className={styles.card} onClick={() => handleCardClick('empleadosActivos')} title='Mostrar Detalles'>
                     <span className={styles.cardNumber}>{totales.empleadosActivos ?? 0}</span>
-                    <p>Inspectores Activos</p>
+                    <p>Inspectores Disponibles</p>
                 </div>
                 <div className={styles.card} onClick={() => handleCardClick('solicitudesPendientes')} title='Mostrar Detalles'>
                     <span className={styles.cardNumber}>{totales.solicitudesPendientes ?? 0}</span>

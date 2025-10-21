@@ -48,7 +48,7 @@ const AutoLogout = () => {
       socketRef.current = null;
     }
 
-    navigate('/');
+    navigate('/Login');
   };
 
   // Escuchar cambios del token (otras pestañas/ventanas)

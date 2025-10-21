@@ -9,6 +9,7 @@ import { validateField, validationRules } from '../../utils/validation';
 import { BaseUrl } from '../../utils/constans';
 import Spinner from '../../components/spinner/Spinner';
 import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
+import { usePermiso } from '../../hooks/usePermiso';
 
 function TipoPrograma() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -24,6 +25,7 @@ function TipoPrograma() {
     const [selectedTipoProgramaId, setSelectedTipoProgramaId] = useState(null);
     const { addNotification } = useNotification();
     const itemsPerPage = 8;
+    const tienePermiso = usePermiso();
 
     // Reiniciar el modal luego de cerrar
     const resetFormData = () => {
@@ -227,7 +229,7 @@ function TipoPrograma() {
                 style={{marginTop: 20, marginBottom: 20, gap: 20}}
                 >
                     <img src={icon.escudobien} alt="" className='iconTwo'/>
-                    <h1 className='title' title='tipos de programa'>Resumen de Tipos de programa</h1>
+                    <h1 className='title' title='tipos de programa'>Resumen de Tipos de programas</h1>
                 
                 {/* Ayudante informativo de Pantalla */}
                     <div >
@@ -283,7 +285,7 @@ function TipoPrograma() {
 
             <div className='tableSection'>
                 <div className='filtersContainer'>
-                    <button 
+                    {tienePermiso('tipo_programa', 'crear') && (<button 
                         type='button'
                         onClick={openModal} 
                         className='create'
@@ -291,6 +293,7 @@ function TipoPrograma() {
                         <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
+                    )}
 
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
@@ -301,7 +304,7 @@ function TipoPrograma() {
                     <thead>
                         <tr>
                             <th>N°</th>
-                            <th>Nombre</th>
+                            <th>Nombres</th>
                             <th>Acción</th>
                         </tr>
                     </thead>
@@ -312,18 +315,21 @@ function TipoPrograma() {
                                 <td>{tipo_programa.nombre}</td>
                                 <td>
                                     <div className='iconContainer'>
-                                        <img
+                                        {tienePermiso('tipo_programa', 'editar') && (<img
                                             onClick={() => openEditModal(tipo_programa)}
                                             src={icon.editar}
                                             className='iconeditar'
                                             title='Editar'
                                         />
-                                        <img 
+                                        )}
+
+                                        {tienePermiso('tipo_programa', 'eliminar') && (<img 
                                             onClick={() => openConfirmDeleteModal(tipo_programa.id)} 
                                             src={icon.eliminar} 
                                             className='iconeliminar' 
                                             title='eliminar'
                                         />
+                                        )}
                                     </div>
                                 </td>
                             </tr>

@@ -8,6 +8,8 @@ import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
+import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
+import { usePermiso } from '../../hooks/usePermiso';
 
 function Cargo() {
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -23,6 +25,7 @@ function Cargo() {
     const [selectedCargoId, setSelectedCargoId] = useState(null);
     const { addNotification } = useNotification();
     const itemsPerPage = 8;
+    const tienePermiso = usePermiso();
 
     // Reiniciar el modal luego de cerrar
     const resetFormData = () => {
@@ -220,6 +223,20 @@ function Cargo() {
 
     return (
         <div className='mainContainer'>
+
+            {/*/////////////////// Tabla ///////////*/}
+                <div className='tituloH' 
+                style={{marginTop: 20, marginBottom: 20, gap: 20}}
+                >
+                    <img src={icon.martillito} alt="" className='iconTwo'/>
+                    <h1 className='title' title='cargos'>Resumen de cargos</h1>
+                
+                {/* Ayudante informativo de Pantalla */}
+                    <div >
+                        <AyudaTooltip descripcion="En esta sección puedes visualizar, registrar y gestionar todos los cargos creados. Usa los filtros, la búsqueda y las opciones de exportación para organizar y consultar la información de manera eficiente." />
+                    </div>
+                </div>
+
             {loading && <Spinner text="Procesando..." />}
             {/* modal registro y editar */}
             {currentModal === 'cargo' && (
@@ -268,7 +285,7 @@ function Cargo() {
 
             <div className='tableSection'>
                 <div className='filtersContainer'>
-                    <button 
+                    {tienePermiso('cargo', 'crear') && (<button 
                         type='button'
                         onClick={openModal} 
                         className='create'
@@ -276,8 +293,7 @@ function Cargo() {
                         <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
-
-                    <h2>Cargos</h2>
+                    )}
 
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
@@ -299,18 +315,20 @@ function Cargo() {
                                 <td>{cargo.nombre}</td>
                                 <td>
                                     <div className='iconContainer'>
-                                        <img
+                                        {tienePermiso('cargo', 'editar') && (<img
                                             onClick={() => openEditModal(cargo)}
                                             src={icon.editar}
                                             className='iconeditar'
                                             title='Editar'
                                         />
-                                        <img 
+                                        )}
+                                        {tienePermiso('cargo', 'eliminar') && (<img 
                                             onClick={() => openConfirmDeleteModal(cargo.id)} 
                                             src={icon.eliminar} 
                                             className='iconeliminar' 
                                             title='eliminar'
                                         />
+                                        )}
                                     </div>
                                 </td>
                             </tr>
