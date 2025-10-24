@@ -1,40 +1,29 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf, Image } from '@react-pdf/renderer';
-import img from '../image/image'; // componente de imágenes centralizado
+import img from '../image/image';
 
-// Rutas por defecto (usa public/assets si alguna falta)
 const BANNER_DEFAULT = img.cintillo || '/assets/cintillo.png';
 const LOGO_SICIC_DEFAULT = img.sicic5 || '/assets/logo-sicic-insai.png';
 
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 100,        // espacio para el cintillo
-    paddingBottom: 60,      // espacio para el footer
-    paddingHorizontal: 72,  
+    paddingTop: 100,
+    paddingBottom: 60,
+    paddingHorizontal: 72,
     fontFamily: 'Helvetica',
     fontSize: 12,
   },
-
-  // Cintillo superior
   band: { position: 'absolute', top: 20, left: 5, right: 5, height: 50 },
   bandImg: { width: '100%', height: '100%', objectFit: 'contain' },
-
-  // Encabezado
   header: { textAlign: 'center', marginBottom: 12 },
   title: { fontSize: 15, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 0.1 },
-
-  // Cuerpo
   section: { marginTop: 10 },
   p: { textAlign: 'justify', lineHeight: 1.2, marginBottom: 10 },
-
-  // Firmas
   firmasWrap: { marginTop: 30, display: 'flex', flexDirection: 'row', justifyContent: 'space-between' },
   firmaBox: { width: '47%', alignItems: 'center', justifyContent: 'center' },
   firmaLine: { width: '100%', borderTop: '1pt solid #000', marginTop: 20, marginBottom: 6 },
   firmaText: { textAlign: 'center', fontSize: 11 },
   firmaTextMuted: { textAlign: 'center', fontSize: 10, color: '#555' },
-
-  // Footer
   footer: {
     position: 'absolute',
     left: 72,
@@ -67,9 +56,8 @@ const fmtFecha = (f) => {
   } catch { return String(f); }
 };
 
-// Devuelve "Ciudad, a los 18 días del mes de octubre de 2025."
 const fechaLargaEs = (f, ciudad, opts = {}) => {
-  const { prefijo = '' } = opts; // deja '' para no anteponer "En "
+  const { prefijo = '' } = opts;
   try {
     const d = new Date(f);
     const dia = d.getDate();
@@ -83,7 +71,6 @@ const fechaLargaEs = (f, ciudad, opts = {}) => {
   }
 };
 
-// Une lista en una sola línea, acortando si hay muchos ítems
 function joinLimit(items, max = 6) {
   const arr = (items || []).map(String).filter(Boolean);
   if (!arr.length) return '—';
@@ -93,7 +80,6 @@ function joinLimit(items, max = 6) {
 }
 
 const CertificadoTecnicoDoc = ({
-  // Datos “memo”
   memoEmpresaNombre = 'INSAI',
   memoClienteNombre = '',
   memoDireccion = '',
@@ -103,29 +89,25 @@ const CertificadoTecnicoDoc = ({
   memoNormas = 'Normativa sanitaria vigente del INSAI y disposiciones aplicables.',
   memoConclusion = 'Conforme.',
   memoCiudad = '',
-
-  // Responsables
   responsablePrincipal = null,
   tecnicos = [],
-
-  // Contexto
   inspeccion,
   propiedad,
   productores = [],
   programas = [],
+  plagasEnfermedades = [],
   observaciones,
-
-  // Metadatos y activos
   fechaEmision,
   autoridad = 'INSAI',
   bannerSrc = BANNER_DEFAULT,
   footerLogoSrc = LOGO_SICIC_DEFAULT,
 }) => {
-  const productoresStr = joinLimit(productores.map(p => [p?.nombre, p?.apellido].filter(Boolean).join(' ')));
-  const programasStr = joinLimit(programas.map(pg => pg?.tipo ? `${pg.nombre} (Tipo: ${pg.tipo})` : pg.nombre));
+  // Procesa arrays a string para mostrar
+  const productoresStr = joinLimit(Array.isArray(productores) ? productores.map(p => [p?.nombre, p?.apellido].filter(Boolean).join(' ')) : []);
+  const programasStr = joinLimit(Array.isArray(programas) ? programas : []);
+  const plagasStr = joinLimit(Array.isArray(plagasEnfermedades) ? plagasEnfermedades : []);
   const obsStr = observaciones ? String(observaciones) : '';
 
-  // Párrafo “Resumen técnico” (programas de contingencia + observaciones)
   const periodoTexto =
     (memoPeriodoInicio || memoPeriodoFin)
       ? `durante el período comprendido entre ${fmtFecha(memoPeriodoInicio)} y ${fmtFecha(memoPeriodoFin || memoPeriodoInicio)}`
@@ -133,14 +115,18 @@ const CertificadoTecnicoDoc = ({
 
   const resumenParrafo = (() => {
     const tieneProgs = Array.isArray(programas) && programas.length > 0;
+    const tienePlagas = Array.isArray(plagasEnfermedades) && plagasEnfermedades.length > 0;
     const tieneObs = !!obsStr;
     const progsTxt = tieneProgs
       ? `se establecieron programas de contingencia para el control de plagas y enfermedades: ${programasStr}.`
       : `no se registraron programas de contingencia específicos.`;
+    const plagasTxt = tienePlagas
+      ? `Plagas/enfermedades: ${plagasStr}.`
+      : '';
     const obsTxt = tieneObs
       ? `Asimismo, el resumen de la inspección señala: ${obsStr}.`
       : `Asimismo, no se reportaron observaciones relevantes.`;
-    return `En el marco de las actuaciones técnicas ${periodoTexto}, ${progsTxt} ${obsTxt}`;
+    return `En el marco de las actuaciones técnicas ${periodoTexto}, ${progsTxt} ${plagasTxt} ${obsTxt}`;
   })();
 
   return (
@@ -158,9 +144,8 @@ const CertificadoTecnicoDoc = ({
           <Text style={styles.title}>CERTIFICADO TÉCNICO DE INSPECCIONES DE CAMPO</Text>
         </View>
 
-        {/* Contenido (una sola página) */}
+        {/* Contenido */}
         <View style={styles.section} wrap={false}>
-          {/* Párrafo con identificación integrada */}
           <Text style={styles.p}>
             Por medio del presente, se certifica que el equipo técnico de el Instituto Nacional de Salud Agrícola Integral ({memoEmpresaNombre}) ha realizado diagnósticos de campo,
             con relación a la inspección identificada con Código UBIGEO: {inspeccion?.codigo_inspeccion || '—'}
@@ -172,10 +157,10 @@ const CertificadoTecnicoDoc = ({
             {memoNormas?.trim().endsWith('.') ? '' : '.'}
           </Text>
 
-         {/* Resumen técnico (programas + observaciones) */}
-          {(Array.isArray(programas) && programas.length) || obsStr ? (
+          {/* Resumen técnico */}
+          {(programasStr !== '—' || plagasStr !== '—' || obsStr) && (
             <Text style={styles.p}>{resumenParrafo}</Text>
-          ) : null}
+          )}
 
           {/* Conclusión */}
           <Text style={styles.p}>
@@ -183,15 +168,14 @@ const CertificadoTecnicoDoc = ({
             {memoConclusion?.trim().endsWith('.') ? '' : '.'}
           </Text>
 
-
-          {/* Solicitud del cliente (opcional) */}
+          {/* Solicitud del cliente */}
           {memoClienteNombre ? (
             <Text style={styles.p}>
               Este certificado se emite a solicitud de la Propiedad: {memoClienteNombre} teniendo como Propietario a {productoresStr} para los fines que estime convenientes.
             </Text>
           ) : null}
 
-          {/* Cierre con ciudad y fecha larga (sin prefijo "En") */}
+          {/* Cierre con ciudad y fecha larga */}
           <Text style={[styles.p, { marginTop: 6 }]}>
             {fechaLargaEs(fechaEmision || new Date().toISOString(), memoCiudad, { prefijo: '' })}
           </Text>
@@ -208,7 +192,6 @@ const CertificadoTecnicoDoc = ({
             </Text>
             {responsablePrincipal?.cargo && <Text style={styles.firmaTextMuted}>{responsablePrincipal.cargo}</Text>}
           </View>
-
           {(() => {
             const t = Array.isArray(tecnicos) && tecnicos.length ? tecnicos[0] : null;
             return (

@@ -13,6 +13,7 @@ import searchStyles from '../../components/searchbart/searchmodal.module.css';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import { usePermiso } from '../../hooks/usePermiso';
 
 const chartFilterOptions = [
     { value: 'planificaciones-por-inspector', label: 'Planificaciones por Inspector' },
@@ -45,7 +46,8 @@ function Home() {
         empleadosActivos: 0,
         solicitudesPendientes: 0,
         planificacionesPendientes: 0,
-        propiedadesNoAptas: 0
+        propiedadesNoAptas: 0,
+        inspecciones_Semanales: 0
     });
 
     const totalesPorTipo = {
@@ -53,6 +55,7 @@ function Home() {
         solicitudesPendientes: { count: true, label: 'TOTAL REGISTROS' },
         planificacionesPendientes: { count: true, label: 'TOTAL REGISTROS' },
         propiedadesNoAptas: { count: true, label: 'TOTAL REGISTROS' }
+        inspecciones_Semanales: { count: true, label: 'TOTAL REGISTROS' }
     };
 
     const columnsPorTipo = {
@@ -99,7 +102,25 @@ function Home() {
             { header: 'Ordenamientos', key: 'ordenamientos' },
             { header: 'Estado', key: 'estado' },
         ],
+        inspecciones_Semanales: [
+            { header: 'Código UBIGEO', key: 'codigo' },
+            { header: 'N° Control', key: 'control' },
+            { header: 'Área', key: 'area' },
+            { header: 'Fecha', key: 'fecha_inspeccion' }, 
+            { header: 'Hora', key: 'hora' },
+            { header: 'Responsable', key: 'responsable' },
+            { header: 'Cédula.Res', key: 'cedula' },
+            { header: 'Teléfono', key: 'tlf' },
+            { header: 'Correo', key: 'correo' },
+            { header: 'Norte', key: 'norte' },
+            { header: 'Este', key: 'este' },
+            { header: 'Zona', key: 'zona' },
+            { header: 'Aspectos', key: 'aspectos' },
+            { header: 'Ordenamientos', key: 'ordenamientos' },
+            { header: 'Estado', key: 'estado' },
+        ],
     };
+      const tienePermiso = usePermiso();
 
     const toBool = (v) => v === true || v === 'true' || v === 1 || v === '1';
     const formatMes = (val) => {
@@ -880,7 +901,7 @@ useEffect(() => {
         <div className={styles.homeContainer}>
             {(loadingTabla || loadingTotales) && <Spinner text="Cargando información..." />}
             {/* Cartas dinámicas */}
-            <div className={styles.cardsContainer}>
+            {tienePermiso('home', 'exportar') && (<div className={styles.cardsContainer}>
                 <div className={styles.card} onClick={() => handleCardClick('empleadosActivos')} title='Mostrar Detalles'>
                     <span className={styles.cardNumber}>{totales.empleadosActivos ?? 0}</span>
                     <p>Inspectores Disponibles</p>
@@ -899,6 +920,7 @@ useEffect(() => {
                     <p>Inspecciones Totales(Día)</p>
                 </div>
             </div>
+            )}
 
             {/* Modales de cartas */}
             {detalleModal.abierto && <ModalDetallePropiedad />}

@@ -69,9 +69,17 @@ function SeguimientoInspeccion() {
     cant_nacional: '',
     cant_importado: '',
     cant_afectado: '',
+    cant_afectado_porcentaje: '',
+    numero_silos: '',
+    numero_galpones: '',
+    capacidad_instalada: '',
+    capacidad_operativa: '',
+    capacidad_almacenamiento: '',
+    destino_objetivo: '',
     observaciones: '',
     medidas_recomendadas: '',
     tipo_evento_epidemia_id: '',
+    inspeccion_est_id: '',
     medidas_recomendadas_sel: [],
     medidas_otro: ''
   });
@@ -345,35 +353,42 @@ const generarActaPDF = async (inspeccionId) => {
   };
 
   const guardarActa = async () => {
-    try {
-      setLoading(true);
-      const medidasTexto = buildMedidasTexto(actaForm.medidas_recomendadas_sel, actaForm.medidas_otro);
-      const payload = {
-        inspeccion_est_id: Number(inspeccionSeleccionada),
-        fecha_notificacion: actaForm.fecha_notificacion || null,
-        semana_epid: actaForm.semana_epid || null,
-        lugar_ubicacion: actaForm.lugar_ubicacion || null,
-        cant_nacional: actaForm.cant_nacional || null,
-        cant_importado: actaForm.cant_importado || null,
-        cant_afectado: actaForm.cant_afectado || null,
-        unidad_medida: actaForm.unidad_medida || null,
-        observaciones: actaForm.observaciones || null,
-        medidas_recomendadas: medidasTexto || null,
-        tipo_evento_epidemia_id: actaForm.tipo_evento_epidemia_id ? Number(actaForm.tipo_evento_epidemia_id) : null
-      };
-      await axios.post(`${BaseUrl}/seguimiento/acta-silos`, payload, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      addNotification('Acta de Silos y Almacenes Creada', 'success');
-      setActaOpen(false);
-      await generarActaPDF(inspeccionSeleccionada);
-    } catch (e) {
-      const msg = e?.response?.data?.message || 'No se pudo crear el acta';
-      addNotification(msg, 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    const medidasTexto = buildMedidasTexto(actaForm.medidas_recomendadas_sel, actaForm.medidas_otro);
+    const payload = {
+      inspeccion_est_id: Number(inspeccionSeleccionada),
+      fecha_notificacion: actaForm.fecha_notificacion || null,
+      semana_epid: actaForm.semana_epid || null,
+      lugar_ubicacion: actaForm.lugar_ubicacion || null,
+      cant_nacional: actaForm.cant_nacional || null,
+      cant_importado: actaForm.cant_importado || null,
+      cant_afectado: actaForm.cant_afectado || null,
+      cant_afectado_porcentaje: actaForm.cant_afectado_porcentaje || null,
+      unidad_medida: actaForm.unidad_medida || null,
+      numero_silos: actaForm.numero_silos || null,
+      numero_galpones: actaForm.numero_galpones || null,
+      capacidad_instalada: actaForm.capacidad_instalada || null,
+      capacidad_operativa: actaForm.capacidad_operativa || null,
+      capacidad_almacenamiento: actaForm.capacidad_almacenamiento || null,
+      destino_objetivo: actaForm.destino_objetivo || null,
+      observaciones: actaForm.observaciones || null,
+      medidas_recomendadas: medidasTexto || null,
+      tipo_evento_epidemia_id: actaForm.tipo_evento_epidemia_id ? Number(actaForm.tipo_evento_epidemia_id) : null
+    };
+    await axios.post(`${BaseUrl}/seguimiento/acta-silos`, payload, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
+    addNotification('Acta de Silos y Almacenes Creada', 'success');
+    setActaOpen(false);
+    await generarActaPDF(inspeccionSeleccionada);
+  } catch (e) {
+    const msg = e?.response?.data?.message || 'No se pudo crear el acta';
+    addNotification(msg, 'error');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const conclusionFromEstado = (estado) => {
   const e = String(estado || '').trim().toLowerCase();
@@ -400,67 +415,43 @@ const generarActaPDF = async (inspeccionId) => {
   }
 };
 
-  const generarCertificadoTecnico = async (inspeccionId) => {
+const generarCertificadoTecnico = async (inspeccionId) => {
   if (!inspeccionId) { addNotification('Selecciona una inspección', 'warning'); return; }
   try {
     setLoading(true);
 
-    const it = (traza.inspecciones || []).find(i => Number(i.id) === Number(inspeccionSeleccionada));
-    if (!it) { addNotification('No se encontró la inspección seleccionada', 'error'); return; }
+    const { data: det } = await axios.get(`${BaseUrl}/seguimiento/acta-silos/inspeccion/${inspeccionId}/detalle`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
 
-    // Técnicos (opcional)
-    let tecnicos = [];
-    try {
-      const { data: det } = await axios.get(`${BaseUrl}/seguimiento/acta-silos/inspeccion/${inspeccionId}/detalle`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      tecnicos = Array.isArray(det?.inspectores) ? det.inspectores.map(t => ({
-        nombre: t.nombre, apellido: t.apellido, cedula: t.cedula, cargo: t.cargo
-      })) : [];
-    } catch { tecnicos = []; }
+    // Procesa los datos para evitar undefined
 
-    const productores = Array.isArray(traza.productores) ? traza.productores : [];
-    const cultivos = Array.isArray(traza.cultivos) ? traza.cultivos : [];
-    const programasDet = (Array.isArray(programas) ? programas : []).map((p) => ({
-      nombre: p.programa_nombre || `Programa #${p.programa_fito_id}`,
-      tipo: p.tipo_programa || ''
-    }));
-    const codigoRunsaiList = productores.map(pr => pr.codigo_runsai).filter(Boolean);
+    const programas = Array.isArray(det?.programas) ? det.programas : [];
+    const plagasEnfermedades = Array.isArray(det?.plagas_enfermedades) ? det.plagas_enfermedades : [];
+    // console.log('Estado recibido:', det?.estado);
+    const estado = det?.estado || '';
+    const memoConclusion = conclusionFromEstado(estado);
 
-    // Periodo (inicio/fin) de inspecciones de la propiedad
-    const fechas = (traza.inspecciones || []).map(x => x.fecha_inspeccion).filter(Boolean).sort();
-    const periodoInicio = fechas[0] || it.fecha_inspeccion || new Date().toISOString().slice(0,10);
-    const periodoFin = fechas[fechas.length - 1] || periodoInicio;
-
-    // Sistemas inspeccionados (desde tipos de programa únicos)
-    const tipos = [...new Set((programas || []).map(p => (p.tipo_programa || '').trim()).filter(Boolean))];
-    const memoSistemas = tipos.length ? tipos.join(', ') : 'sistemas fitosanitarios';
-    const memoConclusion = conclusionFromEstado(it.estado);
-
-
+    // Prepara los props para el PDF
     const blob = await buildCertificadoTecnicoBlob({
-      inspeccion: it,
-      propiedad: traza.propiedad,
-      productores,
-      cultivos,
-      programas: programasDet,
-      tecnicos,
-      observaciones: it.aspectos || it.ordenamientos || '',
+      inspeccion: {
+        codigo_inspeccion: det?.codigo_inspeccion || '—',
+        n_control: det?.n_control || '—',
+        fecha_inspeccion: det?.fecha_inspeccion || '—'
+      },
+      propiedad: {
+        propiedad_nombre: det?.propiedad_nombre || '—',
+        propiedad_ubicacion: det?.propiedad_ubicacion || '—'
+      },
+      productores: Array.isArray(det?.productores) ? det.productores : [],
+      observaciones: det?.observaciones || '—',
       fechaEmision: new Date().toISOString().slice(0,10),
-      autoridad: 'INSAI',
-      codigoRunsaiList,
-
-      // Memo
-      memoEmpresaNombre: 'INSAI',
-      memoClienteNombre: traza.propiedad?.propiedad_nombre || '',
-      memoDireccion: traza.propiedad?.propiedad_ubicacion || '',
-      memoPeriodoInicio: periodoInicio,
-      memoPeriodoFin: periodoFin,
-      memoSistemas,
-      memoNormas: 'Normativa sanitaria vigente del INSAI y disposiciones aplicables.',
+      memoClienteNombre: det?.propiedad_nombre || '—',
+      memoDireccion: det?.propiedad_ubicacion || '—',
+      memoCiudad: det?.municipio_nombre || '—',
       memoConclusion,
-      memoCiudad: 'Certificado que se Expide en San Felipe, Yaracuy', 
-
+      programas,
+      plagasEnfermedades,
     });
 
     const url = URL.createObjectURL(blob);
@@ -479,48 +470,49 @@ const generarCertificadoFitosanitario = async (inspeccionId) => {
   try {
     setLoading(true);
 
-    const it = (traza.inspecciones || []).find(i => Number(i.id) === Number(inspeccionSeleccionada));
-    if (!it) { addNotification('No se encontró la inspección seleccionada', 'error'); return; }
+    // 1) Obtener el acta con todos los campos nuevos
+    const g = await axios.get(`${BaseUrl}/seguimiento/acta-silos/${inspeccionId}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
+    const acta = g.data?.acta;
 
-    // Técnicos (opcional)
-    let tecnicos = [];
-    try {
-      const { data: det } = await axios.get(`${BaseUrl}/seguimiento/acta-silos/inspeccion/${inspeccionId}/detalle`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      tecnicos = Array.isArray(det?.inspectores) ? det.inspectores.map(t => ({
-        nombre: t.nombre, apellido: t.apellido, cedula: t.cedula, cargo: t.cargo
-      })) : [];
-    } catch { tecnicos = []; }
+    // 2) Obtener el detalle de la inspección
+    const { data: det } = await axios.get(`${BaseUrl}/seguimiento/acta-silos/inspeccion/${inspeccionId}/detalle`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
 
-    const productores = Array.isArray(traza.productores) ? traza.productores : [];
-    const cultivos = Array.isArray(traza.cultivos) ? traza.cultivos : [];
-    const programasDet = (Array.isArray(programas) ? programas : []).map((p) => ({
-      nombre: p.programa_nombre || `Programa #${p.programa_fito_id}`,
-      tipo: p.tipo_programa || ''
-    }));
+    // 3) Preparar los datos para el PDF
+    const productores = Array.isArray(det?.inspectores) ? det.inspectores : [];
+    const cultivos = Array.isArray(det?.cultivos) ? det.cultivos : [];
+    const silos = acta?.numero_silos || '—';
+    const galpones = acta?.numero_galpones || '—';
+    const capacidadInstalada = acta?.capacidad_instalada || '—';
+    const capacidadOperativa = acta?.capacidad_operativa || '—';
+    const capacidadAlmacenamiento = acta?.capacidad_almacenamiento || '—';
+    const destino = acta?.destino_objetivo || '—';
 
-    // Puedes adaptar los props según lo que espera CertificadoFitosanitarioDoc
+    // 4) Generar el PDF usando los nuevos campos
     const blob = await buildCertificadoFitosanitarioBlob({
-      empresaNombre: traza.propiedad?.propiedad_nombre || '—',
-      empresaReg: traza.propiedad?.propiedad_registro || '—',
-      empresaRif: traza.propiedad?.propiedad_rif || '—',
-      parroquia: traza.propiedad?.parroquia_nombre || '—',
-      municipio: traza.propiedad?.municipio_nombre || '—',
-      estado: traza.propiedad?.estado_nombre || '—',
-      representante: productores[0]?.nombre || '—',
-      representanteCedula: productores[0]?.cedula || '—',
-      silos: '1',
-      capacidadInstalada: it?.capacidad_instalada || '—',
-      capacidadProcesamiento: it?.capacidad_procesamiento || '—',
-      capacidadAlmacenamiento: it?.capacidad_almacenamiento || '—',
-      rubros: cultivos.map(c => c.nombre).join(', ') || '—',
-      destino: 'ANIMAL',
-      inspector: tecnicos[0]?.nombre || '—',
-      inspectorCedula: tecnicos[0]?.cedula || '—',
-      fechaInspeccion: it?.fecha_inspeccion || '',
-      numCertificado: it?.codigo_inspeccion || '—',
-      numInspeccion: it?.codigo_inspeccion || '—',
+      empresaNombre: det?.propiedad_nombre || '—',
+      empresaReg: det?.codigo_inspeccion || '—',
+      empresaRif: det?.propiedad_rif || '—',
+      parroquia: det?.parroquia_nombre || '—',
+      municipio: det?.municipio_nombre || '—',
+      estado: det?.estado_nombre || '—',
+      representante: det?.productor_nombre || '—',
+      representanteCedula: det?.productor_cedula || '—',
+      silos,
+      galpones,
+      capacidadInstalada,
+      capacidadProcesamiento: capacidadOperativa,
+      capacidadAlmacenamiento,
+      rubros: cultivos.join(', ') || '—',
+      destino,
+      inspector: productores[0]?.nombre || '—',
+      inspectorCedula: productores[0]?.cedula || '—',
+      fechaInspeccion: det?.fecha_inspeccion || '',
+      numCertificado: `${det?.n_control || '—'} `,
+      numInspeccion: `${det?.n_control || '—'} `,
       fechaEmision: new Date().toISOString().slice(0,10),
       coordinador: 'ING. GUSTAVO MUJICA',
       coordinadorCedula: 'V-9.601.781',
@@ -536,6 +528,69 @@ const generarCertificadoFitosanitario = async (inspeccionId) => {
     setLoading(false);
   }
 };
+
+
+//   if (!inspeccionId) { addNotification('Selecciona una inspección', 'warning'); return; }
+//   try {
+//     setLoading(true);
+
+//     const it = (traza.inspecciones || []).find(i => Number(i.id) === Number(inspeccionSeleccionada));
+//     if (!it) { addNotification('No se encontró la inspección seleccionada', 'error'); return; }
+
+//     // Técnicos (opcional)
+//     let tecnicos = [];
+//     try {
+//       const { data: det } = await axios.get(`${BaseUrl}/seguimiento/acta-silos/inspeccion/${inspeccionId}/detalle`, {
+//         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+//       });
+//       tecnicos = Array.isArray(det?.inspectores) ? det.inspectores.map(t => ({
+//         nombre: t.nombre, apellido: t.apellido, cedula: t.cedula, cargo: t.cargo
+//       })) : [];
+//     } catch { tecnicos = []; }
+
+//     const productores = Array.isArray(traza.productores) ? traza.productores : [];
+//     const cultivos = Array.isArray(traza.cultivos) ? traza.cultivos : [];
+//     const programasDet = (Array.isArray(programas) ? programas : []).map((p) => ({
+//       nombre: p.programa_nombre || `Programa #${p.programa_fito_id}`,
+//       tipo: p.tipo_programa || ''
+//     }));
+
+//     // Puedes adaptar los props según lo que espera CertificadoFitosanitarioDoc
+//     const blob = await buildCertificadoFitosanitarioBlob({
+//       empresaNombre: traza.propiedad?.propiedad_nombre || '—',
+//       empresaReg: traza.propiedad?.propiedad_registro || '—',
+//       empresaRif: traza.propiedad?.propiedad_rif || '—',
+//       parroquia: traza.propiedad?.parroquia_nombre || '—',
+//       municipio: traza.propiedad?.municipio_nombre || '—',
+//       estado: traza.propiedad?.estado_nombre || '—',
+//       representante: productores[0]?.nombre || '—',
+//       representanteCedula: productores[0]?.cedula || '—',
+//       silos: '1',
+//       capacidadInstalada: it?.capacidad_instalada || '—',
+//       capacidadProcesamiento: it?.capacidad_procesamiento || '—',
+//       capacidadAlmacenamiento: it?.capacidad_almacenamiento || '—',
+//       rubros: cultivos.map(c => c.nombre).join(', ') || '—',
+//       destino: 'ANIMAL',
+//       inspector: tecnicos[0]?.nombre || '—',
+//       inspectorCedula: tecnicos[0]?.cedula || '—',
+//       fechaInspeccion: it?.fecha_inspeccion || '',
+//       numCertificado: it?.codigo_inspeccion || '—',
+//       numInspeccion: it?.codigo_inspeccion || '—',
+//       fechaEmision: new Date().toISOString().slice(0,10),
+//       coordinador: 'ING. GUSTAVO MUJICA',
+//       coordinadorCedula: 'V-9.601.781',
+//     });
+
+//     const url = URL.createObjectURL(blob);
+//     setPdfUrl(url);
+//     setPdfFileName(`Certificado_Fitosanitario_${inspeccionId}.pdf`);
+//   } catch (e) {
+//     console.error(e);
+//     addNotification('No se pudo generar el Certificado Fitosanitario', 'error');
+//   } finally {
+//     setLoading(false);
+//   }
+// };
 
   const openReporte = (tipo, idForce) => {
     const targetId = idForce || inspeccionSeleccionada;
@@ -714,6 +769,66 @@ const confirmarEliminarPrograma = async () => {
                       }
                       onChange={(opt) => handleActaChange('unidad_medida', opt ? opt.value : '')}
                       placeholder="— Selecciona —"
+                    />
+                  </div>
+                  <div className="formGroup">
+                    <label><span className='Unique'>*</span>Número de silos:</label>
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder='Cantidad de silos'
+                      value={actaForm.numero_silos}
+                      onChange={e => handleActaChange('numero_silos', e.target.value)}
+                    />
+                  </div>
+                  <div className="formGroup">
+                    <label><span className='Unique'>*</span>Número de galpones:</label>
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder='Cantidad de Galpones'
+                      value={actaForm.numero_galpones}
+                      onChange={e => handleActaChange('numero_galpones', e.target.value)}
+                    />
+                  </div>
+                  <div className="formGroup">
+                    <label><span className='Unique'>*</span>Capacidad instalada:</label>
+                    <input
+                      type="text"
+                      placeholder='Capacidad Instalada'
+                      className="input"
+                      value={actaForm.capacidad_instalada}
+                      onChange={e => handleActaChange('capacidad_instalada', e.target.value)}
+                    />
+                  </div>
+                  <div className="formGroup">
+                    <label><span className='Unique'>*</span>Capacidad operativa:</label>
+                    <input
+                      type="text"
+                      placeholder='Capacidad Operativa'
+                      className="input"
+                      value={actaForm.capacidad_operativa}
+                      onChange={e => handleActaChange('capacidad_operativa', e.target.value)}
+                    />
+                  </div>
+                  <div className="formGroup">
+                    <label><span className='Unique'>*</span>Capacidad de almacenamiento:</label>
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder='Capacidad de Almacenamiento'
+                      value={actaForm.capacidad_almacenamiento}
+                      onChange={e => handleActaChange('capacidad_almacenamiento', e.target.value)}
+                    />
+                  </div>
+                  <div className="formGroup">
+                    <label><span className='Unique'>*</span>Destino objetivo:</label>
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder='Rubros Destinados a:'
+                      value={actaForm.destino_objetivo}
+                      onChange={e => handleActaChange('destino_objetivo', e.target.value)}
                     />
                   </div>
                   <div className="formGroup">

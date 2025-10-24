@@ -200,6 +200,18 @@ export function ActaSilosPDF({
             { label: 'TELÉFONO', value: respTel, width: 0.5 }
           ]}/>
           <GridRow cols={[
+            { label: 'NÚMERO DE SILOS', value: safe(acta.numero_silos), width: 1 },
+            { label: 'NÚMERO DE GALPONES', value: safe(acta.numero_galpones), width: 1 }
+          ]}/>
+          <GridRow cols={[
+            { label: 'CAPACIDAD INSTALADA', value: safe(acta.capacidad_instalada), width: 1 },
+            { label: 'CAPACIDAD OPERATIVA', value: safe(acta.capacidad_operativa), width: 1 },
+            { label: 'CAPACIDAD DE ALMACENAMIENTO', value: safe(acta.capacidad_almacenamiento), width: 1 }
+          ]}/>
+          <GridRow cols={[
+            { label: 'DESTINO OBJETIVO', value: safe(acta.destino_objetivo), width: 1 }
+          ]}/>
+          <GridRow cols={[
             { label: 'MEDIDAS RECOMENDADAS', value: safe(acta.medidas_recomendadas), width: 1 }
           ]}/>
           <GridRow cols={[

@@ -1,8 +1,13 @@
 import { useNavigate } from 'react-router-dom';
+import {useState} from 'react';
+import axios from 'axios';
 import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
 import styles from './informacion.module.css';
 import Icon from '../../components/iconos/iconos';
 import sicic from '../../../public/assets/logo-sisic3.png'
+import img from '../../components/image/image';
+import {BaseUrl} from '../../utils/constans';
+import { useNotification } from '../../utils/NotificationContext';
 
 const preguntasInfo = [
     {
@@ -27,6 +32,14 @@ const preguntasInfo = [
     }
 ];
 
+    const mensajesValoracion = [
+        '',
+        'Muy mala experiencia 😞',
+        'Mala experiencia 😕',
+        'Regular, puede mejorar 😐',
+        'Buena experiencia 🙂',
+        '¡Excelente, todo funciona perfecto! 😃'
+    ];
 const colores = [
     { nombre: 'Verde institucional', color: '#539E43', var: '--green9' },
     { nombre: 'Verde claro', color: '#98c79a', var: '--light-green' },
@@ -39,6 +52,39 @@ const colores = [
 
 function Informativa() {
     const navigate = useNavigate();
+    const [form, setForm] = useState({ nombre: '', correo: '', mensaje: '' });
+    const [enviando, setEnviando] = useState(false);
+    const [respuesta, setRespuesta] = useState('');
+    const { addNotification } = useNotification();
+    const [valoracion, setValoracion] = useState(0);
+
+    const handleChange = e => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async e => {
+        e.preventDefault();
+        setEnviando(true);
+        setRespuesta('');
+        try {
+            const res = await axios.post(`${BaseUrl}/api/contacto`, {
+            ...form,
+            valoracion
+        });
+            if (res.status === 200) {
+                setRespuesta('¡Mensaje enviado correctamente!');
+                addNotification('Mensaje enviado correctamente. Pronto recibirás respuesta en tu correo.', 'success');
+                setForm({ nombre: '', correo: '', mensaje: '' });
+            } else {
+                setRespuesta('Error al enviar el mensaje.');
+                addNotification('Hubo un error al enviar el mensaje. Intenta nuevamente.', 'error');
+            }
+        } catch {
+            setRespuesta('No se pudo conectar con el servidor.');
+            addNotification('No se pudo conectar con el servidor. Tu mensaje no pudo ser enviado.', 'warning');
+        }
+        setEnviando(false);
+    };
 
     return (
         <div className={styles.landingContainer}>
@@ -85,18 +131,18 @@ function Informativa() {
 
              {/* Características principales */}
             <section className={styles.caracteristicas}>
-                <h2>¿Qué puedes hacer aquí?</h2>
+                <h2 style={{marginBottom:20 , textAlign:'center'}}>¿Qué puedes hacer aquí?</h2>
                 <div className={styles.cardsGrid}>
                     {/* ...tus cards actuales... */}
                     <div className={styles.card}>
-                        <img src={Icon.notificacion} alt="Notificaciones" />
+                        <img src={Icon.campana} alt="Notificaciones" />
                         <h3>Recibe notificaciones</h3>
                         <p>El sistema te avisa sobre cambios, vencimientos y aprobaciones importantes.</p>
                     </div>
                     <div className={styles.card}>
-                        <img src={Icon.soporte} alt="Soporte" />
+                        <img src={Icon.question} alt="Soporte" />
                         <h3>Soporte y ayuda</h3>
-                        <p>Accede a manuales, preguntas frecuentes y contacto directo con el equipo INSAI.</p>
+                        <p>Accede a manuales, preguntas frecuentes y contacto directo con el equipo SICIC-INSAI.</p>
                     </div>
                 </div>
             </section>
@@ -142,7 +188,7 @@ function Informativa() {
 
             {/* Paleta de colores institucional */}
             <section className={styles.paletaSection}>
-                <h2>Paleta de Colores Institucional</h2>
+                <h2 style={{marginBottom:20 , textAlign:'center'}}>Paleta de Colores Institucional</h2>
                 <div className={styles.paletaColores}>
                     {colores.map((c, idx) => (
                         <div key={idx} className={styles.colorCard}>
@@ -161,7 +207,7 @@ function Informativa() {
 
             {/* Sección de características */}
             <section className={styles.caracteristicas}>
-                <h2>¿Qué puedes hacer aquí?</h2>
+                <h2 style={{marginBottom:20 , textAlign:'center'}}>¿Qué puedes hacer aquí?</h2>
                 <div className={styles.cardsGrid}>
                     <div className={styles.card}>
                         <img src={Icon.calendario} alt="Calendario" />
@@ -185,29 +231,7 @@ function Informativa() {
                     </div>
                 </div>
             </section>
-
-            {/* Sección de ayuda visual */}
-            {/* <section className={styles.ayudaVisual}>
-                <h2>¿Cómo funciona el sistema?</h2>
-                <div className={styles.pasosGrid}>
-                    <div className={styles.paso}>
-                        <img src={Icon.cliente} alt="Agregar" />
-                        <span>Registra solicitudes y actividades</span>
-                    </div>
-                    <div className={styles.paso}>
-                        <img src={Icon.calendario} alt="Calendario" />
-                        <span>Programa y visualiza en el calendario</span>
-                    </div>
-                    <div className={styles.paso}>
-                        <img src={Icon.lupa} alt="Inspección" />
-                        <span>Realiza inspecciones y seguimientos</span>
-                    </div>
-                    <div className={styles.paso}>
-                        <img src={Icon.excel} alt="Exportar" />
-                        <span>Exporta y comparte tus reportes</span>
-                    </div>
-                </div>
-            </section> */}
+            
 
             {/* Sección de preguntas frecuentes */}
             <section className={styles.preguntasSection}>
@@ -243,10 +267,26 @@ function Informativa() {
                 <p>
                     El sistema está diseñado bajo los estándares de seguridad y accesibilidad, con una interfaz intuitiva y soporte para exportación de datos, notificaciones automáticas y gestión de usuarios.
                 </p>
-                <img src="/public/logo-sisic5.png" alt="Equipo INSAI" className={styles.equipoImg} />
+                <h2>Colaboraciones del Proyecto</h2>
+                <div className={styles.equipoColaboracion}>
+                    <img src={img.insai4} alt="Equipo INSAI" className={styles.equipoImg} title='INSTITUTO NACIONAL DE SALUD AGRICOLA INTEGRAL'/>
+                    <span style={{ color: '#539E43', fontSize: 25}}>•</span>
+                    <img src={img.sicic} alt="Equipo SICIC-INSAI" className={styles.equipoImg} title='SISTEMA DE INFORMACIÓN PARA EL CONTROL DE OPERACIOENS DE CAMPO'/>
+                    <span style={{ color: '#539E43', fontSize: 25}}>•</span>
+                    <img src={img.BadDev} alt="Equipo BadDev"  className={styles.equipoImg} title='Equipo de Trabajo BadDev --> Contactanos Para Soporte Técnico y Mucho mas --> Brindado el Apoyo Necesario y Sustentable Para Todas Tus Gestiones' />
+                    <span style={{ color: '#539E43', fontSize: 25}}>•</span>
+                    <img src={img.uptyab} alt="Equipo UPTYAB"  className={styles.equipoImg} title='UNIVERSIDAD POLITÉCNICA TERRITORIAL DE YARACUY "ARISTIDES BASTIDAS"'/>
+                </div>
                 <p className={styles.creditos}>
-                    Desarrollado por el equipo INSAI.<br />
-                    Para soporte y consultas, contáctanos a través de la sección de ayuda o al correo <b>soporte@insai.gob.ve</b>
+                    <b>UPTYAB</b> — Universidad Politécnica Territorial de Yaracuy "Arístides Bastidas" es una institución dedicada a la formación de profesionales integrales en el área tecnológica y científica, promoviendo la innovación y el desarrollo regional. Su colaboración en este proyecto aporta experiencia académica y compromiso con la transformación digital en el sector agropecuario.
+                </p>
+                <p className={styles.creditos}>
+                    <b>BadDev</b> — <i>“Mentoría, innovación y desarrollo web para el futuro”</i><br />
+                    BadDev es una marca enfocada en la mentoría, formación y creación de proyectos de desarrollo web y software. Nos apasiona impulsar el talento, compartir conocimiento y acompañar a nuevos desarrolladores en su camino profesional, brindando soluciones creativas y modernas para el mundo digital.
+                </p>
+                <p className={styles.creditos}>
+                    Desarrollado por el equipo UPTYAB y BadDev<br />
+                    Para soporte y consultas, contáctanos a través de la sección de ayuda o al correo <b style={{ color: '#539E43'}}>BadDevprograming@gmail.com</b>
                 </p>
             </section>
 
@@ -254,32 +294,55 @@ function Informativa() {
             <section className={styles.accesibilidadSection}>
                 <h2>Accesibilidad y seguridad</h2>
                 <p>
-                    SICIC-INSAI cumple con estándares de accesibilidad web y protege tus datos con protocolos de seguridad institucional. Puedes activar el modo oscuro y ajustar el tamaño de fuente desde la configuración de usuario.
+                    SICIC-INSAI cumple con estándares de accesibilidad web y protege tus datos con protocolos de seguridad institucional. Puedes activar el modo oscuro y demas.
                 </p>
             </section>
 
             {/* Sección de contacto y soporte */}
             <section className={styles.contactoSection}>
-                <h2>¿Necesitas ayuda o soporte?</h2>
-                <form className={styles.contactForm} onSubmit={(e) => { e.preventDefault(); /* Aquí puedes manejar el envío */ }}>
+                <h2 style={{marginBottom:20 , textAlign:'center'}} >¿Necesitas ayuda o soporte?</h2>
+                <form className={styles.contactForm} onSubmit={handleSubmit}>
                     <div className={styles.formGroup}>
-                        <label>Nombre:</label>
-                        <input type="text" className="input" required placeholder="Tu nombre" />
+                    <label>Nombre:</label>
+                    <input type="text" className="input" name="nombre" required placeholder="Tu nombre" value={form.nombre} onChange={handleChange} />
                     </div>
                     <div className={styles.formGroup}>
-                        <label>Correo electrónico:</label>
-                        <input type="email" className="input" required placeholder="Tu correo" />
+                    <label>Correo electrónico:</label>
+                    <input type="email" className="input" name="correo" required placeholder="Tu correo" value={form.correo} onChange={handleChange} />
                     </div>
                     <div className={styles.formGroup}>
-                        <label>Mensaje:</label>
-                        <textarea className="textarea" required placeholder="¿En qué podemos ayudarte?" />
+                    <label>Mensaje:</label>
+                    <textarea className="textarea" name="mensaje" required placeholder="¿En qué podemos ayudarte?" value={form.mensaje} onChange={handleChange} />
                     </div>
-                    <button type="submit" className={styles.btnHome}>Enviar mensaje</button>
+                    {/* Ponderación de estrellas */}
+                    <div className={styles.valoracionContainer}>
+                        <label>¿Cómo calificarías tu experiencia?</label>
+                        <div className={styles.estrellas}>
+                            {[1,2,3,4,5].map(num => (
+                            <span
+                                key={num}
+                                className={valoracion >= num ? styles.estrellaActiva : styles.estrella}
+                                onClick={() => setValoracion(num)}
+                                style={{ cursor: 'pointer', fontSize: 28 }}
+                                title={`${num} estrella${num > 1 ? 's' : ''}`}
+                            >★</span>
+                            ))}
+                        </div>
+                        {valoracion > 0 && (
+                            <div className={styles.valoracionMensaje}>
+                            {mensajesValoracion[valoracion]}
+                            </div>
+                        )}
+                        </div>
+                    <button type="submit" className={styles.btnHome} disabled={enviando}>
+                    {enviando ? 'Enviando...' : 'Enviar mensaje'}
+                    </button>
                 </form>
+                {respuesta && <p style={{ marginTop: 12, color: '#539E43', textAlign: 'center' }}>{respuesta}</p>}
                 <p style={{ marginTop: 12, color: '#888', textAlign: 'center' }}>
-                    También puedes escribirnos a <b>BadDevprograming@gmail.com</b> o usar el chat de ayuda en la esquina inferior derecha.
+                    También puedes escribirnos a <b style={{ color: '#539E43'}}>BadDevprograming@gmail.com</b> o usar el chat de ayuda en la esquina inferior derecha.
                 </p>
-            </section>
+                </section>
 
             <a
                 href="https://wa.me/584161698315?text=Hola,%20necesito%20soporte%20con%20SICIC-INSAI"
@@ -290,24 +353,31 @@ function Informativa() {
                 >
                 <img src={Icon.wassat} alt="Chat WhatsApp" style={{ width: 38, height: 38 }} />
             </a>
+            <button
+                className={styles.scrollTopBtn}
+                title="Subir arriba"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
+                <img src={Icon.flecha} alt="Subir arriba" style={{ width: 32, height: 32 }} />
+            </button>
 
             <footer className={styles.footer}>
                 <div className={styles.footerContent}>
                     <span>SICIC-INSAI © {new Date().getFullYear()} · Todos los derechos reservados</span>
                     <div className={styles.footerLinks}>
-                        <a href="https://www.instagram.com/insai_ve" target="_blank" rel="noopener noreferrer">
+                        <a href="https://www.linkedin.com/in/jesus-daniel-perdomo-b15578261/" target="_blank" rel="noopener noreferrer">
                             <img src={Icon.linkeding} alt="Instagram" className={`${styles.footerIcon} instagram`} />
                         </a>
-                        <a href="https://www.facebook.com/insai.ve" target="_blank" rel="noopener noreferrer">
+                        <a href="https://github.com/JDPR19/" target="_blank" rel="noopener noreferrer">
                             <img src={Icon.github} alt="GitHub" className={`${styles.footerIcon} github`} />
                         </a>
-                        <a href="https://twitter.com/insai_ve" target="_blank" rel="noopener noreferrer">
+                        <a href="https://t.me/BadOmensDEV" target="_blank" rel="noopener noreferrer">
                             <img src={Icon.telegram} alt="Telegram" className={`${styles.footerIcon} telegram`} />
                         </a>
-                        <a href="https://www.insai.gob.ve" target="_blank" rel="noopener noreferrer">
+                        <a href="https://github.com/JDPR19/" target="_blank" rel="noopener noreferrer">
                             <img src={Icon.git} alt="Git" className={`${styles.footerIcon} git`} />
                         </a>
-                        <a href="https://www.insai.gob.ve" target="_blank" rel="noopener noreferrer">
+                        <a href="https://cvjdpr.vercel.app/" target="_blank" rel="noopener noreferrer" title='SITIO WEB DESARROLLADORES'>
                             <img src={Icon.link} alt="Sitio Web" className={`${styles.footerIcon} link`} />
                         </a>
                     </div>

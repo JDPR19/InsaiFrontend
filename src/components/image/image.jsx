@@ -19,9 +19,13 @@ import loquehacemos from '../../../public/assets/loquehacemos.png';
 import runsai from '../../../public/assets/runsai.png'; 
 import sigensai from '../../../public/assets/sigensai.jfif'; 
 import sigmav from '../../../public/assets/SIGMAV.jpg'; 
+import BadDev from '../../../public/assets/LOGO-BadDEv 2.png'
+import uptyab from '../../../public/assets/uptyab.png'
 import React from 'react';
 
 const img = {
+    uptyab,
+    BadDev,
     logoInsai,
     sicic5,
     sicic,

@@ -18,10 +18,10 @@ const BENEFICIOS = [
 ];
 
 const CONTACTOS = [
-  { icon: icon.link, label: 'Correo', value: 'soporte@sicic-insai.gob.ve' },
-  { icon: icon.telefono, label: 'Teléfono', value: '+58 212-555-1234' },
-  { icon: icon.mapa, label: 'Dirección', value: 'Av. Principal INSai, Caracas, Venezuela' },
-  { icon: icon.web, label: 'Web', value: 'www.sicic-insai.gob.ve' },
+  { icon: icon.link, label: 'Correo', value: 'BadDevPrograming@gmail.com' },
+  { icon: icon.telefono, label: 'Teléfono', value: '+58 416-1698315' },
+  { icon: icon.mapa, label: 'Dirección', value: 'Av. Principal INSAI, Caracas, Venezuela' },
+  { icon: icon.web, label: 'Web', value: 'www.insai.gob.ve' },
 ];
 
 const GALERIA = [
@@ -46,9 +46,9 @@ function Landing() {
             <div className={styles.headerLinks}>
             <a href="#hero" className={styles.headerBadge}>Inicio</a>
             <a href="#proceso" className={styles.headerBadge}>Proceso</a>
-            <a href="#modulos" className={styles.headerBadge}>Módulos</a>
             <a href="#ciclo" className={styles.headerBadge}>Ciclo</a>
             <a href="#beneficios" className={styles.headerBadge}>Beneficios</a>
+            <a href="#modulos" className={styles.headerBadge}>Módulos</a>
             <a href="#galeria" className={styles.headerBadge}>Galería</a>
             <a href="#contacto" className={styles.headerBadge}>Contacto</a>
             </div>
@@ -321,13 +321,25 @@ function Landing() {
                 ))}
                 </ul>
             </div>
+            {/* Iconos sociales en línea debajo de los contactos */}
+            <div className={styles.footerSocialIcons}>
+              <a href="https://github.com/JDPR19" target="_blank" rel="noopener noreferrer">
+                <img src={icon.github} alt="GitHub" className={styles.socialIcon} />
+              </a>
+              <a href="https://www.linkedin.com/in/jesus-daniel-perdomo-b15578261/" target="_blank" rel="noopener noreferrer">
+                <img src={icon.linkeding} alt="LinkedIn" className={styles.socialIcon} />
+              </a>
+              <a href="https://t.me/BadOmensDEV" target="_blank" rel="noopener noreferrer">
+                <img src={icon.telegram} alt="Telegram" className={styles.socialIcon} />
+              </a>
+            </div>
             </div>
             {/* Derecha: Enlaces útiles */}
             <div className={styles.footerLinks}>
             <h3>Enlaces útiles</h3>
             <ul>
                 <li><a href="https://www.insai.gob.ve" target="_blank" rel="noopener noreferrer">Portal INSai</a></li>
-                <li><a href="mailto:soporte@sicic-insai.gob.ve">Soporte Técnico</a></li>
+                <li><a href="mailto:baddevprograming@gmail.com">Soporte Técnico</a></li>
                 <li><a href="/Login">Acceso al sistema</a></li>
             </ul>
             </div>

@@ -567,7 +567,7 @@
 .publicFooter {
   background: #fff;
   color: #1a2236;
-  padding: 24px 40px 10px 40px;
+  padding: 24px 40px 40px 40px;
   border-top: 1.5px solid #dbe2ef;
   box-shadow: 0 -2px 12px rgba(26,34,54,0.04);
 }
@@ -577,9 +577,9 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 0;
+  gap: 10px;
   width: 100%;
-  max-width: 1400px;
+  max-width: auto;
   margin: 0 auto;
 }
 
@@ -606,18 +606,18 @@
 }
 
 .footerBottom {
-  font-size: 1rem;
+  font-size: 0.75rem;
   color: #28304d;
   opacity: 0.85;
   margin-top: 2px;
 }
 
 .footerContact {
-  min-width: 220px;
-  max-width: 720px;
+  min-width: 300px;
+  max-width: auto;
   text-align: center;
-  margin-left: 40px;
-  margin-right: 50px;
+  /* margin-left: 40px; */
+  /* margin-right: 50px; */
 
   /* padding: 0px 80px; */
 }
@@ -631,6 +631,8 @@
 .contactGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  justify-content: center;
+  align-items: center;
   /* gap:  52px; */
 }
 
@@ -643,10 +645,10 @@
 .contactItem {
   display: flex;
   align-items: center;
+  justify-content: start;
   gap: 2px;
   font-size: 0.92rem;
   white-space: nowrap;
-  margin-bottom: 8px;
 }
 
 .contactIcon {
@@ -660,19 +662,18 @@
   font-weight: 500;
   /* margin-right: 4px; */
   color: #28304d;
-  font-size: 0.82rem;
+  font-size: 0.80rem;
 }
 
 .contactValue {
-  font-size: 0.82rem;
+  font-size: 0.80rem;
   color: #1a2236;
-  margin-top: 5px;
 }
 
 .footerLinks {
   min-width: 180px;
-  max-width: 220px;
-  text-align: left;
+  max-width: auto;
+  text-align: right;
 }
 
 .footerLinks h3 {
@@ -716,7 +717,6 @@
 .legalContent {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
   align-items: center;
   justify-content: center;
 }
@@ -761,6 +761,24 @@
   white-space: nowrap;
   margin-bottom: 0;
   list-style: none;
+}
+.footerSocialIcons {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  margin-top: 18px;
+}
+
+.socialIcon {
+  width: 22;
+  height: 22px;
+  cursor: pointer;
+  filter: invert(0.35) sepia(1) saturate(6) hue-rotate(70deg) brightness(0.8);
+  transition: transform 0.2s, filter 0.2s;
+}
+.socialIcon:hover, .socialIcon:focus {
+  /* filter: invert(0.25) sepia(1) saturate(8) hue-rotate(70deg) brightness(1.1); */
+  transform: scale(1.15);
 }
 /* Responsive */
 @media (max-width: 1100px) {

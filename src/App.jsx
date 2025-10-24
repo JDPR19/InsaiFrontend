@@ -87,9 +87,13 @@ function AppContent() {
           }
         />
         <Route
+        ProtectedRoute
           path="/informativa"
           element={
+            <ProtectedRoute pantalla="home">
+              <Header/>
               <Informativa />           
+            </ProtectedRoute>
           }
         />
         <Route 

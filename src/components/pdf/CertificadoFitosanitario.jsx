@@ -14,13 +14,20 @@ const styles = StyleSheet.create({
   },
   band: { position: 'absolute', top: 20, left: 5, right: 5, height: 50 },
   bandImg: { width: '100%', height: '100%', objectFit: 'contain' },
-  header: { textAlign: 'center', marginBottom: 12 },
+  header: { textAlign: 'center', marginBottom: 25 },
   title: { fontSize: 15, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 0.1 },
   subtitle: { fontSize: 11, fontWeight: 'bold', marginBottom: 2 },
   numCert: { fontSize: 12, fontWeight: 'bold', textAlign: 'right', marginBottom: 8 },
   p: { textAlign: 'justify', lineHeight: 1.2, marginBottom: 10 },
   bold: { fontWeight: 'bold' },
-  firmaBox: { marginTop: 30, alignItems: 'center', justifyContent: 'center' },
+ firmaBox: {
+    position: 'absolute',
+    bottom: 80,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
   firmaLine: { width: '60%', borderTop: '1pt solid #000', marginTop: 20, marginBottom: 6, alignSelf: 'center' },
   firmaText: { textAlign: 'center', fontSize: 11 },
   firmaTextMuted: { textAlign: 'center', fontSize: 10, color: '#555' },
@@ -61,6 +68,7 @@ const CertificadoFitosanitarioDoc = ({
   representante = 'YILMER GALLARDO',
   representanteCedula = 'V-11274486',
   silos = '1',
+  galpones = '1',
   capacidadInstalada = '2250 TM',
   capacidadProcesamiento = '75 TM/DIA',
   capacidadAlmacenamiento = '900 TM',
@@ -91,7 +99,7 @@ const CertificadoFitosanitarioDoc = ({
 
       {/* Cuerpo principal */}
       <Text style={styles.p}>
-        El suscrito ciudadano: <Text style={styles.bold}>ING. AGR. GUSTAVO MUJICA</Text> C.I: <Text style={styles.bold}>V-9.601.781</Text> Coordinador Regional del Instituto Nacional de Salud Agrícola Integral (INSAI) del estado Yaracuy, hace constar que la Empresa: <Text style={styles.bold}>{empresaNombre}</Text> Nº Reg. INSAI: <Text style={styles.bold}>{empresaReg}</Text> RIF:<Text style={styles.bold}>{empresaRif}</Text>, ubicada en la parroquia <Text style={styles.bold}>{parroquia}</Text> municipio <Text style={styles.bold}>{municipio}</Text> estado <Text style={styles.bold}>{estado}</Text>, cuyo representante legal es: <Text style={styles.bold}>{representante}</Text> C.I: <Text style={styles.bold}>{representanteCedula}</Text> con un N° de Silos <Text style={styles.bold}>{silos}</Text>, Galpones de almacenamiento, <Text style={styles.bold}>01</Text> Capacidad Instalada: <Text style={styles.bold}>{capacidadInstalada}</Text>, Capacidad Operativa de procesamiento: <Text style={styles.bold}>{capacidadProcesamiento}</Text> Capacidad Operativa de Almacenamiento: <Text style={styles.bold}>{capacidadAlmacenamiento}</Text>, la cual almacena los rubros: <Text style={styles.bold}>{rubros}</Text> destinados al consumo: <Text style={styles.bold}>{destino}</Text>; Cumple con las condiciones fitosanitarias contempladas en la Ley de Salud Agrícola Integral para el almacenamiento y/o procesamiento de los rubros inspeccionados, según inspección realizada por el(la) inspector(a) designado(a): <Text style={styles.bold}>{inspector}</Text>, C.I <Text style={styles.bold}>{inspectorCedula}</Text> el día <Text style={styles.bold}>{fmtFecha(fechaInspeccion)}</Text>, registrada en Acta de inspección N°: <Text style={styles.bold}>{numInspeccion}</Text>. Por tanto, <Text style={styles.bold}>SE CERTIFICA FITOSANITARIAMENTE</Text> a la Empresa para realizar la(s) actividad(es) mencionada(s) anteriormente.
+        El suscrito ciudadano: <Text style={styles.bold}>ING. AGR. GUSTAVO MUJICA</Text> C.I: <Text style={styles.bold}>V-9.601.781</Text> Coordinador Regional del Instituto Nacional de Salud Agrícola Integral (INSAI) del estado Yaracuy, hace constar que la Empresa: <Text style={styles.bold}>{empresaNombre}</Text> Nº Reg. INSAI: <Text style={styles.bold}>{empresaReg}</Text> RIF:<Text style={styles.bold}>{empresaRif}</Text>, ubicada en la parroquia <Text style={styles.bold}>{parroquia}</Text> municipio <Text style={styles.bold}>{municipio}</Text> estado <Text style={styles.bold}>{estado}</Text>, cuyo representante legal es: <Text style={styles.bold}>{representante}</Text> C.I: <Text style={styles.bold}>{representanteCedula}</Text> con un N° de Silos <Text style={styles.bold}>{silos}</Text>, Galpones de almacenamiento <Text style={styles.bold}>{galpones}</Text>, Capacidad Instalada: <Text style={styles.bold}>{capacidadInstalada}</Text>, Capacidad Operativa de procesamiento: <Text style={styles.bold}>{capacidadProcesamiento}</Text> Capacidad Operativa de Almacenamiento: <Text style={styles.bold}>{capacidadAlmacenamiento}</Text>, la cual almacena los rubros: <Text style={styles.bold}>{rubros}</Text> destinados al consumo: <Text style={styles.bold}>{destino}</Text>; Cumple con las condiciones fitosanitarias contempladas en la Ley de Salud Agrícola Integral para el almacenamiento y/o procesamiento de los rubros inspeccionados, según inspección realizada por el(la) inspector(a) designado(a): <Text style={styles.bold}>{inspector}</Text>, C.I <Text style={styles.bold}>{inspectorCedula}</Text> el día <Text style={styles.bold}>{fmtFecha(fechaInspeccion)}</Text>, registrada en Acta de inspección N°: <Text style={styles.bold}>{numInspeccion}</Text>. Por tanto, <Text style={styles.bold}>SE CERTIFICA FITOSANITARIAMENTE</Text> a la Empresa para realizar la(s) actividad(es) mencionada(s) anteriormente.
       </Text>
 
       {/* Fecha de emisión */}
@@ -111,7 +119,7 @@ const CertificadoFitosanitarioDoc = ({
   </Document>
 );
 
-// Función para generar el blob del PDF (igual que en CertificadoTecnico)
+// Función para generar el blob del PDF
 export async function buildCertificadoFitosanitarioBlob(props) {
   const instance = pdf(<CertificadoFitosanitarioDoc {...props} />);
   const blob = await instance.toBlob();
