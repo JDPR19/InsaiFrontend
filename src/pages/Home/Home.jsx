@@ -47,15 +47,17 @@ function Home() {
         solicitudesPendientes: 0,
         planificacionesPendientes: 0,
         propiedadesNoAptas: 0,
-        inspecciones_Semanales: 0
+        inspecciones_Semanales: 0,
+        record_inspecciones: 0
     });
 
     const totalesPorTipo = {
         empleadosActivos: { count: true, label: 'TOTAL REGISTROS' },
         solicitudesPendientes: { count: true, label: 'TOTAL REGISTROS' },
         planificacionesPendientes: { count: true, label: 'TOTAL REGISTROS' },
-        propiedadesNoAptas: { count: true, label: 'TOTAL REGISTROS' }
-        inspecciones_Semanales: { count: true, label: 'TOTAL REGISTROS' }
+        propiedadesNoAptas: { count: true, label: 'TOTAL REGISTROS' },
+        inspecciones_Semanales: { count: true, label: 'TOTAL REGISTROS' },
+        record_inspecciones: { count: true, label: 'TOTAL REGISTROS' }
     };
 
     const columnsPorTipo = {
@@ -119,8 +121,27 @@ function Home() {
             { header: 'Ordenamientos', key: 'ordenamientos' },
             { header: 'Estado', key: 'estado' },
         ],
+        record_inspecciones: [
+            { header: 'Código UBIGEO', key: 'codigo' },
+            { header: 'N° Control', key: 'control' },
+            { header: 'Área', key: 'area' },
+            { header: 'Fecha', key: 'fecha_inspeccion' }, 
+            { header: 'Hora', key: 'hora' },
+            { header: 'Responsable', key: 'responsable' },
+            { header: 'Cédula.Res', key: 'cedula' },
+            { header: 'Teléfono', key: 'tlf' },
+            { header: 'Correo', key: 'correo' },
+            { header: 'Norte', key: 'norte' },
+            { header: 'Este', key: 'este' },
+            { header: 'Zona', key: 'zona' },
+            { header: 'Aspectos', key: 'aspectos' },
+            { header: 'Ordenamientos', key: 'ordenamientos' },
+            { header: 'Estado', key: 'estado' },
+        ],
     };
       const tienePermiso = usePermiso();
+      const user = JSON.parse(localStorage.getItem('user'));
+    const rol = user?.roles_nombre;
 
     const toBool = (v) => v === true || v === 'true' || v === 1 || v === '1';
     const formatMes = (val) => {
@@ -200,6 +221,7 @@ function Home() {
         }
         return null;
     };
+    
 
 
     // Gráfica
@@ -236,7 +258,9 @@ useEffect(() => {
                 empleadosActivos: Number(d.empleadosActivos ?? 0),
                 solicitudesPendientes: Number((d.solicitudesPendientesPlanificar ?? d.solicitudesPendientes) ?? 0),
                 planificacionesPendientes: Number(d.planificacionesPendientes ?? 0),
-                propiedadesNoAptas: Number((d.propiedadesNoAptas ?? d.inspeccionRechazada) ?? 0)
+                propiedadesNoAptas: Number((d.propiedadesNoAptas ?? d.inspeccionRechazada) ?? 0),
+                inspecciones_Semanales: Number((d.inspecciones_Semanales ?? d.inspeccionRechazada) ?? 0),
+                record_inspecciones: Number((d.record_inspecciones ?? d.inspeccionRechazada) ?? 0)
             });
         } catch (error) {
             console.error('Error al obtener el total de los datos', error);
@@ -245,7 +269,9 @@ useEffect(() => {
                 empleadosActivos: 0,
                 solicitudesPendientes: 0,
                 planificacionesPendientes: 0,
-                propiedadesNoAptas: 0 
+                propiedadesNoAptas: 0,
+                inspecciones_Semanales: 0,
+                record_inspecciones: 0
             });
         }
         setLoadingTotales(false);
@@ -526,7 +552,20 @@ useEffect(() => {
             url = `${BaseUrl}/home/propiedades-no-aptas`;
             campos = columnsPorTipo.propiedadesNoAptas.map(c => c.key);
             titulo = 'Inspecciones del Día';
-        } else {
+        } 
+          else if (tipo === 'inspecciones_Semanales') {
+            url = `${BaseUrl}/home/inspecciones-semanales`;
+            campos = columnsPorTipo.inspecciones_Semanales.map(c => c.key);
+            titulo = 'Inspecciones (semana)';
+            
+        }
+          else if (tipo === 'Record_inspecciones') {
+            url = `${BaseUrl}/home/record-inspecciones`;
+            campos = columnsPorTipo.record_inspecciones.map(c => c.key);
+            titulo = 'Mis inspecciones';
+            
+        }
+        else {
             return;
         }
         setModalCarta({ abierto: true, tipo, datos: [], filtrados: [], campos, titulo, loading: true });
@@ -901,7 +940,7 @@ useEffect(() => {
         <div className={styles.homeContainer}>
             {(loadingTabla || loadingTotales) && <Spinner text="Cargando información..." />}
             {/* Cartas dinámicas */}
-            {tienePermiso('home', 'exportar') && (<div className={styles.cardsContainer}>
+            {tienePermiso('home', 'exportar') &&  ['Moderador', 'Administrador'].includes(rol) && (<div className={styles.cardsContainer}>
                 <div className={styles.card} onClick={() => handleCardClick('empleadosActivos')} title='Mostrar Detalles'>
                     <span className={styles.cardNumber}>{totales.empleadosActivos ?? 0}</span>
                     <p>Inspectores Disponibles</p>
@@ -915,10 +954,18 @@ useEffect(() => {
                     <span className={styles.cardNumber}>{totales.planificacionesPendientes ?? 0}</span>
                     <p>Planificaciones Pendientes</p>
                 </div>
-                <div className={styles.card} onClick={() => handleCardClick('propiedadesNoAptas')} title='Mostrar Detalles'>
+                {tienePermiso('home', 'exportar') &&  ['Administrador'].includes(rol) && (<div className={styles.card} onClick={() => handleCardClick('propiedadesNoAptas')} title='Mostrar Detalles'>
                     <span className={styles.cardNumber}>{totales.propiedadesNoAptas ?? 0}</span>
                     <p>Inspecciones Totales(Día)</p>
-                </div>
+                </div>)}
+                {tienePermiso('home', 'exportar') &&  ['Moderador'].includes(rol) && (<div className={styles.card} onClick={() => handleCardClick('inspecciones_Semanales')} title='Mostrar Detalles'>
+                    <span className={styles.cardNumber}>{totales.inspecciones_Semanales ?? 0}</span>
+                    <p>Inspecciones Totales(Semana)</p>
+                </div>)}
+                {tienePermiso('home', 'ver') &&  ['Inspector'].includes(rol) && (<div className={styles.card} onClick={() => handleCardClick('record_inspecciones')} title='Mostrar Detalles'>
+                    <span className={styles.cardNumber}>{totales.record_inspecciones ?? 0}</span>
+                    <p>Mis inspecciones</p>
+                </div>)}
             </div>
             )}
 

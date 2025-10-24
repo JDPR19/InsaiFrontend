@@ -7,10 +7,27 @@ import cintillo from '../../public/assets/cintillo insai.png'
 
 function getRowValues(data, columns) {
     return data.map(row =>
-        columns.map(col =>
-            col.render ? col.render(row) : row[col.key]
-        )
+        columns.map(col => {
+            let value = col.render ? col.render(row) : row[col.key];
+            if (['created_at', 'updated_at', 'fecha_notificacion'].includes(col.key)) {
+                value = formatFecha(value);
+            }
+            return value;
+        })
     );
+}
+
+function formatFecha(fecha) {
+    if (!fecha) return '—';
+    const d = new Date(fecha);
+    if (isNaN(d)) return fecha;
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    const hh = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+    return `${dd}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
 }
 
 export function exportToPDF({
@@ -82,11 +99,11 @@ export function exportToPDF({
     const tableColumn = columns.map(col => col.header);
     const tableRows = rows.map(row => row.map(v => v == null ? '' : String(v))); // CORREGIDO
 
-    const baseFont = 12;
-    const fontSize = Math.max(7, baseFont - Math.floor((columns.length - 4) / 2));
+    const baseFont = 10;
+    const fontSize = Math.max(6, baseFont - Math.floor((columns.length - 4) / 2));
 
-    const minColW = 20;
-    const maxColW = useLandscape ? 90 : 70;
+    const minColW = 10;
+    const maxColW = useLandscape ? 60 : 40;
     const rawLens = columns.map((col, i) => {
         const headerLen = String(col.header || '').length;
         const maxCellLen = tableRows.reduce((m, r) => Math.max(m, (r[i] || '').length), 0);
@@ -115,8 +132,8 @@ export function exportToPDF({
     const columnStyles = {};
     columns.forEach((col, idx) => {
         columnStyles[idx] = {
-            cellWidth: widths[idx],
-            overflow: 'hidden',
+            cellWidth: widths[idx], 
+            overflow: 'linebreak',     
             halign: col.key === 'codigo' ? 'center' : 'left'
         };
     });
@@ -138,6 +155,7 @@ export function exportToPDF({
             fontSize,
             cellPadding: 2,
             overflow: 'linebreak',
+            cellWidth: 'wrap',
             halign: 'left',
             valign: 'middle',
             lineWidth: 0.1,

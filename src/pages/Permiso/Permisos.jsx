@@ -45,9 +45,17 @@ function ActaSilos() {
     { header: 'Cant. Afectado', key: 'cant_afectado' },
     { header: '% Afectado', key: 'cant_afectado_porcentaje' },
     { header: 'Unidad', key: 'unidad_medida' },
+    { header: 'N° Silos', key: 'numero_silos' },
+    { header: 'N° Galpones', key: 'numero_galpones' },
+    { header: 'Capacidad Instalada', key: 'capacidad_instalada' },
+    { header: 'Capacidad Operativa', key: 'capacidad_operativa' },
+    { header: 'Capacidad Almacenamiento', key: 'capacidad_almacenamiento' },
+    { header: 'Destino', key: 'destino_objetivo' },
     { header: 'Observaciones', key: 'observaciones' },
-    { header: 'Medidas Recomendadas', key: 'medidas_recomendadas' }
+    { header: 'Medidas Recomendadas', key: 'medidas_recomendadas' },
+    { header: 'Creado', key: 'created_at' },
 ];
+
 
    const fetchActasSilos = async () => {
     setLoading(true);
@@ -284,31 +292,23 @@ const handleExportExcel = async () => {
             )}
 
             {/* Modal de detalle */}
-            {detalleModal.abierto && detalleModal.acta && (
+           {detalleModal.abierto && detalleModal.acta && (
                 <div className='modalOverlay'>
                     <div className='modal'>
                         <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
                         <h2>Detalle del Acta de Silos</h2>
                         <table className='detalleTable'>
                             <tbody>
-                                {columns.map(col => (
-                                    <tr key={col.key}>
-                                        <th>{col.header}</th>
-                                        <td>{detalleModal.acta[col.key] ?? '—'}</td>
-                                    </tr>
-                                ))}
-                                <tr>
-                                    <th>Observaciones</th>
-                                    <td>{detalleModal.acta.observaciones ?? '—'}</td>
+                            {columnsActaSilos.map(col => (
+                                <tr key={col.key}>
+                                    <th>{col.header}</th>
+                                    <td>
+                                        {col.key === 'created_at' || col.key === 'updated_at'
+                                            ? (detalleModal.acta[col.key] ? new Date(detalleModal.acta[col.key]).toLocaleString('es-ES') : '—')
+                                            : (detalleModal.acta[col.key] ?? '—')}
+                                    </td>
                                 </tr>
-                                <tr>
-                                    <th>Medidas Recomendadas</th>
-                                    <td>{detalleModal.acta.medidas_recomendadas ?? '—'}</td>
-                                </tr>
-                                <tr>
-                                    <th>Creado</th>
-                                    <td>{detalleModal.acta.created_at ? new Date(detalleModal.acta.created_at).toLocaleString('es-ES') : '—'}</td>
-                                </tr>
+                            ))}
                             </tbody>
                         </table>
                     </div>

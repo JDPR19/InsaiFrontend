@@ -264,7 +264,7 @@ const handleActaPDF = async (item) => {
     const payload = toPdfPayload(detalle);
     payload.finalidadCatalogo = finalidadCatalogFromOptions(finalidadOptions);
     payload.uploadsBaseUrl = `${BaseUrl}/inspecciones/imagenes/jpg`;
-
+console.log('IMAGENES PARA PDF:', payload.inspeccion.imagenes, payload.uploadsBaseUrl);
     const blob = await buildInspeccionActaBlob(payload);
     const url = URL.createObjectURL(blob);
     setPdfUrl(url);
