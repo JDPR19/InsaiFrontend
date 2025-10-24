@@ -10,6 +10,7 @@ import Icon from '../../components/iconos/iconos';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
 import { buildActaSilosBlob } from '../../components/pdf/ActaSilos';
 import { buildCertificadoTecnicoBlob } from '../../components/pdf/CertificadoTecnico';
+import { buildCertificadoFitosanitarioBlob } from '../../components/pdf/CertificadoFitosanitario';
 
 function timeSince(dateStr) {
   if (!dateStr) return '—';
@@ -473,6 +474,69 @@ const generarActaPDF = async (inspeccionId) => {
   }
 };
 
+const generarCertificadoFitosanitario = async (inspeccionId) => {
+  if (!inspeccionId) { addNotification('Selecciona una inspección', 'warning'); return; }
+  try {
+    setLoading(true);
+
+    const it = (traza.inspecciones || []).find(i => Number(i.id) === Number(inspeccionSeleccionada));
+    if (!it) { addNotification('No se encontró la inspección seleccionada', 'error'); return; }
+
+    // Técnicos (opcional)
+    let tecnicos = [];
+    try {
+      const { data: det } = await axios.get(`${BaseUrl}/seguimiento/acta-silos/inspeccion/${inspeccionId}/detalle`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      tecnicos = Array.isArray(det?.inspectores) ? det.inspectores.map(t => ({
+        nombre: t.nombre, apellido: t.apellido, cedula: t.cedula, cargo: t.cargo
+      })) : [];
+    } catch { tecnicos = []; }
+
+    const productores = Array.isArray(traza.productores) ? traza.productores : [];
+    const cultivos = Array.isArray(traza.cultivos) ? traza.cultivos : [];
+    const programasDet = (Array.isArray(programas) ? programas : []).map((p) => ({
+      nombre: p.programa_nombre || `Programa #${p.programa_fito_id}`,
+      tipo: p.tipo_programa || ''
+    }));
+
+    // Puedes adaptar los props según lo que espera CertificadoFitosanitarioDoc
+    const blob = await buildCertificadoFitosanitarioBlob({
+      empresaNombre: traza.propiedad?.propiedad_nombre || '—',
+      empresaReg: traza.propiedad?.propiedad_registro || '—',
+      empresaRif: traza.propiedad?.propiedad_rif || '—',
+      parroquia: traza.propiedad?.parroquia_nombre || '—',
+      municipio: traza.propiedad?.municipio_nombre || '—',
+      estado: traza.propiedad?.estado_nombre || '—',
+      representante: productores[0]?.nombre || '—',
+      representanteCedula: productores[0]?.cedula || '—',
+      silos: '1',
+      capacidadInstalada: it?.capacidad_instalada || '—',
+      capacidadProcesamiento: it?.capacidad_procesamiento || '—',
+      capacidadAlmacenamiento: it?.capacidad_almacenamiento || '—',
+      rubros: cultivos.map(c => c.nombre).join(', ') || '—',
+      destino: 'ANIMAL',
+      inspector: tecnicos[0]?.nombre || '—',
+      inspectorCedula: tecnicos[0]?.cedula || '—',
+      fechaInspeccion: it?.fecha_inspeccion || '',
+      numCertificado: it?.codigo_inspeccion || '—',
+      numInspeccion: it?.codigo_inspeccion || '—',
+      fechaEmision: new Date().toISOString().slice(0,10),
+      coordinador: 'ING. GUSTAVO MUJICA',
+      coordinadorCedula: 'V-9.601.781',
+    });
+
+    const url = URL.createObjectURL(blob);
+    setPdfUrl(url);
+    setPdfFileName(`Certificado_Fitosanitario_${inspeccionId}.pdf`);
+  } catch (e) {
+    console.error(e);
+    addNotification('No se pudo generar el Certificado Fitosanitario', 'error');
+  } finally {
+    setLoading(false);
+  }
+};
+
   const openReporte = (tipo, idForce) => {
     const targetId = idForce || inspeccionSeleccionada;
     if (!targetId) {
@@ -857,6 +921,14 @@ const confirmarEliminarPrograma = async () => {
               title="Generar Certificado Técnico"
             >
               Certificado Técnico
+            </button>
+            <button
+              className={styles.reportBtn}
+              onClick={() => generarCertificadoFitosanitario(inspeccionSeleccionada)}
+              disabled={!inspeccionSeleccionada}
+              title="Generar Certificado Fitosanitario"
+            >
+              Certificado Fitosanitario
             </button>
             <button
               className={styles.reportBtn}

@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 
   // Cuerpo
   section: { marginTop: 10 },
-  p: { textAlign: 'left', lineHeight: 1.2, marginBottom: 10 },
+  p: { textAlign: 'justify', lineHeight: 1.2, marginBottom: 10 },
 
   // Firmas
   firmasWrap: { marginTop: 30, display: 'flex', flexDirection: 'row', justifyContent: 'space-between' },

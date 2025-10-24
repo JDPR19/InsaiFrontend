@@ -658,10 +658,10 @@ function Solicitud() {
                     <span className='cardNumber'>{totales.SolicitudesAprobadas}</span>
                     <p>Solicitudes Aprobadas</p>
                 </div>
-                <div className='card' onClick={() => setDatosFiltrados(datosOriginales.filter(s => s.estado === 'rechazada'))} title='Solicitudes Rechazadas'>
+                {/* <div className='card' onClick={() => setDatosFiltrados(datosOriginales.filter(s => s.estado === 'rechazada'))} title='Solicitudes Rechazadas'>
                     <span className='cardNumber'>{totales.solicitudesRechazadas}</span>
                     <p>Solicitudes Rechazadas</p>
-                </div>
+                </div> */}
             </div>
 
             {/*/////////////////// Tabla ///////////*/}

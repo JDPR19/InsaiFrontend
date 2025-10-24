@@ -61,7 +61,7 @@ function InspeccionesEst() {
   const mostrarTodas = () => setDatosFiltrados(datosOriginales);
   const mostrarCuarentena = () => setDatosFiltrados((datosOriginales || []).filter(i => String(i.estado || '').toLowerCase() === 'cuarentena'));
   const mostrarAprobadas = () => setDatosFiltrados((datosOriginales || []).filter(i => String(i.estado || '').toLowerCase() === 'aprobada'));
-  const mostrarRechazadas = () => setDatosFiltrados((datosOriginales || []).filter(i => String(i.estado || '').toLowerCase() === 'rechazada'));
+  // const mostrarRechazadas = () => setDatosFiltrados((datosOriginales || []).filter(i => String(i.estado || '').toLowerCase() === 'rechazada'));
   const normEstado = (s) => String(s || '').toLowerCase().trim(); 
   const [totales, setTotales] = useState({
     inspeccionesTotales: 0,
@@ -1513,16 +1513,16 @@ const handleActaPDF = async (item) => {
         </div>
         <div className='card' onClick={mostrarCuarentena} title='Inspecciones Cuarentena'>
           <span className='cardNumber'>{totales.inspeccionesCuarentena}</span>
-          <p>Inspecciones con Cuarentenas</p>
+          <p>Inspecciones en Cuarentena</p>
         </div>
         <div className='card' onClick={mostrarAprobadas} title='Inspecciones Aprobadas'>
           <span className='cardNumber'>{totales.inspeccionesAprobadas}</span>
           <p>Inspecciones Aprobadas</p>
         </div>
-        <div className='card' onClick={mostrarRechazadas} title='Inspecciones Rechazadas'>
+        {/* <div className='card' onClick={mostrarRechazadas} title='Inspecciones Rechazadas'>
           <span className='cardNumber'>{totales.inspeccionesRechazadas}</span>
           <p>Inspecciones Rechazadas</p>
-        </div>
+        </div> */}
       </div>
 
       {/*/////////////////// Tabla ///////////*/}
@@ -1534,7 +1534,7 @@ const handleActaPDF = async (item) => {
                 
                 {/* Ayudante informativo de Pantalla */}
                     <div >
-                        <AyudaTooltip descripcion="En esta sección puedes visualizar, registrar y gestionar todas las inspecciones realizadas. Usa los filtros, la búsqueda y las opciones de exportación para organizar y consultar la información de manera eficiente." />
+                        <AyudaTooltip descripcion="En esta pantalla puedes visualizar, registrar y gestionar todas las inspecciones fitosanitarias realizadas en el sistema. Utiliza los filtros, la búsqueda y las opciones de exportación para organizar y consultar la información de manera eficiente. Desde aquí puedes acceder al detalle de cada inspección, revisar sus finalidades, responsables, coordenadas y resultados, así como asociar imágenes y generar reportes en PDF o Excel. Esta sección te permite mantener el control y la trazabilidad de las actividades de inspección, facilitando la toma de decisiones y el seguimiento de las acciones fitosanitarias." />
                     </div>
                 </div>
 

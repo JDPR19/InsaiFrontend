@@ -896,20 +896,20 @@ function Planificacion() {
             <div className='cardsContainer'>
                 <div className='card' onClick={() => setDatosFiltrados(datosOriginales)} title='Todas las Planificaciones'>
                     <span className='cardNumber'>{totales.planificacionesTotales}</span>
-                    <p>Total</p>
+                    <p>Planificaciones (Total)</p>
                 </div>
                 <div className='card' onClick={() => setDatosFiltrados(datosOriginales.filter(p => p.estado === 'pendiente'))} title='Planificaciones Pendientes'>
                     <span className='cardNumber'>{totales.planificacionesPendientes}</span>
-                    <p>Pendientes</p>
+                    <p>Planificaciones Pendientes</p>
                 </div>
                 <div className='card' onClick={() => setDatosFiltrados(datosOriginales.filter(p => p.estado === 'aprobada'))} title='Planificaciones Aprobadas'>
                     <span className='cardNumber'>{totales.planificacionesAprobadas}</span>
-                    <p>Aprobadas</p>
+                    <p>Planificaciones Aprobadas</p>
                 </div>
-                <div className='card' onClick={() => setDatosFiltrados(datosOriginales.filter(p => p.estado === 'rechazada'))} title='Planificaciones Rechazadas'>
+                {/* <div className='card' onClick={() => setDatosFiltrados(datosOriginales.filter(p => p.estado === 'rechazada'))} title='Planificaciones Rechazadas'>
                     <span className='cardNumber'>{totales.planificacionesRechazadas}</span>
                     <p>Rechazadas</p>
-                </div>
+                </div> */}
             </div>
 
                 {/*/////////////////// Tabla ///////////*/}

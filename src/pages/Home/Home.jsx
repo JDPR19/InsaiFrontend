@@ -74,30 +74,31 @@ function Home() {
         planificacionesPendientes: [
             { header: 'Código', key: 'codigo' },
             { header: 'Fecha Programada', key: 'fecha_programada' },
+            { header: 'Hora', key: 'hora' },
             { header: 'Actividad', key: 'actividad' },
             { header: 'Objetivo', key: 'objetivo' },
             { header: 'Convocatoria', key: 'convocatoria' },
             { header: 'Aseguramiento', key: 'aseguramiento' },
-            { header: 'Tipo de Inspección', key: 'tipo_inspeccion' },
-            { header: 'Propiedad', key: 'propiedad' },
-            { header: 'Propiedad (Nombre)', key: 'propiedad_nombre' },
             { header: 'Ubicación', key: 'ubicacion' },
-            { header: 'Inspector', key: 'inspector' },
-            { header: 'Inspector Cédula', key: 'inspector_cedula' },
-            { header: 'Inspector Cargo', key: 'inspector_cargo' },
             { header: 'Estado', key: 'estado' }
         ],
         propiedadesNoAptas: [
-            { header: 'Propiedad', key: 'propiedad_nombre' },
-            { header: 'RIF', key: 'propiedad_rif' },
-            { header: 'Ubicación', key: 'propiedad_ubicacion' },
-            { header: 'Hectáreas', key: 'hectareas' },
-            { header: 'Código Inspección', key: 'codigo_inspeccion' },
-            { header: 'Fecha Inspección', key: 'fecha_inspeccion' },
-            { header: 'Inspector', key: 'inspector_nombre' },
-            { header: 'Motivo de Rechazo', key: 'motivo_rechazo' },
-            { header: 'Resumen', key: 'resumen' }
-        ]
+            { header: 'Código UBIGEO', key: 'codigo' },
+            { header: 'N° Control', key: 'control' },
+            { header: 'Área', key: 'area' },
+            { header: 'Fecha', key: 'fecha_inspeccion' }, 
+            { header: 'Hora', key: 'hora' },
+            { header: 'Responsable', key: 'responsable' },
+            { header: 'Cédula.Res', key: 'cedula' },
+            { header: 'Teléfono', key: 'tlf' },
+            { header: 'Correo', key: 'correo' },
+            { header: 'Norte', key: 'norte' },
+            { header: 'Este', key: 'este' },
+            { header: 'Zona', key: 'zona' },
+            { header: 'Aspectos', key: 'aspectos' },
+            { header: 'Ordenamientos', key: 'ordenamientos' },
+            { header: 'Estado', key: 'estado' },
+        ],
     };
 
     const toBool = (v) => v === true || v === 'true' || v === 1 || v === '1';
@@ -203,49 +204,60 @@ function Home() {
         setModalCurrentPage(prev => Math.min(totalPages, prev + 3));
     };
         
-    // Traer datos al montar
-    useEffect(() => {
-        async function fetchTotales() {
-            setLoadingTotales(true);
-            try {
-                const res = await axios.get(`${BaseUrl}/home/totales`);
-                const d = res.data || {};
-                setTotales({
+   // Traer totales al montar
+useEffect(() => {
+    async function fetchTotales() {
+        setLoadingTotales(true);
+        try {
+            const res = await axios.get(`${BaseUrl}/home/totales`);
+            const d = res.data || {};
+            setTotales({
                 empleadosActivos: Number(d.empleadosActivos ?? 0),
                 solicitudesPendientes: Number((d.solicitudesPendientesPlanificar ?? d.solicitudesPendientes) ?? 0),
                 planificacionesPendientes: Number(d.planificacionesPendientes ?? 0),
                 propiedadesNoAptas: Number((d.propiedadesNoAptas ?? d.inspeccionRechazada) ?? 0)
-                });
-            } catch (error) {
-                console.error('Error al obtener el total de los datos', error);
-                addNotification('Error al obtener los totales', 'error');
-                setTotales({
-                    empleadosActivos: 0,
-                    solicitudesPendientes: 0,
-                    planificacionesPendientes: 0,
-                    propiedadesNoAptas: 0 
-                });
-            }
-            setLoadingTotales(false);
+            });
+        } catch (error) {
+            console.error('Error al obtener el total de los datos', error);
+            addNotification('Error al obtener los totales', 'error');
+            setTotales({
+                empleadosActivos: 0,
+                solicitudesPendientes: 0,
+                planificacionesPendientes: 0,
+                propiedadesNoAptas: 0 
+            });
         }
-        async function fetchEmpleadosHoy() {
-            setLoadingTabla(true);
-            try {
-                const hoy = new Date().toISOString().slice(0, 10);
-                const res = await axios.get(`${BaseUrl}/home/empleados-dia?fecha=${hoy}`);
-                setEmpleadosHoy(res.data);
-                setDatosFiltrados(res.data);
-            } catch (error) {
-                console.error('Error al obtener los datos para la tabla', error);
-                addNotification('Error al obtener empleados del día', 'error');
-                setEmpleadosHoy([]); setDatosFiltrados([]);
+        setLoadingTotales(false);
+    }
+    fetchTotales();
+}, []);
+
+// Traer operaciones del día al montar
+useEffect(() => {
+    async function fetchTablaOperaciones() {
+        setLoadingTabla(true);
+        try {
+            const hoy = new Date().toISOString().slice(0, 10);
+            const user = JSON.parse(localStorage.getItem('user'));
+            const rol = user?.roles_nombre;
+            const usuarioId = user?.id;
+            let res;
+            if (rol === 'Administrador') {
+                res = await axios.get(`${BaseUrl}/home/empleados-dia?fecha=${hoy}`);
+            } else {
+                res = await axios.get(`${BaseUrl}/home/operaciones-usuario?usuarioId=${usuarioId}`);
             }
-            setLoadingTabla(false);
+            setEmpleadosHoy(res.data);
+            setDatosFiltrados(res.data);
+        } catch (error) {
+            console.error('Error al obtener los datos para la tabla', error);
+            addNotification('Error al obtener empleados del día', 'error');
+            setEmpleadosHoy([]); setDatosFiltrados([]);
         }
-        
-        fetchTotales();
-        fetchEmpleadosHoy();
-    }, []);
+        setLoadingTabla(false);
+    }
+    fetchTablaOperaciones();
+}, []);
 
        // Traer planificaciones para el calendario
     useEffect(() => {
@@ -492,7 +504,7 @@ function Home() {
         } else if (tipo === 'propiedadesNoAptas') {
             url = `${BaseUrl}/home/propiedades-no-aptas`;
             campos = columnsPorTipo.propiedadesNoAptas.map(c => c.key);
-            titulo = 'Propiedades No aptas';
+            titulo = 'Inspecciones del Día';
         } else {
             return;
         }
@@ -877,14 +889,14 @@ function Home() {
                     <span className={styles.cardNumber}>{totales.solicitudesPendientes ?? 0}</span>
                     <p>Solicitudes Pendientes por Planificar</p>
                 </div>
-                {/* FIX: usar planificacionesPendientes en clave y handle */}
+                
                 <div className={styles.card} onClick={() => handleCardClick('planificacionesPendientes')} title='Mostrar Detalles'>
                     <span className={styles.cardNumber}>{totales.planificacionesPendientes ?? 0}</span>
                     <p>Planificaciones Pendientes</p>
                 </div>
                 <div className={styles.card} onClick={() => handleCardClick('propiedadesNoAptas')} title='Mostrar Detalles'>
                     <span className={styles.cardNumber}>{totales.propiedadesNoAptas ?? 0}</span>
-                    <p>Propiedades No aptas</p>
+                    <p>Inspecciones Totales(Día)</p>
                 </div>
             </div>
 

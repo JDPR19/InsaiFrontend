@@ -1,125 +1,219 @@
 .landingContainer {
-    max-width: 900px;
+    max-width: 980px;
     margin: 0 auto;
-    padding: 32px 18px 60px 18px;
-    background: var(--white2);
-    border-radius: 18px;
-    box-shadow: 0 4px 24px #98c79a33;
-    font-family: 'Poppins', sans-serif;
+    padding: 36px 22px 70px 22px;
+    background: var(--white1);
+    border-radius: 22px;
+    box-shadow: 0 6px 32px #539E4333;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    color: #23272f;
+    transition: background 0.3s, color 0.3s;
 }
 
 .header {
     text-align: center;
-    margin-bottom: 36px;
+    margin-bottom: 38px;
 }
 
 .logo {
-    width: 110px;
-    margin-bottom: 12px;
+    width: 120px;
+    margin-bottom: 14px;
 }
 
 .titulo {
-    font-size: 2.2em;
+    font-size: 2.4em;
     font-weight: 700;
     color: #539E43;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
 }
 
 .subtitulo {
-    font-size: 1.15em;
+    font-size: 1.18em;
     color: #444;
-    margin-bottom: 18px;
+    margin-bottom: 20px;
+}
+
+.guiaRapida {
+    margin-bottom: 38px;
+    background: #f7faf7;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px #539E4333;
+    padding: 22px 18px;
+}
+
+.guiaRapida h2 {
+    font-size: 1.22em;
+    color: #539E43;
+    margin-bottom: 14px;
+    text-align: center;
+}
+
+.guiaPasos {
+    margin: 0 0 10px 0;
+    padding-left: 18px;
+    font-size: 1em;
+    color: #444;
 }
 
 .caracteristicas {
     margin-bottom: 38px;
 }
 
-.caracteristicas h2 {
-    font-size: 1.3em;
-    color: #539E43;
-    margin-bottom: 18px;
-    text-align: center;
-}
-
 .cardsGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-    gap: 22px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 26px;
 }
 
 .card {
     background: #fff;
-    border-radius: 14px;
-    box-shadow: 0 2px 12px #98c79a33;
-    padding: 22px 16px;
+    border-radius: 16px;
+    box-shadow: 0 2px 14px #539E4333;
+    padding: 24px 18px;
     text-align: center;
-    transition: box-shadow 0.2s;
+    transition: box-shadow 0.2s, transform 0.2s;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
 .card img {
-    width: 38px;
-    margin-bottom: 10px;
+    width: 42px;
+    margin-bottom: 12px;
 }
 
 .card h3 {
-    font-size: 1.08em;
+    font-size: 1.12em;
     color: #539E43;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     font-weight: 600;
 }
 
 .card p {
-    font-size: 0.98em;
+    font-size: 1em;
     color: #444;
 }
 
-.card:hover {
-    box-shadow: 0 4px 24px #98c79a55;
+.card:hover, .card:focus {
+    box-shadow: 0 6px 32px #539E43aa;
+    transform: scale(1.03);
 }
 
-.ayudaVisual {
+.guiaVisual {
     margin-bottom: 38px;
 }
 
-.ayudaVisual h2 {
-    font-size: 1.2em;
+.guiaVisual h2 {
+    font-size: 1.18em;
     color: #539E43;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
     text-align: center;
 }
 
 .pasosGrid {
     display: flex;
     justify-content: center;
-    gap: 32px;
+    gap: 36px;
     flex-wrap: wrap;
 }
 
 .paso {
     background: #e9ecef;
-    border-radius: 12px;
-    padding: 18px 16px;
+    border-radius: 14px;
+    padding: 20px 18px;
     text-align: center;
-    min-width: 160px;
+    min-width: 170px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    box-shadow: 0 2px 8px #98c79a33;
+    box-shadow: 0 2px 10px #539E4333;
+    transition: box-shadow 0.2s;
 }
 
 .paso img {
-    width: 32px;
-    margin-bottom: 8px;
+    width: 36px;
+    margin-bottom: 10px;
 }
 
 .paso span {
-    font-size: 1em;
+    font-size: 1.04em;
     color: #444;
     font-weight: 500;
+}
+
+.paso:hover, .paso:focus {
+    box-shadow: 0 4px 18px #539E43aa;
+}
+
+.glosarioSection {
+    margin-bottom: 38px;
+    background: #f7faf7;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px #539E4333;
+    padding: 18px 14px;
+}
+
+.glosarioSection h2 {
+    font-size: 1.15em;
+    color: #539E43;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.glosarioList {
+    list-style: disc inside;
+    color: #444;
+    font-size: 1em;
+    margin: 0;
+    padding-left: 18px;
+}
+
+.paletaSection {
+    margin-bottom: 38px;
+    text-align: center;
+}
+
+.paletaColores {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.colorCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px #539E4333;
+    padding: 14px 20px;
+    min-width: 120px;
+    margin-bottom: 8px;
+}
+
+.colorBox {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    border: 2px solid #eee;
+    box-shadow: 0 2px 8px #539E4333;
+}
+
+.colorName {
+    font-size: 1em;
+    font-weight: 600;
+    color: #539E43;
+    margin-bottom: 2px;
+}
+
+.colorVar, .colorHex {
+    font-size: 0.9em;
+    color: #888;
+    margin-bottom: 2px;
 }
 
 .preguntasSection {
@@ -127,9 +221,9 @@
 }
 
 .preguntasSection h2 {
-    font-size: 1.2em;
+    font-size: 1.18em;
     color: #539E43;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
     text-align: center;
 }
 
@@ -142,18 +236,39 @@
 .preguntaItem {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
     margin-bottom: 18px;
     background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px #98c79a33;
-    padding: 12px 18px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px #539E4333;
+    padding: 14px 20px;
 }
 
 .pregunta {
     font-weight: 500;
-    font-size: 1em;
+    font-size: 1.04em;
     color: #444;
+}
+
+.novedadesSection {
+    margin-bottom: 38px;
+    background: #f7faf7;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px #539E4333;
+    padding: 18px 14px;
+}
+
+.novedadesSection h2 {
+    font-size: 1.15em;
+    color: #539E43;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.novedadesSection ul {
+    padding-left: 18px;
+    color: #444;
+    font-size: 1em;
 }
 
 .sobreNosotros {
@@ -162,7 +277,7 @@
 }
 
 .sobreNosotros h2 {
-    font-size: 1.2em;
+    font-size: 1.15em;
     color: #539E43;
     margin-bottom: 14px;
 }
@@ -178,13 +293,66 @@
     margin: 18px auto 12px auto;
     display: block;
     border-radius: 12px;
-    box-shadow: 0 2px 8px #98c79a33;
+    box-shadow: 0 2px 8px #539E4333;
 }
 
 .creditos {
-    font-size: 0.95em;
+    font-size: 0.97em;
     color: #888;
     margin-top: 10px;
+}
+
+.accesibilidadSection {
+    margin-bottom: 38px;
+    background: #f7faf7;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px #539E4333;
+    padding: 18px 14px;
+}
+
+.accesibilidadSection h2 {
+    font-size: 1.15em;
+    color: #539E43;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.contactoSection {
+    margin-top: 38px;
+    margin-bottom: 38px;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px #539E4333;
+    padding: 24px 18px;
+}
+
+.contactForm {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input, .textarea {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #98c79a;
+    font-size: 1em;
+    background: #f7faf7;
+    color: #23272f;
+    transition: border 0.2s;
+}
+
+.input:focus, .textarea:focus {
+    border: 1.5px solid #539E43;
+    outline: none;
 }
 
 .btnHome {
@@ -197,102 +365,190 @@
     border: none;
     border-radius: 14px;
     padding: 14px 38px;
-    box-shadow: 0 2px 12px #98c79a33;
+    box-shadow: 0 2px 12px #539E4333;
     cursor: pointer;
     transition: background 0.2s, transform 0.2s;
     letter-spacing: 0.5px;
 }
-.btnHome:hover {
+.btnHome:hover, .btnHome:focus {
     background: #98c79a;
     color: #212529;
     transform: scale(1.04);
 }
 
-.paletaSection {
-    margin-bottom: 38px;
+.footer {
+    background: #539E43;
+    color: #fff;
+    padding: 22px 0;
     text-align: center;
+    margin-top: 44px;
+    border-radius: 0 0 18px 18px;
+    box-shadow: 0 -2px 12px #539E4333;
 }
-.paletaSection h2 {
-    font-size: 1.15em;
-    color: #539E43;
-    margin-bottom: 18px;
-    font-weight: 600;
-}
-.paletaColores {
-    display: flex;
-    justify-content: center;
-    gap: 18px;
-    flex-wrap: wrap;
-    margin-bottom: 10px;
-}
-.colorCard {
+
+.footerContent {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px #98c79a33;
-    padding: 12px 18px;
-    min-width: 120px;
-    margin-bottom: 8px;
+    gap: 12px;
 }
-.colorBox {
-    width: 38px;
-    height: 38px;
-    border-radius: 8px;
-    margin-bottom: 6px;
-    border: 2px solid #eee;
-    box-shadow: 0 2px 8px #98c79a33;
+
+.footerLinks {
+    display: flex;
+    gap: 22px;
+    margin-top: 10px;
 }
-.colorName {
-    font-size: 0.98em;
-    font-weight: 600;
-    color: #539E43;
-    margin-bottom: 2px;
+
+.footerIcon {
+    width: 32px;
+    height: 32px;
+    filter: brightness(1.1);
+    transition: transform 0.2s;
 }
-.colorVar {
-    font-size: 0.85em;
-    color: #888;
-    margin-bottom: 2px;
+.footerIcon:hover, .footerIcon:focus {
+    transform: scale(1.18);
 }
-.colorHex {
-    font-size: 0.85em;
-    color: #444;
-    margin-bottom: 2px;
+
+.chatBtn {
+    position: fixed;
+    right: 28px;
+    bottom: 28px;
+    z-index: 9999;
+    background: #25d366;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px #539E4333;
+    padding: 10px;
+    cursor: pointer;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+.chatBtn:hover, .chatBtn:focus {
+    box-shadow: 0 4px 18px #25d36699;
+    transform: scale(1.08);
 }
 
 /* Modo oscuro */
-:global(.dark) .colorCard {
-    background: #242526;
-    color: #fff;
-    box-shadow: 0 2px 12px #539E43;
-}
-:global(.dark) .colorBox {
-    border: 2px solid #444950;
-}
-:global(.dark) .btnHome {
-    background: #98c79a;
-    color: #23272f;
-}
-/* Modo oscuro */
 :global(.dark) .landingContainer {
     background: #23272f;
-    color: #fff;
-    box-shadow: 0 4px 24px #539E43;
+    color: #f7faf7;
+    box-shadow: 0 6px 32px #539E43;
 }
 
 :global(.dark) .card,
 :global(.dark) .preguntaItem,
-:global(.dark) .paso {
+:global(.dark) .paso,
+:global(.dark) .colorCard,
+:global(.dark) .contactoSection,
+:global(.dark) .guiaRapida,
+:global(.dark) .glosarioSection,
+:global(.dark) .novedadesSection,
+:global(.dark) .accesibilidadSection {
     background: #242526;
     color: #fff;
-    box-shadow: 0 2px 12px #539E43;
+    box-shadow: 0 2px 14px #539E43;
 }
 
-:global(.dark) .sobreNosotros {
+:global(.dark) .input,
+:global(.dark) .textarea {
+    background: #23272f;
     color: #fff;
+    border: 1px solid #539E43;
 }
 
-:global(.dark) .equipoImg {
-    box-shadow: 0 2px 8px #539E43;
+:global(.dark) .btnHome {
+    background: #98c79a;
+    color: #23272f;
+}
+
+:global(.dark) .footer {
+    background: #23272f;
+    color: #fff;
+    box-shadow: 0 -2px 12px #539E43;
+}
+
+/* :global(.dark) .footerIcon {
+    filter: brightness(1.3);
+} */
+
+:global(.dark) .chatBtn {
+    background: #539E43;
+    box-shadow: 0 2px 8px #98c79a33;
+}
+
+:global(.dark) .landingContainer,
+:global(.dark) .header,
+/* :global(.dark) .titulo, */
+:global(.dark) .subtitulo,
+:global(.dark) .guiaRapida,
+/* :global(.dark) .guiaRapida h2, */
+:global(.dark) .guiaPasos,
+:global(.dark) .caracteristicas,
+:global(.dark) .cardsGrid,
+:global(.dark) .card,
+/* :global(.dark) .card h3, */
+:global(.dark) .card p,
+:global(.dark) .guiaVisual,
+/* :global(.dark) .guiaVisual h2, */
+:global(.dark) .pasosGrid,
+:global(.dark) .paso,
+:global(.dark) .paso span,
+:global(.dark) .glosarioSection,
+/* :global(.dark) .glosarioSection h2, */
+:global(.dark) .glosarioList,
+:global(.dark) .paletaSection,
+:global(.dark) .paletaColores,
+:global(.dark) .colorCard,
+:global(.dark) .colorName,
+:global(.dark) .colorVar,
+:global(.dark) .colorHex,
+:global(.dark) .preguntasSection,
+/* :global(.dark) .preguntasSection h2, */
+:global(.dark) .preguntasList,
+:global(.dark) .preguntaItem,
+:global(.dark) .pregunta,
+:global(.dark) .novedadesSection,
+/* :global(.dark) .novedadesSection h2, */
+:global(.dark) .novedadesSection ul,
+:global(.dark) .sobreNosotros,
+/* :global(.dark) .sobreNosotros h2, */
+:global(.dark) .sobreNosotros p,
+:global(.dark) .equipoImg,
+:global(.dark) .creditos,
+:global(.dark) .accesibilidadSection,
+/* :global(.dark) .accesibilidadSection h2, */
+:global(.dark) .contactoSection,
+:global(.dark) .contactForm,
+:global(.dark) .formGroup,
+:global(.dark) .input,
+:global(.dark) .textarea,
+:global(.dark) .footer,
+:global(.dark) .footerContent,
+:global(.dark) .footerLinks,
+:global(.dark) .footerIcon,
+:global(.dark) .chatBtn 
+:global(.dark) .btnHome{
+    color: #fff !important;
+    fill: #fff !important;
+}
+
+/* Iconos en modo oscuro */
+:global(.dark) .card img,
+/* :global(.dark) .footerIcon, */
+:global(.dark) .paso img
+ {
+    filter: brightness(2) invert(1);
+}
+
+
+
+/* Los demás iconos mantienen su color en modo oscuro */
+:global(.dark) .footerIcon.instagram,
+:global(.dark) .footerIcon.telegram,
+:global(.dark) .footerIcon.git {
+    filter: none;
+}
+
+/* Modo oscuro: solo GitHub y Link en blanco */
+:global(.dark) .footerIcon.github,
+:global(.dark) .footerIcon.link {
+    filter: invert(1) !important;
 }

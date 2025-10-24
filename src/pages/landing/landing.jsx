@@ -126,21 +126,21 @@ function Landing() {
         </div>
         <div className={styles.procesoParrafo}>
           <p>
-            SICIC-INSAI integra todos los pasos del ciclo fitosanitario, permitiendo la trazabilidad desde el registro inicial de la propiedad hasta el seguimiento de los programas y la generación de reportes técnicos y epidemiológicos.
+            SICIC-INSAI integra todos los pasos del flujo de trabajo, permitiendo la trazabilidad desde el registro inicial de la propiedad hasta el seguimiento de los programas y la generación de reportes técnicos y epidemiológicos.
           </p>
         </div>
       </section>
 
-      {/* Ciclo fitosanitario */}
+      {/* Ciclo de tareas */}
       <section id="ciclo" className={styles.cicloSection}>
-        <h2 className={styles.sectionTitle}>Ciclo Fitosanitario SICIC-INSAI</h2>
+        <h2 className={styles.sectionTitle}>Ciclo de tareas SICIC-INSAI</h2>
         <div className={styles.cicloHost}>
             <Ciclo />
         </div>
         <div className={styles.cicloExplicacionFull}>
             <h3>¿Qué representa el ciclo?</h3>
             <p>
-            El ciclo fitosanitario muestra cómo SICIC-INSAI conecta el registro de propiedades, la planificación de inspecciones, la ejecución de actividades, el análisis en laboratorio y el seguimiento de programas, asegurando la protección vegetal y la calidad de los cultivos.
+            El ciclo de tareas muestra cómo SICIC-INSAI conecta el registro de propiedades, la planificación de inspecciones, la ejecución de actividades, el análisis en laboratorio y el seguimiento de programas, asegurando la protección vegetal y la calidad de los cultivos.
             </p>
             <ul>
             <li><strong>Inicio:</strong> Registro de propiedad y productor.</li>

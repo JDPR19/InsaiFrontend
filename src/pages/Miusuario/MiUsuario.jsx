@@ -430,7 +430,7 @@ const handleSeleccionarAvatar = async (imagen) => {
                             <li key={idx}>
                                 <span>Inicio: {new Date(s.fecha_inicio).toLocaleString('es-ES')}</span>
                                 {s.fecha_fin && <span> | Fin: {new Date(s.fecha_fin).toLocaleString('es-ES')}</span>}
-                                <span> | IP: {s.ip}</span>
+                                {/* <span> | IP: {s.ip}</span> */}
                             </li>
                         ))}
                     </ul>

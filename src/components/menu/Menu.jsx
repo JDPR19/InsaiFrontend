@@ -89,6 +89,12 @@ function Menu() {
             linkTo: "/SeccionThree"
         },
         ['Administrador', 'Moderador'].includes(rol) && {
+            id: "SeccionFive",
+            iconSrc: icon.grafica,
+            label: "Actas Silos y Almacenes",
+            linkTo: "/SeccionFive"
+        },
+        ['Administrador'].includes(rol) && {
             id: "SeccionFour",
             iconSrc: icon.hormiga,
             label: "Catalogos y Tipos",
@@ -99,12 +105,6 @@ function Menu() {
             iconSrc: icon.mundo,
             label: "Áreas de Ubicación",
             linkTo: "/SeccionSix"
-        },
-        ['Administrador', 'Moderador'].includes(rol) && {
-            id: "SeccionFive",
-            iconSrc: icon.grafica,
-            label: "Permisos",
-            linkTo: "/SeccionFive"
         },
         rol === 'Administrador' && {
             id: "SeccionSeven",
@@ -162,7 +162,7 @@ function Menu() {
             localStorage.removeItem('seccionSixTab');
             localStorage.removeItem('seccionSevenTab');
             window.history.replaceState(null, '', '/');
-            navigate('/', { replace: true });
+            navigate('/Login', { replace: true });
         } catch (error) {
             console.error('Error al cerrar sesión:', error);
             addNotification('Error al cerrar la sesión. El servidor tardo en responder.', 'error');

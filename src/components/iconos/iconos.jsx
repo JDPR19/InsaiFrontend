@@ -63,8 +63,18 @@ import web from '../../../public/web.svg';
 import telefono from '../../../public/telefono.svg';
 import mapa from '../../../public/mapa.svg';
 import laboratorio from '../../../public/laboratorio.svg';
+import git from '../../../public/git-scm-icon.svg';
+import github from '../../../public/github.svg';
+import linkeding from '../../../public/linkedin.svg';
+import telegram from '../../../public/telegrama.svg';
+import wassat from '../../../public/wassat.svg';
 
 const Iconos = {
+    wassat,
+    telegram,
+    github,
+    git,
+    linkeding,
     link,
     web,
     telefono,

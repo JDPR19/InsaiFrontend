@@ -9,6 +9,7 @@ import { useNotification } from '../../utils/NotificationContext';
 import { validateField, validationRules } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
+import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
 
 
 function TipoPermiso() {
@@ -268,6 +269,14 @@ function TipoPermiso() {
                 </div>
             )}
 
+            <div className='tituloH' style={{marginTop: 70, marginBottom: 20, gap: 20}}>
+                <img src={icon.ver} alt="" className='iconTwo'/>
+                <h1 className='title' title='Actas de Silos'>Tipos de Permisos</h1>
+                <div>
+                    <AyudaTooltip descripcion="En esta sección puedes visualizar todas las actas de silos registradas. Usa la búsqueda y la paginación para consultar la información de manera eficiente." />
+                </div>
+            </div>
+
             <div className='tableSection'>
                 <div className='filtersContainer'>
                     <button 
@@ -278,9 +287,6 @@ function TipoPermiso() {
                         <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
-
-                    <h2>Tipos de Permisos</h2>
-
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
