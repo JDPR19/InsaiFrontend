@@ -41,6 +41,7 @@ const chartFilterOptions = [
 ];
 
 function Home() {
+    const [miTotalInspecciones, setMiTotalInspecciones] = useState(null);
     // Cartas dinámicas
     const [totales, setTotales] = useState({
         empleadosActivos: 0,
@@ -48,7 +49,7 @@ function Home() {
         planificacionesPendientes: 0,
         propiedadesNoAptas: 0,
         inspecciones_Semanales: 0,
-        record_inspecciones: 0
+        // record_inspecciones: 0
     });
 
     const totalesPorTipo = {
@@ -121,26 +122,27 @@ function Home() {
             { header: 'Ordenamientos', key: 'ordenamientos' },
             { header: 'Estado', key: 'estado' },
         ],
-        record_inspecciones: [
-            { header: 'Código UBIGEO', key: 'codigo' },
-            { header: 'N° Control', key: 'control' },
-            { header: 'Área', key: 'area' },
-            { header: 'Fecha', key: 'fecha_inspeccion' }, 
-            { header: 'Hora', key: 'hora' },
-            { header: 'Responsable', key: 'responsable' },
-            { header: 'Cédula.Res', key: 'cedula' },
-            { header: 'Teléfono', key: 'tlf' },
-            { header: 'Correo', key: 'correo' },
-            { header: 'Norte', key: 'norte' },
-            { header: 'Este', key: 'este' },
-            { header: 'Zona', key: 'zona' },
-            { header: 'Aspectos', key: 'aspectos' },
-            { header: 'Ordenamientos', key: 'ordenamientos' },
-            { header: 'Estado', key: 'estado' },
-        ],
+        // record_inspecciones: [
+        //     { header: 'Código UBIGEO', key: 'codigo' },
+        //     { header: 'N° Control', key: 'control' },
+        //     { header: 'Área', key: 'area' },
+        //     { header: 'Fecha', key: 'fecha_inspeccion' }, 
+        //     { header: 'Hora', key: 'hora' },
+        //     { header: 'Responsable', key: 'responsable' },
+        //     { header: 'Cédula.Res', key: 'cedula' },
+        //     { header: 'Teléfono', key: 'tlf' },
+        //     { header: 'Correo', key: 'correo' },
+        //     { header: 'Norte', key: 'norte' },
+        //     { header: 'Este', key: 'este' },
+        //     { header: 'Zona', key: 'zona' },
+        //     { header: 'Aspectos', key: 'aspectos' },
+        //     { header: 'Ordenamientos', key: 'ordenamientos' },
+        //     { header: 'Estado', key: 'estado' },
+        // ],
     };
-      const tienePermiso = usePermiso();
-      const user = JSON.parse(localStorage.getItem('user'));
+    
+    const tienePermiso = usePermiso();
+    const user = JSON.parse(localStorage.getItem('user'));
     const rol = user?.roles_nombre;
 
     const toBool = (v) => v === true || v === 'true' || v === 1 || v === '1';
@@ -162,6 +164,22 @@ function Home() {
             });
         }
     }, []);
+
+    useEffect(() => {
+        // Solo para el inspector
+        if (rol === 'Inspector' && user?.empleado_id) {
+            async function fetchMiTotal() {
+                try {
+                    const res = await axios.get(`${BaseUrl}/home/record-inspecciones?empleado_id=${user.empleado_id}`);
+                    setMiTotalInspecciones(res.data.total ?? 0);
+                } catch (e) {
+                    console.errpr('errores encontrados en la carta de mis inspecciones',e);
+                    setMiTotalInspecciones(0);
+                }
+            }
+            fetchMiTotal();
+        }
+    }, [rol, user, BaseUrl]);
 
     // Tabla dinámica
     const [empleadosHoy, setEmpleadosHoy] = useState([]);
@@ -260,7 +278,7 @@ useEffect(() => {
                 planificacionesPendientes: Number(d.planificacionesPendientes ?? 0),
                 propiedadesNoAptas: Number((d.propiedadesNoAptas ?? d.inspeccionRechazada) ?? 0),
                 inspecciones_Semanales: Number((d.inspecciones_Semanales ?? d.inspeccionRechazada) ?? 0),
-                record_inspecciones: Number((d.record_inspecciones ?? d.inspeccionRechazada) ?? 0)
+                // record_inspecciones: Number((d.record_inspecciones ?? d.inspeccionRechazada) ?? 0)
             });
         } catch (error) {
             console.error('Error al obtener el total de los datos', error);
@@ -559,12 +577,12 @@ useEffect(() => {
             titulo = 'Inspecciones (semana)';
             
         }
-          else if (tipo === 'Record_inspecciones') {
-            url = `${BaseUrl}/home/record-inspecciones`;
-            campos = columnsPorTipo.record_inspecciones.map(c => c.key);
-            titulo = 'Mis inspecciones';
+        //   else if (tipo === 'Record_inspecciones') {
+        //     url = `${BaseUrl}/home/record-inspecciones`;
+        //     campos = columnsPorTipo.record_inspecciones.map(c => c.key);
+        //     titulo = 'Mis inspecciones';
             
-        }
+        // }
         else {
             return;
         }
@@ -958,15 +976,32 @@ useEffect(() => {
                     <span className={styles.cardNumber}>{totales.propiedadesNoAptas ?? 0}</span>
                     <p>Inspecciones Totales(Día)</p>
                 </div>)}
-                {tienePermiso('home', 'exportar') &&  ['Moderador'].includes(rol) && (<div className={styles.card} onClick={() => handleCardClick('inspecciones_Semanales')} title='Mostrar Detalles'>
+                {tienePermiso('home', 'exportar') &&  ['Moderador', 'Administrador'].includes(rol) && (<div className={styles.card} onClick={() => handleCardClick('inspecciones_Semanales')} title='Mostrar Detalles'>
                     <span className={styles.cardNumber}>{totales.inspecciones_Semanales ?? 0}</span>
                     <p>Inspecciones Totales(Semana)</p>
                 </div>)}
-                {tienePermiso('home', 'ver') &&  ['Inspector'].includes(rol) && (<div className={styles.card} onClick={() => handleCardClick('record_inspecciones')} title='Mostrar Detalles'>
+                {/* {tienePermiso('home', 'ver') &&  ['Inspector'].includes(rol) && (<div className={styles.card} onClick={() => handleCardClick('record_inspecciones')} title='Mostrar Detalles'>
                     <span className={styles.cardNumber}>{totales.record_inspecciones ?? 0}</span>
                     <p>Mis inspecciones</p>
-                </div>)}
+                </div>)} */}
             </div>
+            )}
+
+            {rol === 'Administrador' && (
+                <div style={{ margin: '18px 0', textAlign: 'center' }}>
+                    <div style={{
+                        display: 'inline-block',
+                        background: '#f5f5f5',
+                        borderRadius: 12,
+                        padding: '18px 32px',
+                        boxShadow: '0 2px 8px #0001',
+                        fontSize: 22,
+                        color: '#1A7F37',
+                        fontWeight: 600
+                    }}>
+                        Total de inspecciones realizadas: {miTotalInspecciones === null ? 'Cargando...' : miTotalInspecciones}
+                    </div>
+                </div>
             )}
 
             {/* Modales de cartas */}
