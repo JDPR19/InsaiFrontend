@@ -153,10 +153,11 @@ function Login() {
                     id: data.user.id,
                     username: data.user.username,
                     roles_id: data.user.roles_id,
-                    roles_nombre: data.user.roles_nombre
+                    roles_nombre: data.user.roles_nombre,
+                    permisos: data.user.permisos
                 }));
 
-                localStorage.setItem('permisos', JSON.stringify(data.user.permisos));
+                // localStorage.setItem('permisos', JSON.stringify(data.user.permisos));
 
                 // Consultar notificaciones pendientes del usuario
                 try {
