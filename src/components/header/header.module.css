@@ -541,27 +541,50 @@
     border-color: var(--grey4) !important;
 }
 
-/* :global(.dark) .iconoEstandar,
-:global(.dark) .campanaIcon,
-:global(.dark) .lupaIcon,
-:global(.dark) .menuIcon {
-    color: #fff !important; 
-    filter: invert(0.1) brightness(2.8) !important;
-    background: var(--grey1) !important; 
-    border-color: var(--grey4) !important;
-} */
-/* Responsive para header */
+/* Responsive para <=1200px */
+@media (max-width: 1200px) {
+    .header {
+        padding: 8px 16px 8px 16px;
+    }
+    .title {
+        font-size: 1rem;
+        min-width: 180px;
+        max-width: 400px;
+        padding: 8px 16px;
+    }
+    .tituloSistema {
+        font-size: 0.75rem;
+        max-width: 300px;
+        padding: 6px 10px;
+    }
+    .userInfoBox {
+        padding: 6px 12px 6px 6px;
+        gap: 10px;
+    }
+    .logo {
+        height: 38px;
+    }
+}
+
+/* Responsive para <=900px */
 @media (max-width: 900px) {
     .header {
         padding: 8px 10px 8px 10px;
         min-height: 58px;
     }
     .logo {
-        height: 38px;
+        height: 32px;
     }
     .title {
-        font-size: 1.2rem;
+        font-size: 0.95rem;
         padding: 0 4px;
+        min-width: 120px;
+        max-width: 250px;
+    }
+    .tituloSistema {
+        font-size: 0.7rem;
+        max-width: 200px;
+        padding: 4px 8px;
     }
     .userInfoBox {
         padding: 4px 10px 4px 4px;
@@ -579,6 +602,7 @@
     }
 }
 
+/* Responsive para <=600px */
 @media (max-width: 600px) {
     .header {
         flex-direction: column;
@@ -595,8 +619,15 @@
         margin-bottom: 4px;
     }
     .title {
-        font-size: 1.05rem;
+        font-size: 0.9rem;
         padding: 0 2px;
+        min-width: 80px;
+        max-width: 180px;
+    }
+    .tituloSistema {
+        font-size: 0.65rem;
+        max-width: 120px;
+        padding: 3px 6px;
     }
     .userMenu {
         gap: 6px;

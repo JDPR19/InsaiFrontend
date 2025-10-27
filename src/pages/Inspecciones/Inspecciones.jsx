@@ -21,8 +21,9 @@ function InspeccionesEst() {
   const navigate = useNavigate();
   const tienePermiso = usePermiso();
   const { addNotification } = useNotification();
-  // const user = JSON.parse(localStorage.getItem('user'));
-  // const rol = user?.roles_nombre;
+  const user = JSON.parse(localStorage.getItem('user'));
+  const rol = user?.roles_nombre?.toLowerCase();
+  const empleadoId = user?.empleado_id;
   // const puedeVerSeguimiento = ['Administrador', 'Moderador'].includes(rol);
 
   // Estado de datos
@@ -299,11 +300,6 @@ console.log('IMAGENES PARA PDF:', payload.inspeccion.imagenes, payload.uploadsBa
   }, [datosOriginales]);
 
 
- 
-
-  
-
-  // Catálogos
   const [planificaciones, setPlanificaciones] = useState([]);
   const [finalidadesCatalogo, setFinalidadesCatalogo] = useState([]);
 
@@ -321,19 +317,37 @@ console.log('IMAGENES PARA PDF:', payload.inspeccion.imagenes, payload.uploadsBa
 
   
   // Opciones de selects (memo)
-  const planificacionOptions = useMemo(() => {
-    return (planificaciones || []).map((p) => ({
-      value: String(p.id),
-      label: `${p.solicitud_codigo || 'SIN-SOL'} - ${p.codigo || 'SIN-PLAN'}`,
-    }));
-  }, [planificaciones]);
+const planificacionOptions = useMemo(() => {
+  return (planificaciones || []).map((p) => ({
+    value: String(p.id),
+    label: `${p.solicitud_codigo || 'SIN-SOL'} - ${p.codigo || 'SIN-PLAN'}`,
+    empleados: p.empleados || [],
+  }));
+}, [planificaciones]);
 
+const planificacionOptionsFiltradas = useMemo(() => {
+  if (!planificacionOptions) return [];
+  // Si es admin o moderador, muestra todas las planificaciones disponibles
+  if (rol === 'administrador' || rol === 'moderador') {
+    return planificacionOptions;
+  }
+  // Si es inspector, solo muestra las planificaciones donde él está asignado
+  if (rol === 'inspector' && empleadoId) {
+    return planificacionOptions.filter(opt =>
+      Array.isArray(opt.empleados) &&
+      opt.empleados.some(e => String(e.id) === String(empleadoId))
+    );
+  }
+  // Por defecto, no muestra nada
+  return [];
+}, [planificacionOptions, rol, empleadoId]);
   
   const planificacionOptionsEdit = useMemo(() => {
-    if (!planificacionActualOpt) return planificacionOptions;
-    const exists = planificacionOptions.some(o => o.value === planificacionActualOpt.value);
-    return exists ? planificacionOptions : [planificacionActualOpt, ...planificacionOptions];
-  }, [planificacionOptions, planificacionActualOpt]);
+    const baseOptions = formData.id ? planificacionOptionsFiltradas : planificacionOptions;
+    if (!planificacionActualOpt) return baseOptions;
+    const exists = baseOptions.some(o => o.value === planificacionActualOpt.value);
+    return exists ? baseOptions : [planificacionActualOpt, ...baseOptions];
+  }, [planificacionOptionsFiltradas, planificacionOptions, planificacionActualOpt, formData.id]);
 
   const finalidadOptions = useMemo(() => {
     return (finalidadesCatalogo || []).map((f) => ({
@@ -482,7 +496,7 @@ console.log('IMAGENES PARA PDF:', payload.inspeccion.imagenes, payload.uploadsBa
   };
 
   // Galería
-   const openGaleriaModal = async (inspeccionId) => {
+  const openGaleriaModal = async (inspeccionId) => {
     try {
       setLoading(true);
       const { data } = await axios.get(`${BaseUrl}/inspecciones/imagenes/${inspeccionId}`, {
@@ -1182,13 +1196,13 @@ console.log('IMAGENES PARA PDF:', payload.inspeccion.imagenes, payload.uploadsBa
                           Planificación:
                         </label>
                         <SingleSelect
-                          options={formData.id ? planificacionOptionsEdit : planificacionOptions}
+                          options={formData.id ? planificacionOptionsEdit : planificacionOptionsFiltradas}
                           value={formData.planificacion_id}
-                          onChange={(val) => handleSelectChange('planificacion_id', val)}
+                          onChange={val => handleSelectChange('planificacion_id', val)}
                           placeholder="Planificación"
                         />
                       </div>
-
+                  
                       <div className="formGroup">
                         <label htmlFor="hora_inspeccion">
                           <span className="Unique" title="Campo Obligatorio">*</span>
@@ -1602,80 +1616,85 @@ console.log('IMAGENES PARA PDF:', payload.inspeccion.imagenes, payload.uploadsBa
             </tr>
           </thead>
           <tbody>
-            {currentData.map((item, idx) => (
-              <tr key={item.id}>
-                <td>{indexOfFirstItem + idx + 1}</td>
-                <td>{item.codigo_inspeccion}</td>
-                <td>{item.n_control}</td>
-                <td><span className={`badge-estado badge-${item.estado}`}>{item.estado}</span></td>
-                <td>
-                  <div className="iconContainer">
-                  {/* {puedeVerSeguimiento && (
-                      <img
-                        src={icon.ojito}
-                        onClick={() => handleSeguimiento(item.id)}
-                        alt="Seguimiento"
-                        className="iconver"
-                        title="Monitorear Seguimiento de esta Inspección"
-                      />
-                    )} */}
-                     {tienePermiso('inspecciones', 'ver') && (<img
-                      onClick={() => openDetalleModal(item)}
-                      src={icon.ver}
-                      className="iconver"
-                      alt="Detalle"
-                      title="Ver más"
-                    />
-                    )}
-                     {tienePermiso('inspecciones', 'ver') && (<img
-                      src={icon.picture}
-                      onClick={() => openGaleriaModal(item.id)}   
-                      alt="Imágenes"
-                      className="iconver"
-                      title="Ver imágenes"
-                    />
-                    )}
-                    {tienePermiso('inspecciones', 'exportar') && (
-                      <img
-                        onClick={() => handleActaPDF(item)}
-                        src={icon.pdf2}
-                        className="iconver"
-                        alt="Acta con Fines de Vigilancia"
-                        title="Exportar Acta Con Fines de Vigilacia"
-                      />
-                    )}
-                  {tienePermiso('inspecciones', 'editar') && (
-                      <img
-                        onClick={() => openEstadoModal(item)}
-                        src={icon.martillito}
-                        className="iconver"
-                        alt="Tomar Desición"
-                        title="Toma de desiciones"
-                      />
-                    )}
-                    {tienePermiso('inspecciones', 'editar') && (
-                      <img
-                        onClick={() => openEditModal(item)}
-                        src={icon.editar}
-                        className="iconeditar"
-                        alt="Editar"
-                        title="Editar"
-                      />
-                    )}
-                    {tienePermiso('inspecciones', 'eliminar') && (
-                      <img
-                        onClick={() => openConfirmDeleteModal(item.id)}
-                        src={icon.eliminar}
-                        className="iconeliminar"
-                        alt="Eliminar"
-                        title="Eliminar"
-                      />
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+          {currentData.map((item, idx) => {
+                // Coloca el console.log aquí, fuera del return
+                console.log('INSPECCION:', item);
+
+                return (
+                  <tr key={item.id}>
+                    <td>{indexOfFirstItem + idx + 1}</td>
+                    <td>{item.codigo_inspeccion}</td>
+                    <td>{item.n_control}</td>
+                    <td>
+                      <span className={`badge-estado badge-${item.estado}`}>{item.estado}</span>
+                    </td>
+                    <td>
+                      <div className="iconContainer">
+                        {tienePermiso('inspecciones', 'ver') && (
+                          <img
+                            onClick={() => openDetalleModal(item)}
+                            src={icon.ver}
+                            className="iconver"
+                            alt="Detalle"
+                            title="Ver más"
+                          />
+                        )}
+                        {tienePermiso('inspecciones', 'ver') && (
+                          <img
+                            src={icon.picture}
+                            onClick={() => openGaleriaModal(item.id)}
+                            alt="Imágenes"
+                            className="iconver"
+                            title="Ver imágenes"
+                          />
+                        )}
+                        {tienePermiso('inspecciones', 'exportar') && (
+                          <img
+                            onClick={() => handleActaPDF(item)}
+                            src={icon.pdf2}
+                            className="iconver"
+                            alt="Acta con Fines de Vigilancia"
+                            title="Exportar Acta Con Fines de Vigilacia"
+                          />
+                        )}
+                        {tienePermiso('inspecciones', 'crear') && ['Administrador','Moderador'].includes(rol) && (
+                          <img
+                            onClick={() => openEstadoModal(item)}
+                            src={icon.martillito}
+                            className="iconver"
+                            alt="Tomar Desición"
+                            title="Toma de desiciones"
+                          />
+                        )}
+                        {tienePermiso('inspecciones', 'editar') && (
+                          (rol !== 'inspector' ||
+                            String(item.empleado_id) === String(empleadoId) ||
+                            (Array.isArray(item.empleados) && item.empleados.some(e => String(e.id) === String(empleadoId)))
+                          ) && (
+                            <img
+                              onClick={() => openEditModal(item)}
+                              src={icon.editar}
+                              className="iconeditar"
+                              alt="Editar"
+                              title="Editar"
+                            />
+                          )
+                        )}
+                        {tienePermiso('inspecciones', 'eliminar') && ['Moderador'].includes(rol) && (
+                          <img
+                            onClick={() => openConfirmDeleteModal(item.id)}
+                            src={icon.eliminar}
+                            className="iconeliminar"
+                            alt="Eliminar"
+                            title="Eliminar"
+                          />
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
         </table>
 
         <div className="tableFooter">

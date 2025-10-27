@@ -473,6 +473,7 @@ function Propiedad() {
                 cultivos_ids: formData.cultivos_ids.map(Number),
                 productores_ids: formData.productores_ids.map(Number)
                 };
+                // console.log(payload)
 
             const { data } = await axios.post(`${BaseUrl}/propiedad`, payload, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -1130,7 +1131,7 @@ function Propiedad() {
                     <tbody>
                         {(Array.isArray(currentData) ? currentData : []).map((item, idx) => {
                             // Log para depuración
-                            console.log('Inspecciones de propiedad', item.id, item.inspecciones);
+                            // console.log('Inspecciones de propiedad', item.id, item.inspecciones);
 
                             return (
                                 <tr key={item.id}>

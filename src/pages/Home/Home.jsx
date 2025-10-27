@@ -987,7 +987,7 @@ useEffect(() => {
             </div>
             )}
 
-            {rol === 'Administrador' && (
+            {rol === 'Inspector' && (
                 <div style={{ margin: '18px 0', textAlign: 'center' }}>
                     <div style={{
                         display: 'inline-block',

@@ -166,6 +166,8 @@ function Planificacion() {
 
     const bloqueaPorRol = (pl) => isModerador && isPendiente(pl);
 
+    const bloqueoaccion = (pl) => isModerador && norm(pl?.estado) !== 'pendiente';
+
     const parseLocalDateTime = (pl) => {
         const rawDate = pl?.fecha_programada;
         if (!rawDate) return null;
@@ -980,7 +982,7 @@ function Planificacion() {
                         </button>
                         )}
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 8 }}>
+                        {tienePermiso('planificacion', 'exportar') && (<div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 8 }}>
                             
                             <input
                                 type="week"
@@ -1008,7 +1010,7 @@ function Planificacion() {
                                     Limpiar
                                 </button>
                             )}
-                        </div>
+                        </div>)}
                     </div>
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
@@ -1055,17 +1057,17 @@ function Planificacion() {
                                             title={bloqueado ? 'Acción deshabilitada por rol/estado' : 'Ver más'}
                                         />
                                         {tienePermiso('planificacion', 'editar') && (<img
-                                            onClick={bloqueado ? undefined : () => openEditModal(item)}
+                                            onClick={bloqueoaccion(item) ? undefined : () => openEditModal(item)}
                                             src={icon.editar}
-                                            className={`iconeditar ${bloqueado ? 'iconDisabled' : ''}`}
-                                            title={bloqueado ? 'Acción deshabilitada por rol/estado' : 'Editar'}
+                                            className={`iconeditar ${bloqueoaccion(item) ? 'iconDisabled' : ''}`}
+                                            title={bloqueoaccion(item) ? 'Acción deshabilitada por rol/estado' : 'Editar'}
                                         />
                                         )}
                                         {tienePermiso('planificacion', 'eliminar') && (<img
-                                            onClick={bloqueado ? undefined : () => openConfirmDeleteModal(item.id)}
+                                            onClick={bloqueoaccion(item) ? undefined : () => openConfirmDeleteModal(item.id)}
                                             src={icon.eliminar}
-                                            className={`iconeliminar ${bloqueado ? 'iconDisabled' : ''}`}
-                                            title={bloqueado ? 'Acción deshabilitada por rol/estado' : 'Eliminar'}
+                                            className={`iconeliminar ${bloqueoaccion(item) ? 'iconDisabled' : ''}`}
+                                            title={bloqueoaccion(item) ? 'Acción deshabilitada por rol/estado' : 'Eliminar'}
                                         />
                                         )}
                                     </div>
