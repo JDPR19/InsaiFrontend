@@ -1446,8 +1446,12 @@ html, body {
 .badge-planificada   { background: var(--badge-diagnosticada-bg); color: var(--badge-text); border: 1px solid var(--badge-diagnosticada-border);}
 .badge-inspeccionando{ background: var(--badge-diagnosticada-bg); color: var(--badge-text); border: 1px solid var(--badge-diagnosticada-border);}
 .badge-aprobada      { background: var(--badge-aprobada-bg); color: var(--badge-text); border: 1px solid var(--badge-aprobada-border);}
-.badge-rechazada     { background: var(--badge-rechazada-bg); color: var(--badge-text); border: 1px solid var(--badge-rechazada-border);}
-
+.badge-no_aprobada   { background: var(--badge-rechazada-bg); color: var(--badge-text); border: 1px solid var(--badge-rechazada-border);}
+.badge-no_atendida {
+  background: var(--badge-pendiente-bg);      
+  color: var(--badge-text);                   
+  border: 1px solid var(--badge-pendiente-border); 
+}
 .badge-registrada  { background: var(--badge-bg);              color: var(--badge-text); border: 1px solid var(--badge-border); }            
 .badge-solicitada  { background: var(--badge-pendiente-bg);    color: var(--badge-text); border: 1px solid var(--badge-pendiente-border); }  
 .badge-seguimiento { background: var(--badge-diagnosticada-bg);color: var(--badge-text); border: 1px solid var(--badge-diagnosticada-border);}
@@ -2317,6 +2321,46 @@ html, body {
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.11);
     padding: 20px;
     border-radius: 20px;
+}
+
+/* Estilos para los botones de paginación */
+.pagination-btn {
+  background: var(--light-green);
+  color: var(--black1);
+  border: none;
+  border-radius: 22px;
+  padding: 8px 22px;
+  margin: 0 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #0001;
+  transition: background 0.2s, color 0.2s, transform 0.1s;
+}
+
+.pagination-btn:disabled {
+  background: var(--grey3);
+  color: var(--grey4);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.pagination-btn:not(:disabled):hover {
+  background: var(--green-hover1);
+  color: var(--white);
+  transform: translateY(-1px) scale(1);
+}
+
+/* Modo oscuro */
+.dark .pagination-btn {
+  background: var(--grey3);
+  color: var(--white);
+}
+
+.dark .pagination-btn:not(:disabled):hover {
+  background: var(--light-green);
+  color: var(--black1);
 }
 
 /* Animación sutil */

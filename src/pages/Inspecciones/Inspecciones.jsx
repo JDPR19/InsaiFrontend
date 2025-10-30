@@ -22,7 +22,7 @@ function InspeccionesEst() {
   const tienePermiso = usePermiso();
   const { addNotification } = useNotification();
   const user = JSON.parse(localStorage.getItem('user'));
-  const rol = user?.roles_nombre?.toLowerCase();
+  const rol = user?.roles_nombre;
   const empleadoId = user?.empleado_id;
   // const puedeVerSeguimiento = ['Administrador', 'Moderador'].includes(rol);
 
@@ -50,6 +50,14 @@ function InspeccionesEst() {
     planificacion_id: null,
     finalidades: [],
   });
+
+const estadosFinales = [
+  'finalizada',
+  'no aprobada',
+  'no atendida',
+  'seguimiento',
+  'cuarentena'
+];
   // Estado UI
   const [loading, setLoading] = useState(false);
   const [currentModal, setCurrentModal] = useState(null);
@@ -58,12 +66,13 @@ function InspeccionesEst() {
   const [selectedInspeccionId, setSelectedInspeccionId] = useState(null);
   const [showOpcionales, setShowOpcionales] = useState(false);
   const [galeriaModal, setGaleriaModal] = useState({ abierto: false, imagenes: [] });
-  const [estadoModal, setEstadoModal] = useState({ abierto: false, id: null, estado: 'aprobada' });
+  const [estadoModal, setEstadoModal] = useState({ abierto: false, id: null, estado: 'finalizada' });
   const mostrarTodas = () => setDatosFiltrados(datosOriginales);
-  const mostrarCuarentena = () => setDatosFiltrados((datosOriginales || []).filter(i => String(i.estado || '').toLowerCase() === 'cuarentena'));
-  const mostrarAprobadas = () => setDatosFiltrados((datosOriginales || []).filter(i => String(i.estado || '').toLowerCase() === 'aprobada'));
-  // const mostrarRechazadas = () => setDatosFiltrados((datosOriginales || []).filter(i => String(i.estado || '').toLowerCase() === 'rechazada'));
-  const normEstado = (s) => String(s || '').toLowerCase().trim(); 
+  const mostrarCuarentena = () => setDatosFiltrados((datosOriginales || []).filter(i => normEstado(i.estado) === 'cuarentena'));
+  const mostrarAprobadas = () => setDatosFiltrados((datosOriginales || []).filter(i => normEstado(i.estado) === 'finalizada'));
+  const mostrarRechazadas = () => setDatosFiltrados((datosOriginales || []).filter(i => normEstado(i.estado) === 'no aprobada'));
+  
+  const normEstado = (s) => String(s || '').toLowerCase().trim();
   const [totales, setTotales] = useState({
     inspeccionesTotales: 0,
     inspeccionesCreadas: 0,
@@ -78,8 +87,13 @@ function InspeccionesEst() {
   const [decisionFrases,   setDecisionFrases] = useState([]);
   const [decisionOtro,     setDecisionOtro]   = useState('');
   const programaOptions = useMemo(
-    () => (programasFito || []).map(p => ({ value: String(p.id), label: p.nombre })),
-    [programasFito]
+    () => (programasFito || []).map(p => ({
+      value: String(p.id),
+      label: p.nombre,
+      // marca opción como deshabilitada si ya está asociada
+      isDisabled: (programasAsociadosIds || []).includes(String(p.id))
+    })),
+    [programasFito, programasAsociadosIds]
   );
 
   const SUGERENCIAS = useMemo(() => ({
@@ -148,26 +162,28 @@ function InspeccionesEst() {
     return [...base, addOtro].filter(Boolean).join(' | ');
   };
 
-  function getPDFInfo() {
+function getPDFInfo() {
     const all = Array.isArray(datosOriginales) ? datosOriginales : [];
     const cur = Array.isArray(datosFiltrados) ? datosFiltrados : [];
 
     const sameSize = cur.length === all.length;
     const allEstadoIs = (estado) => cur.length > 0 && cur.every(i => String(i.estado || '').toLowerCase() === estado);
 
+
     if (sameSize) {
-      return { fileName: 'Inspecciones_Todas.pdf', title: 'Listado de Inspecciones' };
-    }
-    if (allEstadoIs('creada'))         return { fileName: 'Inspecciones_Creadas.pdf',        title: 'Inspecciones Creadas' };
-    if (allEstadoIs('aprobada'))       return { fileName: 'Inspecciones_Aprobadas.pdf',      title: 'Inspecciones Aprobadas' };
-    if (allEstadoIs('rechazada'))      return { fileName: 'Inspecciones_Rechazadas.pdf',     title: 'Inspecciones Rechazadas' };
-    if (allEstadoIs('cuarentena'))     return { fileName: 'Inspecciones_Cuarentena.pdf',     title: 'Inspecciones en Cuarentena' };
-    if (allEstadoIs('inspeccionando')) return { fileName: 'Inspecciones_Inspeccionando.pdf', title: 'Inspecciones en Proceso' };
-    if (allEstadoIs('finalizada') || allEstadoIs('finalizado'))
-      return { fileName: 'Inspecciones_Finalizadas.pdf',    title: 'Inspecciones Finalizadas' };
+  return { fileName: 'Inspecciones_Todas.pdf', title: 'Listado de Inspecciones' };
+}
+if (allEstadoIs('creada'))           return { fileName: 'Inspecciones_Creadas.pdf',        title: 'Inspecciones Creadas' };
+if (allEstadoIs('diagnosticada'))    return { fileName: 'Inspecciones_Diagnosticadas.pdf', title: 'Inspecciones Diagnosticadas' };
+if (allEstadoIs('inspeccionando'))   return { fileName: 'Inspecciones_Inspeccionando.pdf', title: 'Inspecciones en Proceso' };
+if (allEstadoIs('no aprobada'))      return { fileName: 'Inspecciones_NoAprobadas.pdf',    title: 'Inspecciones No Aprobadas' };
+if (allEstadoIs('seguimiento'))      return { fileName: 'Inspecciones_Seguimiento.pdf',    title: 'Inspecciones en Seguimiento' };
+if (allEstadoIs('cuarentena'))       return { fileName: 'Inspecciones_Cuarentena.pdf',     title: 'Inspecciones en Cuarentena' };
+if (allEstadoIs('finalizada'))       return { fileName: 'Inspecciones_Finalizadas.pdf',    title: 'Inspecciones Finalizadas' };
+if (allEstadoIs('no atendida'))      return { fileName: 'Inspecciones_NoAtendidas.pdf',    title: 'Inspecciones No Atendidas' };
 
     return { fileName: 'Inspecciones_Filtradas.pdf', title: 'Listado de Inspecciones Filtradas' };
-  }
+}
 
   const handlePreviewPDF = () => {
     const { fileName, title } = getPDFInfo();
@@ -265,7 +281,7 @@ const handleActaPDF = async (item) => {
     const payload = toPdfPayload(detalle);
     payload.finalidadCatalogo = finalidadCatalogFromOptions(finalidadOptions);
     payload.uploadsBaseUrl = `${BaseUrl}/inspecciones/imagenes/jpg`;
-console.log('IMAGENES PARA PDF:', payload.inspeccion.imagenes, payload.uploadsBaseUrl);
+    // console.log('IMAGENES PARA PDF:', payload.inspeccion.imagenes, payload.uploadsBaseUrl);
     const blob = await buildInspeccionActaBlob(payload);
     const url = URL.createObjectURL(blob);
     setPdfUrl(url);
@@ -288,35 +304,33 @@ console.log('IMAGENES PARA PDF:', payload.inspeccion.imagenes, payload.uploadsBa
 
   useEffect(() => {
     const arr = Array.isArray(datosOriginales) ? datosOriginales : [];
-    const cuarentena    = arr.filter(i => normEstado(i.estado) === 'cuarentena').length;
-    const aprobadas  = arr.filter(i => normEstado(i.estado) === 'aprobada').length;
-    const rechazadas = arr.filter(i => normEstado(i.estado) === 'rechazada').length;
+    const cuarentena = arr.filter(i => normEstado(i.estado) === 'cuarentena').length;
+    const finalizadas = arr.filter(i => normEstado(i.estado) === 'finalizada').length;
+    const noAprobadas = arr.filter(i => normEstado(i.estado) === 'no aprobada').length;
     setTotales({
       inspeccionesTotales: arr.length,
       inspeccionesCuarentena: cuarentena,
-      inspeccionesAprobadas: aprobadas,
-      inspeccionesRechazadas: rechazadas,
+      inspeccionesAprobadas: finalizadas,
+      inspeccionesRechazadas: noAprobadas,
     });
   }, [datosOriginales]);
 
 
+
   const [planificaciones, setPlanificaciones] = useState([]);
   const [finalidadesCatalogo, setFinalidadesCatalogo] = useState([]);
-
-  // Para el select de planificación en edición (inyectar la opción actual si no está disponible)
   const [planificacionActualOpt, setPlanificacionActualOpt] = useState(null);
   // Imágenes
-  const [imagenes, setImagenes] = useState([]); // nuevas
+  const [imagenes, setImagenes] = useState([]); 
   const [previewUrls, setPreviewUrls] = useState([]);
-  const [imagenesGuardadas, setImagenesGuardadas] = useState([]); // del backend (editar)
-  const [imagenesAEliminar, setImagenesAEliminar] = useState([]); // nombres a eliminar
-
+  const [imagenesGuardadas, setImagenesGuardadas] = useState([]); 
+  const [imagenesAEliminar, setImagenesAEliminar] = useState([]); 
   // Paginación
   const itemsPerPage = 8;
   const [currentPage, setCurrentPage] = useState(1);
 
   
-  // Opciones de selects (memo)
+  // Opciones de selects 
 const planificacionOptions = useMemo(() => {
   return (planificaciones || []).map((p) => ({
     value: String(p.id),
@@ -328,7 +342,7 @@ const planificacionOptions = useMemo(() => {
 const planificacionOptionsFiltradas = useMemo(() => {
   if (!planificacionOptions) return [];
   // Si es admin o moderador, muestra todas las planificaciones disponibles
-  if (rol === 'administrador' || rol === 'moderador') {
+  if (rol === 'Administrador' || rol === 'Moderador') {
     return planificacionOptions;
   }
   // Si es inspector, solo muestra las planificaciones donde él está asignado
@@ -559,7 +573,7 @@ const planificacionOptionsFiltradas = useMemo(() => {
         zona: data.zona ?? '',
         aspectos: data.aspectos || '',
         ordenamientos: data.ordenamientos || '',
-        estado: data.estado || 'creada',
+        estado: data.estado || 'diagnosticada',
         planificacion_id: optPlan,           // SingleSelect
         finalidades: finalidadesForm
       }));
@@ -707,14 +721,14 @@ const planificacionOptionsFiltradas = useMemo(() => {
     // planificacion_id como value
     data.append('planificacion_id', formData.planificacion_id?.value || '');
 
-    // Enviar solo finalidades válidas (select escogido)
-    const finalidadesValidas = (formData.finalidades || [])
-      .filter((f) => f?.finalidad_id?.value)
-      .map((f) => ({
-        finalidad_id: f.finalidad_id.value,
-        objetivo: f.objetivo || '',
-      }));
-    data.append('finalidades', JSON.stringify(finalidadesValidas));
+    // Enviar solo finalidades válidas 
+  const finalidadesValidas = (formData.finalidades || [])
+    .filter((f) => f?.finalidad_id?.value)
+    .map((f) => ({
+      finalidad_id: f.finalidad_id.value,
+      objetivo: f.objetivo || '',
+    }));
+  data.append('finalidades', JSON.stringify(finalidadesValidas));
 
     // imágenes nuevas
     imagenes.forEach((img) => data.append('imagenes', img));
@@ -815,59 +829,63 @@ const planificacionOptionsFiltradas = useMemo(() => {
     setCurrentPage((prev) => Math.min(prev + 3, maxPage));
   };
 
-  const handleGuardarEstado = async () => {
-    const targetId = estadoModal.id;
-    if (!targetId) { addNotification('Sin inspección objetivo', 'warning'); return; }
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-
-      await axios.patch(
-        `${BaseUrl}/inspecciones/${targetId}/estado`,
-        { estado: estadoModal.estado },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      const toAdd = (selectedProgramas || [])
-        .map(p => Number(p.value))
-        .filter(pid => !programasAsociadosIds.includes(String(pid)));
-
-      const observacion = buildDescripcionAcciones(decisionFrases, decisionOtro);
-
-      for (const programa_fito_id of toAdd) {
-        await axios.post(
-          `${BaseUrl}/seguimiento/inspeccion/programa`,
-          { inspeccion_est_id: targetId, programa_fito_id, observacion, estado: 'seguimiento' },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-      }
-
-      addNotification('Toma de Desición Exitosa', 'success');
-
-      // Limpiar UI ANTES de navegar
-      setSelectedProgramas([]);
-      setDecisionFrases([]);
-      setDecisionOtro('');
-      setEstadoModal(s => ({ ...s, abierto: false }));
-      setLoading(false);
-
-      // Navegar al seguimiento
-      navigate(`/inspecciones/${targetId}/seguimiento`);
-
-      // No más código después de navegar
-    } catch (e) {
-      const msg = e?.response?.data?.message || e?.response?.data?.error || 'No se pudo actualizar';
-      addNotification(msg, 'error');
-    } finally {
-      setLoading(false);
-    }
+   const mapFromDbEstado = (v) => {
+    if (!v) return v;
+    const s = String(v).toLowerCase().trim();
+    if (s === 'no aprobada') return 'rechazada';
+    if (s === 'finalizada') return 'aprobada';
+    return s;
   };
+  const mapToDbEstado = (v) => {
+    if (!v) return v;
+    const s = String(v).toLowerCase().trim();
+    if (s === 'aprobada') return 'finalizada';
+    if (s === 'rechazada' || s === 'no apta') return 'no aprobada';
+    return s;
+  };
+
+const handleGuardarEstado = async () => {
+  const targetId = estadoModal.id;
+  if (!targetId) { addNotification('Inspección no seleccionada', 'error'); return; }
+  setLoading(true);
+  try {
+    const payloadEstado = mapToDbEstado(estadoModal.estado);
+
+    // Mapea las finalidades seleccionadas
+    const finalidadesValidas = (formData.finalidades || [])
+      .filter(f => f?.finalidad_id?.value)
+      .map(f => ({
+        finalidad_id: f.finalidad_id.value,
+        objetivo: f.objetivo || ''
+      }));
+
+    const body = {
+      estado: payloadEstado,
+      observacion: buildDescripcionAcciones(decisionFrases, decisionOtro) || null,
+      programas: (selectedProgramas || []).map(p => Number(p.value)),
+      finalidades: finalidadesValidas 
+    };
+
+    await axios.patch(`${BaseUrl}/inspecciones/${targetId}/estado`, body, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
+    addNotification('Estado actualizado', 'success');
+    await fetchInspecciones();
+    closeEstadoModal();
+    navigate(`/inspecciones/${targetId}/seguimiento`);
+  } catch (e) {
+    console.error(e);
+    addNotification(e?.response?.data?.message || 'No se pudo actualizar el estado', 'error');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const openEstadoModal = (item) => {
     setEstadoModal({
       abierto: true,
       id: item.id,
-      estado: String(item.estado || 'aprobada').toLowerCase()
+      estado: mapFromDbEstado(item.estado) || 'finalizada'
     });    
     setDecisionFrases([]);           
     fetchProgramasFito().catch(() => {});
@@ -875,7 +893,7 @@ const planificacionOptionsFiltradas = useMemo(() => {
   };
 
   const closeEstadoModal = () => {
-    setEstadoModal({ abierto: false, id: null, estado: 'aprobada' });
+    setEstadoModal({ abierto: false, id: null, estado: 'finalizada' });
     setSelectedProgramas([]);
     setProgramasAsociadosIds([]);
     setDecisionFrases([]);
@@ -1409,11 +1427,11 @@ const planificacionOptionsFiltradas = useMemo(() => {
 
             <div className="radio-group" style={{ marginTop: 6, display: 'grid', gridTemplateColumns: 'repeat(2, minmax(160px, 1fr))', gap: 6 }}>
               {[
-                { val: 'aprobada', label: 'Aprobada' },
+                { val: 'finalizada', label: 'Finalizada' },
                 { val: 'seguimiento', label: 'Seguimiento' },
                 { val: 'cuarentena', label: 'Cuarentena' },
-                { val: 'rechazada', label: 'No Apta' },
-                { val: 'finalizada', label: 'Finalizada' },
+                { val: 'no atendida', label: 'No Atendido' },
+                { val: 'no aprobada', label: 'No Aprobada' }
               ].map(op => (
                 <label key={op.val} className="radio-label">
                   <input
@@ -1434,6 +1452,7 @@ const planificacionOptionsFiltradas = useMemo(() => {
               value={selectedProgramas}
               onChange={setSelectedProgramas}
               placeholder="Selecciona programas..."
+              isOptionDisabled={(opt) => (programasAsociadosIds || []).includes(String(opt.value))}
             />
             {selectedProgramas.length > 0 && (
               <button
@@ -1531,12 +1550,12 @@ const planificacionOptionsFiltradas = useMemo(() => {
         </div>
         <div className='card' onClick={mostrarAprobadas} title='Inspecciones Aprobadas'>
           <span className='cardNumber'>{totales.inspeccionesAprobadas}</span>
-          <p>Inspecciones Aprobadas</p>
+          <p>Inspecciones Finalizadas</p>
         </div>
-        {/* <div className='card' onClick={mostrarRechazadas} title='Inspecciones Rechazadas'>
+        <div className='card' onClick={mostrarRechazadas} title='Inspecciones Rechazadas'>
           <span className='cardNumber'>{totales.inspeccionesRechazadas}</span>
-          <p>Inspecciones Rechazadas</p>
-        </div> */}
+          <p>Inspecciones No Aprobadas</p>
+        </div>
       </div>
 
       {/*/////////////////// Tabla ///////////*/}
@@ -1617,8 +1636,7 @@ const planificacionOptionsFiltradas = useMemo(() => {
           </thead>
           <tbody>
           {currentData.map((item, idx) => {
-                // Coloca el console.log aquí, fuera del return
-                console.log('INSPECCION:', item);
+                // console.log('INSPECCION:', item);
 
                 return (
                   <tr key={item.id}>
@@ -1626,7 +1644,9 @@ const planificacionOptionsFiltradas = useMemo(() => {
                     <td>{item.codigo_inspeccion}</td>
                     <td>{item.n_control}</td>
                     <td>
-                      <span className={`badge-estado badge-${item.estado}`}>{item.estado}</span>
+                      <span className={`badge-estado badge-${String(item.estado).toLowerCase().replace(/\s/g, '_')}`}>
+                        {item.estado}
+                      </span>
                     </td>
                     <td>
                       <div className="iconContainer">
@@ -1657,15 +1677,17 @@ const planificacionOptionsFiltradas = useMemo(() => {
                             title="Exportar Acta Con Fines de Vigilacia"
                           />
                         )}
-                        {tienePermiso('inspecciones', 'crear') && ['Administrador','Moderador'].includes(rol) && (
-                          <img
-                            onClick={() => openEstadoModal(item)}
-                            src={icon.martillito}
-                            className="iconver"
-                            alt="Tomar Desición"
-                            title="Toma de desiciones"
-                          />
-                        )}
+                        {tienePermiso('inspecciones', 'crear') &&
+                          ['Administrador', 'Moderador'].includes(rol) &&
+                          !estadosFinales.includes(String(item.estado).toLowerCase()) && (
+                            <img
+                              onClick={() => openEstadoModal(item)}
+                              src={icon.martillito}
+                              className="iconver"
+                              alt="Tomar Desición"
+                              title="Toma de desiciones"
+                            />
+                          )}
                         {tienePermiso('inspecciones', 'editar') && (
                           (rol !== 'inspector' ||
                             String(item.empleado_id) === String(empleadoId) ||
@@ -1680,7 +1702,7 @@ const planificacionOptionsFiltradas = useMemo(() => {
                             />
                           )
                         )}
-                        {tienePermiso('inspecciones', 'eliminar') && ['Moderador'].includes(rol) && (
+                        {tienePermiso('inspecciones', 'eliminar') && ['Administrador', 'Moderador'].includes(rol) && (
                           <img
                             onClick={() => openConfirmDeleteModal(item.id)}
                             src={icon.eliminar}

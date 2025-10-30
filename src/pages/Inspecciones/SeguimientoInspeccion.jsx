@@ -60,6 +60,12 @@ function SeguimientoInspeccion() {
   const [confirmProg, setConfirmProg] = useState({ abierto: false, id: null, nombre: '' });
   const [hoveredProg, setHoveredProg] = useState(null);
   const [pinnedProg, setPinnedProg] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentInspecciones = traza.inspecciones.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(traza.inspecciones.length / itemsPerPage);
   const [actaOpen, setActaOpen] = useState(false);
   const [actaForm, setActaForm] = useState({
     fecha_notificacion: '',
@@ -660,6 +666,10 @@ const confirmarEliminarPrograma = async () => {
     return idx >= 0 ? idx + 1 : null;
   }, [traza.inspecciones, inspeccionSeleccionada]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [traza.inspecciones]);
+
   return (
     <div className="mainContainer">
       {loading && <Spinner text="Procesando..." />}
@@ -1221,7 +1231,7 @@ const confirmarEliminarPrograma = async () => {
           <div className={styles.timelineHost}>
             <div className={styles.timelineWrap} style={{ overflow: 'visible', position: 'relative', zIndex: 1 }}>
               <div className={styles.timeline}>
-                {traza.inspecciones.map((it) => {
+                {currentInspecciones.map((it) => {
                   const estadoClass = `badge-${(it.estado || '').toLowerCase()}`;
                   const isHovered = hovered === it.id;
                   const isSelected = inspeccionSeleccionada === it.id;
@@ -1242,7 +1252,9 @@ const confirmarEliminarPrograma = async () => {
                         <div className={`${styles.marker} ${styles[estadoClass]}`} title={it.estado} />
                         <div className={styles.date}>{it.fecha_inspeccion || '—'}</div>
                         <div className={styles.state}>
-                          <span className={`badge-estado ${estadoClass}`}>{it.estado}</span>
+                          <span className={`badge-estado badge-${String(it.estado).toLowerCase().replace(/\s/g, '_')}`}>
+                            {it.estado}
+                          </span>
                         </div>
                       </div>
 
@@ -1329,6 +1341,26 @@ const confirmarEliminarPrograma = async () => {
                 })}
               </div>
             </div>
+            {/* Aquí va la paginación */}
+            {totalPages > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 10 }}>
+                <button
+                  className="pagination-btn"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Anterior
+                </button>
+                <span>Página {currentPage} de {totalPages}</span>
+                <button
+                  className="pagination-btn"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Siguiente
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

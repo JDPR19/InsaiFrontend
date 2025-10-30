@@ -1,6 +1,6 @@
 import axios from 'axios';
+import {BaseUrl} from './constans';
 
-const BASE_URL = 'http://localhost:4000/bitacora'; 
 
 /**
  * Registrar inicio de sesión en la bitácora.
@@ -8,7 +8,7 @@ const BASE_URL = 'http://localhost:4000/bitacora';
  * @param {string} username - Nombre del usuario.
  */
 export const registrarInicioSesion = (userId, username) => {
-    axios.post(`${BASE_URL}/inicio-sesion`, { usuario: username, usuario_id: userId }) // Enviar ambos campos
+    axios.post(`${BaseUrl}/inicio-sesion`, { usuario: username, usuario_id: userId }) // Enviar ambos campos
         .then(() => {
             console.log(`Inicio de sesión registrado para el usuario con ID: ${userId}`);
         })
@@ -23,7 +23,7 @@ export const registrarInicioSesion = (userId, username) => {
  * @param {string} username - Nombre del usuario.
  */
 export const registrarCierreSesion = (userId, username) => {
-    axios.post(`${BASE_URL}/cierre-sesion`, { usuario: username, usuario_id: userId }) // Enviar ambos campos
+    axios.post(`${BaseUrl}/cierre-sesion`, { usuario: username, usuario_id: userId }) // Enviar ambos campos
         .then(() => {
             console.log(`Cierre de sesión registrado para el usuario con ID: ${userId}`);
         })
