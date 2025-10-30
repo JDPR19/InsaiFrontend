@@ -346,10 +346,13 @@ function Productor() {
         setCurrentModal('productor');
     };
 
-    const closeModal = () => {
+    const closeModal = (limpiarUrl = true) => {
         setCurrentModal(null);
         setStep(1);
         setRecentProductor(null);
+        if (limpiarUrl && window.location.search) {
+        navigate(window.location.pathname, { replace: true });
+    }
     };
 
     const openEditModal = (productor) => {
@@ -376,7 +379,7 @@ function Productor() {
         if (recentProductor?.id) params.set('productorId', String(recentProductor.id));
 
         navigate(`/SeccionOne?${params.toString()}`);
-        closeModal();
+        closeModal(false);
     };
 
     const openConfirmDeleteModal = (id) => {

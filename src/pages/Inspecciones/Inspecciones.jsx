@@ -1702,7 +1702,7 @@ const handleGuardarEstado = async () => {
                             />
                           )
                         )}
-                        {tienePermiso('inspecciones', 'eliminar') && ['Administrador', 'Moderador'].includes(rol) && (
+                        {tienePermiso('inspecciones', 'eliminar') && ['Administrador'].includes(rol) && (
                           <img
                             onClick={() => openConfirmDeleteModal(item.id)}
                             src={icon.eliminar}

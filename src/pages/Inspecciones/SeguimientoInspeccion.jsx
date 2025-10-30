@@ -1031,14 +1031,14 @@ const confirmarEliminarPrograma = async () => {
             >
               Acta Silos y Almacenes
             </button>
-            <button
+            {/* <button
               className={styles.reportBtn}
               onClick={() => openReporte('general')}
               disabled={!inspeccionSeleccionada}
               title="Generar Data Epidemiologica"
             >
               Data Epidemiologica
-            </button>
+            </button> */}
             <button
               className={styles.reportBtn}
               onClick={() => generarCertificadoTecnico(inspeccionSeleccionada)}
@@ -1055,14 +1055,14 @@ const confirmarEliminarPrograma = async () => {
             >
               Certificado Fitosanitario
             </button>
-            <button
+            {/* <button
               className={styles.reportBtn}
               onClick={() => openReporte('informe')}
               disabled={!inspeccionSeleccionada}
               title="Generar Acta de Trazabilidad de Inspección"
             >
               Acta de Trazabilidad de Inspección
-            </button>
+            </button> */}
           </div>
         </div>
 

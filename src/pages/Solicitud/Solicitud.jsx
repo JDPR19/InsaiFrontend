@@ -271,12 +271,15 @@ function Solicitud() {
         setCurrentModal('solicitud');
     };
 
-    const closeModal = () => {
+    const closeModal = (limpiarUrl = true) => {
         resetFormData();
         setRecentSolicitud(null);
         setStep(1);
         setCurrentModal(null);
-    };
+        if (limpiarUrl && window.location.search) {
+        navigate(window.location.pathname, { replace: true });
+    }
+};
 
     const openEditModal = (item) => {
         const parsed = parseDescripcionToMotivos(item.descripcion || '');
@@ -461,7 +464,7 @@ function Solicitud() {
         params.set('tab', 'planificacion');
         if (recentSolicitud?.id) params.set('solicitudId', String(recentSolicitud.id));
         navigate(`/SeccionTwo?${params.toString()}`);
-        closeModal();
+        closeModal(false);
     };
 
     return (

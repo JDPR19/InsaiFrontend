@@ -591,7 +591,12 @@ function Propiedad() {
         setCurrentModal('propiedad');
     };
 
-    const closeModal = () => setCurrentModal(null);
+const closeModal = (limpiarUrl = true) => {
+    setCurrentModal(null);
+    if (limpiarUrl && window.location.search) {
+        navigate(window.location.pathname, { replace: true });
+    }
+};
 
     const openEditModal = async (propiedad) => {
         // Cargar dependientes en cadena
@@ -648,7 +653,7 @@ function Propiedad() {
         params.set('tab', 'solicitud');
         if (recentPropiedad?.id) params.set('propiedadId', String(recentPropiedad.id)); 
         navigate(`/SeccionTwo?${params.toString()}`);
-        closeModal();
+        closeModal(false);
     };
 
     return (
