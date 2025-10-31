@@ -122,23 +122,6 @@ function Home() {
             { header: 'Ordenamientos', key: 'ordenamientos' },
             { header: 'Estado', key: 'estado' },
         ],
-        // record_inspecciones: [
-        //     { header: 'Código UBIGEO', key: 'codigo' },
-        //     { header: 'N° Control', key: 'control' },
-        //     { header: 'Área', key: 'area' },
-        //     { header: 'Fecha', key: 'fecha_inspeccion' }, 
-        //     { header: 'Hora', key: 'hora' },
-        //     { header: 'Responsable', key: 'responsable' },
-        //     { header: 'Cédula.Res', key: 'cedula' },
-        //     { header: 'Teléfono', key: 'tlf' },
-        //     { header: 'Correo', key: 'correo' },
-        //     { header: 'Norte', key: 'norte' },
-        //     { header: 'Este', key: 'este' },
-        //     { header: 'Zona', key: 'zona' },
-        //     { header: 'Aspectos', key: 'aspectos' },
-        //     { header: 'Ordenamientos', key: 'ordenamientos' },
-        //     { header: 'Estado', key: 'estado' },
-        // ],
     };
     
     const tienePermiso = usePermiso();

@@ -432,21 +432,25 @@ function Plagas() {
                                 <td>{plaga.tipo_plaga_fito_nombre}</td>
                                 <td>
                                     <div className='iconContainer'>
-                                        <img
+                                        {tienePermiso('plaga', 'ver') && (
+                                            <img
                                             onClick={() => openDetalleModal(plaga)}
                                             src={icon.ver}
                                             className='iconver'
                                             title='Ver más'
                                             style={{ cursor: 'pointer' }}
-                                        />
-                                        {tienePermiso('plaga', 'editar') && (<img
+                                            />
+                                        )}
+                                        {tienePermiso('plaga', 'editar') && (
+                                            <img
                                             onClick={() => openEditModal(plaga)}
                                             src={icon.editar}
                                             className='iconeditar'
                                             title='Editar'
                                         />
                                         )}
-                                        {tienePermiso('plaga', 'eliminar') && (<img 
+                                        {tienePermiso('plaga', 'eliminar') && (
+                                            <img 
                                             onClick={() => openConfirmDeleteModal(plaga.id)} 
                                             src={icon.eliminar} 
                                             className='iconeliminar' 

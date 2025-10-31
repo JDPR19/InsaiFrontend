@@ -12,9 +12,11 @@ import { BaseUrl } from '../../utils/constans';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 import { buildProductorFichaBlob } from '../../components/pdf/Ficha';
 import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
+import { usePermiso } from '../../hooks/usePermiso';
 
 function Productor() {
     const navigate = useNavigate();
+    const tienePermiso = usePermiso();
     const [step, setStep] = useState(1);
     const [recentProductor, setRecentProductor] = useState(null);
     const [datosOriginales, setDatosOriginales] = useState([]);
@@ -250,7 +252,8 @@ function Productor() {
                 setErrors(prev => ({
                     ...prev,
                     ...(lower.includes('cédula') || lower.includes('cedula') ? { cedula: backendMessage } : {}),
-                    ...(lower.includes('código') || lower.includes('codigo') ? { codigo: backendMessage } : {})
+                    ...(lower.includes('código') || lower.includes('codigo') ? { codigo: backendMessage } : {}),
+                    ...(lower.includes('correo') || lower.includes('email') ? { email: backendMessage } : {})
                 }));
             }
         } finally {
@@ -632,42 +635,45 @@ function Productor() {
             <div className='tableSection'>
                 <div className='filtersContainer'>
                 <div className='filtersButtons'>
+                    {tienePermiso('propiedad', 'crear') && (
                         <button 
-                            type='button'
-                            onClick={openModal} 
-                            className='create'
-                            title='Registrar Productor'>
+                        type='button'
+                        onClick={openModal} 
+                        className='create'
+                        title='Registrar Productor'>
                             <img src={icon.plus} alt="Crear" className='icon' />
                             Agregar
                         </button>
-
+                    )}
+                    {tienePermiso('propiedad', 'exportar') && (
                         <button
-                            type='button'
-                            onClick={handlePreviewPDF}
-                            className='btn-estandar'
-                            title='Previsualizar PDF'
+                        type='button'
+                        onClick={handlePreviewPDF}
+                        className='btn-estandar'
+                        title='Previsualizar PDF'
                         >
                             <img src={icon.pdf5} alt="PDF" className='icon' />
                             PDF
                         </button>
-
+                    )}
+                    {tienePermiso('propiedad', 'exportar') && (
                         <button
-                            type='button'
-                            onClick={() => exportToExcel({
-                                data: datosFiltrados,
-                                columns: columnsProductor,
-                                fileName: excelFileName,
-                                count: true,
-                                totalLabel: 'TOTAL REGISTROS'
-                            })}
-                            className='btn-estandar'
-                            title='Descargar Formato Excel'
+                        type='button'
+                        onClick={() => exportToExcel({
+                            data: datosFiltrados,
+                            columns: columnsProductor,
+                            fileName: excelFileName,
+                            count: true,
+                            totalLabel: 'TOTAL REGISTROS'
+                        })}
+                        className='btn-estandar'
+                        title='Descargar Formato Excel'
                         >
                             <img src={icon.excel2} alt="Excel" className='icon' />
                             Excel
                         </button>
+                    )}
                     </div>
-                  
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
@@ -694,31 +700,39 @@ function Productor() {
                                 <td>{prod.total_propiedades || 0}</td>
                                 <td>
                                     <div className='iconContainer'>
-                                        <img
+                                        {tienePermiso('propiedad', 'ver') && (
+                                            <img
                                             onClick={() => openDetalleModal(prod)}
                                             src={icon.ver}
                                             className='iconver'
                                             title='Ver más'
-                                        />
-                                        <img
+                                            />
+                                        )}
+                                        {tienePermiso('propiedad', 'exportar') && (
+                                            <img
                                             onClick={() => handleFichaPDF(prod)}
                                             src={icon.cliente}
                                             className='iconver'
                                             title='Ficha PDF'
                                             alt='Ficha PDF'
-                                        />
-                                        <img
+                                            />
+                                        )}
+                                        {tienePermiso('propiedad', 'editar') && (
+                                            <img
                                             onClick={() => openEditModal(prod)}
                                             src={icon.editar}
                                             className='iconeditar'
                                             title='Editar'
-                                        />
-                                        <img 
+                                            />
+                                        )}
+                                        {tienePermiso('propiedad', 'eliminar') && (
+                                            <img 
                                             onClick={() => openConfirmDeleteModal(prod.id)} 
                                             src={icon.eliminar} 
                                             className='iconeliminar' 
                                             title='Eliminar'
-                                        />
+                                            />
+                                        )}
                                     </div>
                                 </td>
                             </tr>

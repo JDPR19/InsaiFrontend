@@ -573,6 +573,7 @@ function Usuario() {
 
             <div className='tableSection'>
                 <div className='filtersContainer'>
+                    {tienePermiso('usuarios', 'crear') && (
                     <button 
                         type='button'
                         onClick={openModal} 
@@ -581,6 +582,7 @@ function Usuario() {
                         <img src={icon.plus} alt="Crear" className='icon' />
                         Agregar
                     </button>
+                    )}
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
                         <img src={icon.lupa} alt="Buscar" className='iconlupa' />
@@ -608,12 +610,14 @@ function Usuario() {
                                 <td>{usuario.roles_nombre}</td>
                                 <td>
                                     <div className='iconContainer'>
-                                        <img
+                                        {tienePermiso('usuarios', 'ver') && (
+                                            <img
                                             onClick={() => openDetalleModal(usuario)}
                                             src={icon.ver}
                                             className='iconver'
                                             title='Ver más'
-                                        />
+                                            />
+                                        )}
                                         {tienePermiso('usuarios','editar') && user.id === usuario.id && (
                                             <img
                                                 onClick={() => openEditModal(usuario)}
@@ -622,12 +626,14 @@ function Usuario() {
                                                 title='Editar'
                                             />
                                         )}
+                                        {tienePermiso('usuarios', 'eliminar') && (
                                             <img 
                                             onClick={() => openConfirmDeleteModal(usuario.id)} 
                                             src={icon.eliminar} 
                                             className='iconeliminar' 
                                             title='eliminar'
                                             />
+                                        )}
                                         {tienePermiso('usuarios', 'deshabilitar') && user.id !== usuario.id && usuario.estado && (
                                             <img 
                                                 onClick={() => disableUser(usuario.id, false)} 

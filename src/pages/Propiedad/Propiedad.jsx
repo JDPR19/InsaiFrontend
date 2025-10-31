@@ -583,14 +583,29 @@ function Propiedad() {
         setCurrentPage((prev) => Math.min(prev + 3, maxPage));
     };
 
-    const openModal = () => {
-        resetFormData();
-        setErrors({});
-        setRecentPropiedad(null);
-        setStep(1); 
-        setCurrentModal('propiedad');
-    };
+const openModal = async () => {
+    resetFormData();
+    setErrors({});
+    setRecentPropiedad(null);
+    setStep(1);
 
+    // Si los estados aún no están cargados, espera a que se carguen
+    if (!estados.length) {
+        await fetchEstados();
+    }
+
+    // Busca el id de Yaracuy (o el que quieras por defecto)
+    const estadoPorDefecto = estados.find(e => e.nombre === 'Yaracuy')?.id || '23';
+
+    setFormData(prev => ({
+        ...prev,
+        estado_id: String(estadoPorDefecto)
+    }));
+
+    fetchMunicipios(estadoPorDefecto);
+
+    setCurrentModal('propiedad');
+};
 const closeModal = (limpiarUrl = true) => {
     setCurrentModal(null);
     if (limpiarUrl && window.location.search) {
@@ -1089,7 +1104,8 @@ const closeModal = (limpiarUrl = true) => {
                         </button>
                         )}
 
-                        {tienePermiso('propiedad','exportar') && (<button
+                        {tienePermiso('propiedad','exportar') && (
+                            <button
                             type='button'
                             onClick={handlePreviewPDF}
                             className='btn-estandar'

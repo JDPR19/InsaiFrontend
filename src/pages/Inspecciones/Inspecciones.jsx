@@ -1593,29 +1593,34 @@ const handleGuardarEstado = async () => {
       <div className="tableSection">
         <div className="filtersContainer">
           <div className='filtersButtons'>
-
+        {tienePermiso('inspecciones', 'crear') && (
           <button type="button" onClick={openModal} className="create" title="Registrar Inspección">
             <img src={icon.plus} alt="Crear" className="icon" />
             Inspección
           </button>
+        )}
+        {tienePermiso('inspecciones', 'exportar') && (
           <button
-            type='button'
-            onClick={handlePreviewPDF}
-            className='btn-estandar'
-            title='Previsualizar PDF'
+          type='button'
+          onClick={handlePreviewPDF}
+          className='btn-estandar'
+          title='Previsualizar PDF'
           >
             <img src={icon.pdf5} alt="PDF" className='icon' />
             PDF
           </button>
+        )}
+        {tienePermiso('inspecciones', 'exportar') && (
           <button
-            type='button'
-            onClick={handleExportExcel}
-            className='btn-estandar'
-            title='Descargar Excel'
+          type='button'
+          onClick={handleExportExcel}
+          className='btn-estandar'
+          title='Descargar Excel'
           >
             <img src={icon.excel2} alt="Excel" className='icon' />
             Excel
           </button>
+        )}
         </div>
           <h2>Inspecciones</h2>
           <div className="searchContainer">

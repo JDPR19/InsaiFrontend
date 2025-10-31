@@ -622,15 +622,15 @@ const getReportMeta = () => ({
                                 Excel
                             </button>
                         )}
-                    {tienePermiso('programa', 'crear') && (<button 
-                        type='button'
-                        onClick={openModal} 
-                        className='create'
-                        title='Registrar Programa'>
-                        <img src={icon.plus} alt="Crear" className='icon' />
-                        Agregar
-                    </button>
-                    )}
+                        {tienePermiso('programa', 'crear') && (<button 
+                            type='button'
+                            onClick={openModal} 
+                            className='create'
+                            title='Registrar Programa'>
+                            <img src={icon.plus} alt="Crear" className='icon' />
+                            Agregar
+                        </button>
+                        )}
                     </div>
 
                     <div className='searchContainer'>
@@ -661,12 +661,14 @@ const getReportMeta = () => ({
                                 <td>{(programa.empleados || []).map(e => e.nombre).join(', ') || 'N/A'}</td>
                                 <td>
                                     <div className='iconContainer'>
-                                        <img
+                                        {tienePermiso('programa', 'ver') && (
+                                            <img
                                             onClick={() => openDetalleModal(programa)}
                                             src={icon.ver}
                                             className='iconver'
                                             title='Ver más'
-                                        />
+                                            />
+                                        )}
                                         {tienePermiso('programa', 'editar') && (<img
                                             onClick={() => openEditModal(programa)}
                                             src={icon.editar}

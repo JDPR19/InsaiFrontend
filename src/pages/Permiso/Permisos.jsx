@@ -10,10 +10,12 @@ import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
 import { buildActaSilosBlob } from '../../components/pdf/ActaSilos';
 import { useNotification } from '../../utils/NotificationContext';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
+import {usePermiso} from '../../hooks/usePermiso';
 
 
 
 function ActaSilos() {
+    const tienePermiso = usePermiso();
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -292,7 +294,7 @@ const handleExportExcel = async () => {
             )}
 
             {/* Modal de detalle */}
-           {detalleModal.abierto && detalleModal.acta && (
+            {detalleModal.abierto && detalleModal.acta && (
                 <div className='modalOverlay'>
                     <div className='modal'>
                         <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
@@ -318,24 +320,29 @@ const handleExportExcel = async () => {
             <div className='tableSection'>
                 <div className='filtersContainer'>
                     <div className='filtersButtons'>
+                    {tienePermiso('inspecciones', 'exportar') && (
                         <button
-                            type='button'
-                            onClick={handlePreviewPDF}
-                            className='btn-estandar'
-                            title='Previsualizar PDF'
+                        type='button'
+                        onClick={handlePreviewPDF}
+                        className='btn-estandar'
+                        title='Previsualizar PDF'
                         >
                             <img src={icon.pdf5} alt="PDF" className='icon' />
                             PDF
                         </button>
+                    )}
+                    {tienePermiso('inspecciones', 'exportar') && (
                         <button
-                            type='button'
-                            onClick={handleExportExcel}
-                            className='btn-estandar'
-                            title='Descargar Excel'
+                        type='button'
+                        onClick={handleExportExcel}
+                        className='btn-estandar'
+                        title='Descargar Excel'
                         >
                             <img src={icon.excel2} alt="Excel" className='icon' />
                             Excel
                         </button>
+                    )}
+                    {tienePermiso('inspecciones', 'exportar') && (
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 8 }}>
                             <input
@@ -344,26 +351,27 @@ const handleExportExcel = async () => {
                                 value={weekStr}
                                 onChange={(e) => setWeekStr(e.target.value)}
                                 title="Filtrar por semana (ISO)"
-                            />
+                                />
                             <button
                                 type="button"
                                 className="btn-estandar"
                                 onClick={() => setWeekStr(getWeekInputValue(new Date()))}
                                 title="Semana actual"
-                            >
+                                >
                                 Semana
                             </button>
                             {weekRange && (
                                 <button
-                                    type="button"
-                                    className="btn-limpiar"
-                                    onClick={() => setWeekStr('')}
-                                    title="Quitar filtro semanal"
+                                type="button"
+                                className="btn-limpiar"
+                                onClick={() => setWeekStr('')}
+                                title="Quitar filtro semanal"
                                 >
                                     Limpiar
                                 </button>
                             )}
-                    </div>
+                        </div>
+                    )}
                     </div>
                     <div className='searchContainer'>
                         <SearchBar onSearch={handleSearch} />
@@ -390,21 +398,25 @@ const handleExportExcel = async () => {
                                 ))}
                                 <td>
                                     <div className='iconContainer'>
+                                    {tienePermiso('inspecciones', 'ver') && (
                                         <img
-                                            onClick={() => openDetalleModal(acta)}
-                                            src={icon.ver}
-                                            className='iconver'
-                                            title='Ver más'
-                                            alt='Ver más'
+                                        onClick={() => openDetalleModal(acta)}
+                                        src={icon.ver}
+                                        className='iconver'
+                                        title='Ver más'
+                                        alt='Ver más'
                                         />
+                                    )}
+                                    {tienePermiso('inspecciones', 'exportar') && (
                                         <img
-                                            onClick={() => generarActaPDF(acta.inspeccion_est_id)}
-                                            src={icon.pdf2}
-                                            className="iconver"
-                                            title="Descargar ficha PDF"
-                                            alt="Descargar ficha PDF"
-                                            
+                                        onClick={() => generarActaPDF(acta.inspeccion_est_id)}
+                                        src={icon.pdf2}
+                                        className="iconver"
+                                        title="Descargar ficha PDF"
+                                        alt="Descargar ficha PDF"
+                                        
                                         />
+                                    )}
                                     </div>
                                 </td>
                             </tr>

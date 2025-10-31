@@ -756,12 +756,14 @@ function Solicitud() {
                                 </td>
                                 <td>
                                     <div className='iconContainer'>
-                                        <img
+                                        {tienePermiso('solicitud', 'ver') && (
+                                            <img
                                             onClick={() => openDetalleModal(item)}
                                             src={icon.ver}
                                             className='iconver'
                                             title='Ver más'
-                                        />
+                                            />
+                                        )}
                                         {tienePermiso('solicitud', 'editar') && (<img
                                             onClick={() => openEditModal(item)}
                                             src={icon.editar}

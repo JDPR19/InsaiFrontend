@@ -1050,12 +1050,14 @@ function Planificacion() {
                                 </td>
                                 <td>
                                     <div className='iconContainer'>
-                                        <img
+                                        {tienePermiso('planificacion', 'ver') && (
+                                            <img
                                             onClick={bloqueado ? undefined : () => openDetalleModal(item)}
                                             src={icon.ver}
                                             className={`iconver ${bloqueado ? 'iconDisabled' : ''}`}
                                             title={bloqueado ? 'Acción deshabilitada por rol/estado' : 'Ver más'}
-                                        />
+                                            />
+                                        )}
                                         {tienePermiso('planificacion', 'editar') && (<img
                                             onClick={bloqueoaccion(item) ? undefined : () => openEditModal(item)}
                                             src={icon.editar}

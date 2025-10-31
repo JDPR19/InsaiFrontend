@@ -8,6 +8,7 @@ import styles from './inspecciones.module.css';
 import '../../main.css';
 import Icon from '../../components/iconos/iconos';
 import SingleSelect from '../../components/selectmulti/SingleSelect';
+import { usePermiso } from '../../hooks/usePermiso';
 import { buildActaSilosBlob } from '../../components/pdf/ActaSilos';
 import { buildCertificadoTecnicoBlob } from '../../components/pdf/CertificadoTecnico';
 import { buildCertificadoFitosanitarioBlob } from '../../components/pdf/CertificadoFitosanitario';
@@ -48,7 +49,8 @@ const semanaEpidFrom = (dateStr) => {
 };
 
 function SeguimientoInspeccion() {
-  const { id } = useParams(); // id de la inspección clicada
+  const tienePermiso = usePermiso();
+  const { id } = useParams(); 
   const navigate = useNavigate();
   const { addNotification } = useNotification();
   const [loading, setLoading] = useState(false);
@@ -535,8 +537,6 @@ const generarCertificadoFitosanitario = async (inspeccionId) => {
   }
 };
 
-
-//   if (!inspeccionId) { addNotification('Selecciona una inspección', 'warning'); return; }
 //   try {
 //     setLoading(true);
 
@@ -1023,14 +1023,16 @@ const confirmarEliminarPrograma = async () => {
             </div>
           </div>
           <div className={styles.reportActions}>
+          {tienePermiso('propiedad', 'exportar') && (
             <button
-              className={styles.reportBtn}
-              onClick={() => openReporte('acta')}
-              disabled={!inspeccionSeleccionada}
-              title="Generar Acta de Silos y Almacenes"
+            className={styles.reportBtn}
+            onClick={() => openReporte('acta')}
+            disabled={!inspeccionSeleccionada}
+            title="Generar Acta de Silos y Almacenes"
             >
               Acta Silos y Almacenes
             </button>
+          )}
             {/* <button
               className={styles.reportBtn}
               onClick={() => openReporte('general')}
@@ -1039,22 +1041,26 @@ const confirmarEliminarPrograma = async () => {
             >
               Data Epidemiologica
             </button> */}
+          {tienePermiso('propiedad', 'exportar') && (
             <button
-              className={styles.reportBtn}
-              onClick={() => generarCertificadoTecnico(inspeccionSeleccionada)}
-              disabled={!inspeccionSeleccionada}
-              title="Generar Certificado Técnico"
+            className={styles.reportBtn}
+            onClick={() => generarCertificadoTecnico(inspeccionSeleccionada)}
+            disabled={!inspeccionSeleccionada}
+            title="Generar Certificado Técnico"
             >
               Certificado Técnico
             </button>
+          )}
+          {tienePermiso('propiedad', 'exportar') && (
             <button
-              className={styles.reportBtn}
-              onClick={() => generarCertificadoFitosanitario(inspeccionSeleccionada)}
-              disabled={!inspeccionSeleccionada}
-              title="Generar Certificado Fitosanitario"
+            className={styles.reportBtn}
+            onClick={() => generarCertificadoFitosanitario(inspeccionSeleccionada)}
+            disabled={!inspeccionSeleccionada}
+            title="Generar Certificado Fitosanitario"
             >
               Certificado Fitosanitario
             </button>
+          )}
             {/* <button
               className={styles.reportBtn}
               onClick={() => openReporte('informe')}

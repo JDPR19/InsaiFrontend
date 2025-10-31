@@ -8,8 +8,10 @@ import { BaseUrl } from '../../utils/constans';
 import { useNotification } from '../../utils/NotificationContext';
 import { buildUsuarioFichaBlob } from '../../components/pdf/FichaUsuario';
 import AyudanteInfoTooltip from '../../components/ayudanteinfo/AyudaTooltip'
+import { usePermiso } from '../../hooks/usePermiso';
 
 function MiUsuario() {
+    const tienePermiso = usePermiso();
     const [pdfUrl, setPdfUrl] = useState(null);
     const [pdfFileName, setPdfFileName] = useState('');
     const token = localStorage.getItem('token');
@@ -438,15 +440,17 @@ const handleSeleccionarAvatar = async (imagen) => {
             </div>
 
             {/* Botón para descargar ficha PDF */}
+        {tienePermiso('miusuario', 'exportar') && (
             <div className={styles.section} style={{ textAlign: 'center', marginTop: 32 }}>
                 <button
                     className={styles.btnFichaPDF}
                     onClick={handleFichaUsuarioPDF}
                     style={{ marginRight: 12 }}
-                >
+                    >
                     Ficha PDF
                 </button>
             </div>
+        )}
         </div>
     );
 }

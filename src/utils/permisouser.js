@@ -8,7 +8,6 @@ export const PANTALLAS = [
     { key: 'solicitud', label: 'Solicitudes' , acciones: ['ver', 'crear', 'editar', 'eliminar', 'exportar']},
     { key: 'propiedad', label: 'Propiedades' , acciones: ['ver', 'crear', 'editar', 'eliminar', 'exportar']},
     { key: 'productor', label: 'Productores' , acciones: ['ver', 'crear', 'editar', 'eliminar', 'exportar']},
-    // { key: 'permisos', label: 'Actas Silos', acciones: ['ver'] },
     { key: 'laboratorio', label: 'Laboratorios' , acciones: ['ver', 'crear', 'editar', 'eliminar', 'exportar']},
     { key: 'plaga', label: 'Plagas' , acciones: ['ver', 'crear', 'editar', 'eliminar', 'exportar']},
     { key: 'cultivo', label: 'Cultivos' , acciones: ['ver', 'crear', 'editar', 'eliminar', 'exportar']},
