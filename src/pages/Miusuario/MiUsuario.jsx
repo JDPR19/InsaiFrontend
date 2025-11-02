@@ -29,6 +29,39 @@ function MiUsuario() {
     const [confirmDeleteImagenModal, setConfirmDeleteImagenModal] = useState({ abierto: false, imagen: null });
     const { addNotification } = useNotification();
 
+    const formatFechaHora = (v) => v ? new Date(v).toLocaleString('es-ES') : '—';
+    const accionClass = (accion = '') => {
+        const a = String(accion).toLowerCase();
+        if (a.includes('elimin')) return `${styles.badge} ${styles.badgeDanger}`;
+        if (a.includes('actualiz')) return `${styles.badge} ${styles.badgeWarning}`;
+        if (a.includes('inicio') || a.includes('cierre')) return `${styles.badge} ${styles.badgeInfo}`;
+        return `${styles.badge} ${styles.badgeSuccess}`; // Registro u otros
+    };
+
+    const diffHuman = (ini, fin) => {
+        try {
+        const a = new Date(ini).getTime();
+        const b = new Date(fin).getTime();
+        if (!isFinite(a) || !isFinite(b)) return '—';
+        let s = Math.max(0, Math.floor((b - a) / 1000));
+        const h = Math.floor(s / 3600); s -= h * 3600;
+        const m = Math.floor(s / 60);   s -= m * 60;
+        const parts = [];
+        if (h) parts.push(`${h}h`);
+        if (m || (!h && s)) parts.push(`${m}m`);
+        if (!h && s) parts.push(`${s}s`);
+        return parts.join(' ');
+        } catch { return '—'; }
+    };
+
+    const notifTipoClass = (tipo = '') => {
+        const t = String(tipo || '').toLowerCase();
+        if (t.includes('inspec')) return styles.dotInspeccion;
+        if (t.includes('planific')) return styles.dotPlanificacion;
+        if (t.includes('solic')) return styles.dotSolicitud;
+        return styles.dotSistema;
+    };
+
     // Cargar datos completos del usuario
     useEffect(() => {
         setLoading(true);
@@ -395,9 +428,12 @@ const handleSeleccionarAvatar = async (imagen) => {
                 ) : (
                     <ul className={styles.listaNotificaciones}>
                         {notificaciones.map(n => (
-                            <li key={n.id} className={n.leida ? styles.notificacionLeida : styles.notificacionNoLeida}>
-                                <span>{n.mensaje}</span>
-                                <span className={styles.fechaNotificacion}>{new Date(n.created_at).toLocaleString('es-ES')}</span>
+                            <li key={n.id} className={`${styles.notifItem} ${n.leida ? styles.leida : ''}`}>
+                                <span className={`${styles.dot} ${notifTipoClass(n.tipo)}`} />
+                                <span className={styles.msg}>{n.mensaje}</span>
+                                <span className={styles.notifFecha}>
+                                    {new Date(n.created_at).toLocaleString('es-ES')}
+                                </span>
                             </li>
                         ))}
                     </ul>
@@ -406,38 +442,65 @@ const handleSeleccionarAvatar = async (imagen) => {
 
             {/* Historial de actividad */}
             <div className={styles.section}>
-                <h3>Historial de actividad</h3>
-                {historial.length === 0 ? (
-                    <p className={styles.textoSecundario}>Sin actividad reciente.</p>
-                ) : (
-                    <ul className={styles.listaHistorial}>
-                        {historial.map((h, idx) => (
-                            <li key={idx}>
-                                <b>{h.accion}</b> en <b>{h.tabla}</b>: {h.descripcion}
-                                <span className={styles.fechaHistorial}>{new Date(h.fecha).toLocaleString('es-ES')}</span>
-                            </li>
-                        ))}
-                    </ul>
-                )}
+            <h3>Historial de actividad</h3>
+
+            {historial.length === 0 ? (
+            <p className={styles.textoSecundario}>Sin actividad reciente.</p>
+            ) : (
+            <div className={styles.historialBox}>
+                <div className={styles.historialHeader}>
+                <span>Acción</span>
+                <span>Módulo</span>
+                <span>Descripción</span>
+                <span className={styles.colFechaH}>Fecha</span>
+                </div>
+
+                {historial.map((h, idx) => (
+                <div key={idx} className={styles.historialRow}>
+                    <span className={accionClass(h.accion)}>{h.accion}</span>
+                    <span className={styles.colModulo}>{h.tabla}</span>
+                    <span className={styles.colDescripcion}>{h.descripcion}</span>
+                    <span className={styles.colFecha}>{formatFechaHora(h.fecha)}</span>
+                </div>
+                ))}
             </div>
+            )}
+        </div>
 
             {/* Últimas sesiones */}
             <div className={styles.section}>
-                <h3>Últimos accesos</h3>
-                {sesiones.length === 0 ? (
-                    <p className={styles.textoSecundario}>No hay registros de sesiones.</p>
-                ) : (
-                    <ul className={styles.listaSesiones}>
-                        {sesiones.map((s, idx) => (
-                            <li key={idx}>
-                                <span>Inicio: {new Date(s.fecha_inicio).toLocaleString('es-ES')}</span>
-                                {s.fecha_fin && <span> | Fin: {new Date(s.fecha_fin).toLocaleString('es-ES')}</span>}
-                                {/* <span> | IP: {s.ip}</span> */}
-                            </li>
-                        ))}
-                    </ul>
-                )}
+            <h3>Últimos accesos</h3>
+
+            {Array.isArray(sesiones) && sesiones.length ? (
+            <div className={styles.accesosBox}>
+                <div className={styles.accesosHeader}>
+                <span>Inicio</span>
+                <span>Fin</span>
+                <span className={styles.colDurH}>Duración</span>
+                <span className={styles.colEstadoH}>Estado</span>
+                </div>
+
+                {sesiones.map((s, i) => {
+                const ini = s.inicio || s.fecha_inicio || s.login_at || s.inicio_sesion;
+                const fin = s.fin || s.fecha_fin || s.logout_at || s.cierre_sesion;
+                const abierta = !fin;
+                return (
+                    <div key={i} className={styles.accesoRow}>
+                    <span className={styles.colInicio}>{formatFechaHora(ini)}</span>
+                    <span className={styles.colFin}>{fin ? formatFechaHora(fin) : '—'}</span>
+                    <span className={styles.colDur}>{fin ? diffHuman(ini, fin) : 'En curso'}</span>
+                    <span className={styles.colEstado}>
+                        <span className={`${styles.estadoDot} ${abierta ? styles.estadoOpen : styles.estadoClosed}`} />
+                        {abierta ? 'Abierta' : 'Cerrada'}
+                    </span>
+                    </div>
+                );
+                })}
             </div>
+            ) : (
+            <p className={styles.textoSecundario}>Sin registros de acceso.</p>
+            )}
+        </div>
 
             {/* Botón para descargar ficha PDF */}
         {tienePermiso('miusuario', 'exportar') && (

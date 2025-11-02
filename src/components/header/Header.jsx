@@ -101,10 +101,14 @@ function Header() {
 
     const isDark = theme === 'dark';
 
+    const HandleHome = () => {
+        navigate('/Home');
+    }
+
     return (
         <header className={styles.header}>
             <div className={styles.logoContainer}>
-                <img src={sicic} alt="Logo Institucional" title='Logo SICIC-INSAI • Sistema de Información para el Control de Operaciones de Campo' className={styles.logo} />
+                <img src={sicic} alt="Logo Institucional" onClick={HandleHome} title='Logo SICIC-INSAI • Sistema de Información para el Control de Operaciones de Campo' className={styles.logo} />
                 <span className={styles.tituloSistema} title='Eslogan' >• SICIC-INSAI • "Comprometidos con la sanidad agrícola de Venezuela"</span>
             </div>
             <div className={styles.titleContainer}>

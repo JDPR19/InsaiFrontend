@@ -30,6 +30,12 @@
     background-repeat: no-repeat;
     background-size: auto;
     background-position: center;
+    cursor: pointer;
+    transition: transform 0.3s ease-in-out;
+}
+
+.logo:hover {
+    transform: scale(0.9);
 }
 
 .titleContainer {

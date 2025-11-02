@@ -12,6 +12,7 @@ import { usePermiso } from '../../hooks/usePermiso';
 import { buildActaSilosBlob } from '../../components/pdf/ActaSilos';
 import { buildCertificadoTecnicoBlob } from '../../components/pdf/CertificadoTecnico';
 import { buildCertificadoFitosanitarioBlob } from '../../components/pdf/CertificadoFitosanitario';
+import { buildActaTrazabilidadBlob } from '../../components/pdf/ActaTrazabilidad';
 
 function timeSince(dateStr) {
   if (!dateStr) return '—';
@@ -338,7 +339,76 @@ const generarActaPDF = async (inspeccionId) => {
     setLoading(false);
   }
 };
-  const onActaButtonClick = async () => {
+
+const generarActaTrazabilidad = async (inspeccionId) => {
+  if (!inspeccionId) { addNotification('Selecciona una inspección', 'warning'); return; }
+  setLoading(true);
+  try {
+    // Detalle enriquecido de la inspección seleccionada
+    const { data: det } = await axios.get(
+      `${BaseUrl}/seguimiento/acta-silos/inspeccion/${inspeccionId}/detalle`,
+      { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+    );
+
+    const seleccion = {
+      codigo_inspeccion: det?.codigo_inspeccion || '—',
+      n_control: det?.n_control || '—',
+      fecha_inspeccion: det?.fecha_inspeccion || '—',
+      estado: det?.estado || '—'
+    };
+
+    const inspectores = Array.isArray(det?.inspectores) ? det.inspectores : [];
+    const programasSel = Array.isArray(det?.programas_detalle)
+      ? det.programas_detalle
+      : (Array.isArray(programas) ? programas : []);
+    const plagas = Array.isArray(det?.plagas_detalle)
+      ? det.plagas_detalle
+      : (Array.isArray(det?.plagas_enfermedades) ? det.plagas_enfermedades.map(n=>({ nombre:n })) : []);
+    const medidas = det?.medidas_recomendadas || '';
+    const observaciones = det?.observaciones || '';
+
+    const blob = await buildActaTrazabilidadBlob({
+      propiedad: traza.propiedad,
+      productores: Array.isArray(det?.productores) ? det.productores : (traza.productores||[]),
+      cultivos: Array.isArray(traza.cultivos) ? traza.cultivos : [],
+      inspecciones: Array.isArray(traza.inspecciones) ? traza.inspecciones : [],
+      seleccion,
+      inspectores,
+      programas: programasSel,
+      plagas,
+      medidas,
+      observaciones,
+      acta: {
+        semana_epid: det?.semana_epid || '',
+        lugar_ubicacion: det?.lugar_ubicacion || '',
+        cant_nacional: det?.cant_nacional,
+        cant_importado: det?.cant_importado,
+        cant_afectado: det?.cant_afectado,
+        unidad_medida: det?.unidad_medida,
+        numero_silos: det?.numero_silos,
+        numero_galpones: det?.numero_galpones,
+        capacidad_instalada: det?.capacidad_instalada,
+        capacidad_operativa: det?.capacidad_operativa,
+        capacidad_almacenamiento: det?.capacidad_almacenamiento,
+        destino_objetivo: det?.destino_objetivo
+      },
+      fechaEmision: new Date().toISOString().slice(0,10),
+      coordinador: 'ING. GUSTAVO MUJICA',
+      coordinadorCedula: 'V-9.601.781'
+    });
+
+    const url = URL.createObjectURL(blob);
+    setPdfUrl(url);
+    setPdfFileName(`Acta_Trazabilidad_${inspeccionId}.pdf`);
+  } catch (e) {
+    console.error(e);
+    addNotification('No se pudo generar el Acta de Trazabilidad', 'error');
+  } finally {
+    setLoading(false);
+  }
+};
+  
+const onActaButtonClick = async () => {
     if (!inspeccionSeleccionada) {
       addNotification('Selecciona una inspección', 'warning');
       return;
@@ -400,24 +470,32 @@ const generarActaPDF = async (inspeccionId) => {
 
   const conclusionFromEstado = (estado) => {
   const e = String(estado || '').trim().toLowerCase();
+
   switch (e) {
-    case 'aprobada':
-    case 'finalizada':
-      return 'la inspección se declara Aprobada, apta para la ejecución de las actividades conforme a la normativa vigente.';
-    case 'rechazada':
-      return 'la inspección se declara No Conforme (Rechazada); deberá abstenerse de ejecutar actividades que comprometan la salud integral y corregir las no conformidades señaladas.';
-    case 'seguimiento':
-      return 'la inspección queda en Seguimiento técnico hasta verificar el cumplimiento de las medidas correctivas establecidas.';
-    case 'cuarentena':
-      return 'se ordena Cuarentena preventiva de la unidad/propiedad hasta el cumplimiento de las medidas sanitarias establecidas por la autoridad competente.';
-    case 'inspeccionando':
-      return 'la inspección se encuentra En Curso de evaluación técnica.';
+    case 'registrada':
+      return 'expediente registrado; en espera de solicitud y evaluación inicial.';
+    case 'solicitada':
+    case 'creada':
+      return 'solicitud recibida; pendiente de diagnóstico y programación.';
     case 'diagnosticada':
-      return 'la inspección ha sido Diagnosticada y queda a la espera de la verificación de medidas y resultados.';
+      return 'evaluación diagnóstica emitida; proceder a verificar medidas y programar inspección.';
     case 'planificada':
     case 'pendiente':
-    case 'creada':
-      return 'la solicitud/planificación se encuentra en proceso de programación y evaluación previa.';
+      return 'actividad programada; en espera de ejecución en la fecha indicada.';
+    case 'inspeccionando':
+      return 'inspección en curso de verificación técnica.';
+    case 'seguimiento':
+      return 'bajo seguimiento técnico hasta comprobar el cumplimiento de las medidas correctivas.';
+    case 'cuarentena':
+      return 'se ordena cuarentena preventiva hasta cumplir las medidas sanitarias correspondientes.';
+    case 'finalizada':
+    case 'aprobada':
+      return 'actuación finalizada con conformidad técnica para la continuidad de las actividades.';
+    case 'no aprobada':
+    case 'rechazada':
+      return 'no conforme; se deberá abstener de operar y corregir las no conformidades señaladas.';
+    case 'no atendida':
+      return 'la misma fue no atendida por la parte interesada; queda pendiente reprogramación o cierre administrativo.';
     default:
       return 'Conforme.';
   }
@@ -432,15 +510,24 @@ const generarCertificadoTecnico = async (inspeccionId) => {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     });
 
-    // Procesa los datos para evitar undefined
+    // Fuente de programas: usa los ya cargados en estado; si no, intenta tomar detalle del endpoint
+    const progsFuente = (Array.isArray(programas) && programas.length)
+      ? programas
+      : (Array.isArray(det?.programas_detalle) ? det.programas_detalle : []);
 
-    const programas = Array.isArray(det?.programas) ? det.programas : [];
+    // Nombres para el PDF
+    const programasNombres = progsFuente.map(p => p.programa_nombre || p).filter(Boolean);
+
+    // Observaciones desde Programas (observacion del vínculo o descripción del programa)
+    const obsFromProg = progsFuente
+      .map(p => (p.observacion && String(p.observacion).trim()) || (p.programa_descripcion && String(p.programa_descripcion).trim()) || '')
+      .filter(Boolean)
+      .join(' | ');
+
     const plagasEnfermedades = Array.isArray(det?.plagas_enfermedades) ? det.plagas_enfermedades : [];
-    // console.log('Estado recibido:', det?.estado);
     const estado = det?.estado || '';
     const memoConclusion = conclusionFromEstado(estado);
 
-    // Prepara los props para el PDF
     const blob = await buildCertificadoTecnicoBlob({
       inspeccion: {
         codigo_inspeccion: det?.codigo_inspeccion || '—',
@@ -452,13 +539,13 @@ const generarCertificadoTecnico = async (inspeccionId) => {
         propiedad_ubicacion: det?.propiedad_ubicacion || '—'
       },
       productores: Array.isArray(det?.productores) ? det.productores : [],
-      observaciones: det?.observaciones || '—',
       fechaEmision: new Date().toISOString().slice(0,10),
       memoClienteNombre: det?.propiedad_nombre || '—',
       memoDireccion: det?.propiedad_ubicacion || '—',
       memoCiudad: det?.municipio_nombre || '—',
       memoConclusion,
-      programas,
+      programas: programasNombres,
+      observaciones: (det?.observaciones && det.observaciones.trim()) || obsFromProg || '',
       plagasEnfermedades,
     });
 
@@ -488,6 +575,7 @@ const generarCertificadoFitosanitario = async (inspeccionId) => {
     const { data: det } = await axios.get(`${BaseUrl}/seguimiento/acta-silos/inspeccion/${inspeccionId}/detalle`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     });
+    console.log('Detalle inspección:', det);
 
     // 3) Preparar los datos para el PDF
     const productores = Array.isArray(det?.inspectores) ? det.inspectores : [];
@@ -507,8 +595,10 @@ const generarCertificadoFitosanitario = async (inspeccionId) => {
       parroquia: det?.parroquia_nombre || '—',
       municipio: det?.municipio_nombre || '—',
       estado: det?.estado_nombre || '—',
-      representante: det?.productor_nombre || '—',
-      representanteCedula: det?.productor_cedula || '—',
+      representante: det?.productores?.[0]?.nombre
+      ? `${det.productores[0].nombre} ${det.productores[0].apellido || ''}`.trim()
+      : '—',
+      representanteCedula: det?.productores?.[0]?.cedula || '—',
       silos,
       galpones,
       capacidadInstalada,
@@ -537,66 +627,6 @@ const generarCertificadoFitosanitario = async (inspeccionId) => {
   }
 };
 
-//   try {
-//     setLoading(true);
-
-//     const it = (traza.inspecciones || []).find(i => Number(i.id) === Number(inspeccionSeleccionada));
-//     if (!it) { addNotification('No se encontró la inspección seleccionada', 'error'); return; }
-
-//     // Técnicos (opcional)
-//     let tecnicos = [];
-//     try {
-//       const { data: det } = await axios.get(`${BaseUrl}/seguimiento/acta-silos/inspeccion/${inspeccionId}/detalle`, {
-//         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-//       });
-//       tecnicos = Array.isArray(det?.inspectores) ? det.inspectores.map(t => ({
-//         nombre: t.nombre, apellido: t.apellido, cedula: t.cedula, cargo: t.cargo
-//       })) : [];
-//     } catch { tecnicos = []; }
-
-//     const productores = Array.isArray(traza.productores) ? traza.productores : [];
-//     const cultivos = Array.isArray(traza.cultivos) ? traza.cultivos : [];
-//     const programasDet = (Array.isArray(programas) ? programas : []).map((p) => ({
-//       nombre: p.programa_nombre || `Programa #${p.programa_fito_id}`,
-//       tipo: p.tipo_programa || ''
-//     }));
-
-//     // Puedes adaptar los props según lo que espera CertificadoFitosanitarioDoc
-//     const blob = await buildCertificadoFitosanitarioBlob({
-//       empresaNombre: traza.propiedad?.propiedad_nombre || '—',
-//       empresaReg: traza.propiedad?.propiedad_registro || '—',
-//       empresaRif: traza.propiedad?.propiedad_rif || '—',
-//       parroquia: traza.propiedad?.parroquia_nombre || '—',
-//       municipio: traza.propiedad?.municipio_nombre || '—',
-//       estado: traza.propiedad?.estado_nombre || '—',
-//       representante: productores[0]?.nombre || '—',
-//       representanteCedula: productores[0]?.cedula || '—',
-//       silos: '1',
-//       capacidadInstalada: it?.capacidad_instalada || '—',
-//       capacidadProcesamiento: it?.capacidad_procesamiento || '—',
-//       capacidadAlmacenamiento: it?.capacidad_almacenamiento || '—',
-//       rubros: cultivos.map(c => c.nombre).join(', ') || '—',
-//       destino: 'ANIMAL',
-//       inspector: tecnicos[0]?.nombre || '—',
-//       inspectorCedula: tecnicos[0]?.cedula || '—',
-//       fechaInspeccion: it?.fecha_inspeccion || '',
-//       numCertificado: it?.codigo_inspeccion || '—',
-//       numInspeccion: it?.codigo_inspeccion || '—',
-//       fechaEmision: new Date().toISOString().slice(0,10),
-//       coordinador: 'ING. GUSTAVO MUJICA',
-//       coordinadorCedula: 'V-9.601.781',
-//     });
-
-//     const url = URL.createObjectURL(blob);
-//     setPdfUrl(url);
-//     setPdfFileName(`Certificado_Fitosanitario_${inspeccionId}.pdf`);
-//   } catch (e) {
-//     console.error(e);
-//     addNotification('No se pudo generar el Certificado Fitosanitario', 'error');
-//   } finally {
-//     setLoading(false);
-//   }
-// };
 
   const openReporte = (tipo, idForce) => {
     const targetId = idForce || inspeccionSeleccionada;
@@ -1061,14 +1091,16 @@ const confirmarEliminarPrograma = async () => {
               Certificado Fitosanitario
             </button>
           )}
-            {/* <button
-              className={styles.reportBtn}
-              onClick={() => openReporte('informe')}
-              disabled={!inspeccionSeleccionada}
-              title="Generar Acta de Trazabilidad de Inspección"
+          {tienePermiso('propiedad', 'exportar') && (
+            <button
+            className={styles.reportBtn}
+            onClick={() => generarActaTrazabilidad(inspeccionSeleccionada)}
+            disabled={!inspeccionSeleccionada}
+            title="Generar Acta de Trazabilidad de Inspección"
             >
-              Acta de Trazabilidad de Inspección
-            </button> */}
+            Acta de Trazabilidad de Inspección
+          </button>
+          )}
           </div>
         </div>
 

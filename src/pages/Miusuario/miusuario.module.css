@@ -1,71 +1,4 @@
 
-.modal {
-    background: var(--white1);
-    border-radius: 16px;
-    padding: 40px 32px 32px 32px;
-    max-width: 1180px;
-    min-width: 650px;
-    margin: 60px auto;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-    position: relative;
-}
-
-
-.infoGrid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px 24px; /* 8px entre filas, 24px entre columnas */
-    margin-bottom: 18px;
-    max-width: 420px;
-}
-.formColumns {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 24px;
-}
-
-.formGroup {
-    flex: 1 1 180px;
-    min-width: 180px;
-    display: flex;
-    flex-direction: column;
-}
-
-.formGroup label {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--black);
-    margin-bottom: 4px;
-    display: block;
-}
-
-.title {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    font-family: 'Poppins',sans-serif;
-    margin-bottom: 10px;
-}
-
-.infoLabel {
-    color: #555;
-    font-weight: 700;
-    margin-right: 8px;
-    font-size: 1.09rem;
-}
-
-.infoValue {
-    color: #222;
-    font-weight: 500;
-    font-size: 1.09rem;
-}
-
-.infoRow {
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-}
 
 .miUsuarioContainer {
     max-width: auto;
@@ -109,7 +42,7 @@
     gap: 10px;
 }
 
-.btnFoto, .btnFotoEliminar {
+.btnFoto {
     background: var(--light-green);
     color: #fff;
     border: none;
@@ -121,16 +54,11 @@
     font-family: 'Poppins', sans-serif;
 }
 
-.btnFotoEliminar {
-    background: #c0392b;
-}
 
 .btnFoto:hover {
     background: #508b32ac;
 }
-.btnFotoEliminar:hover {
-    background: #a93226;
-}
+
 
 .datosPrincipales {
     flex: 1;
@@ -185,63 +113,67 @@
     font-family: 'Poppins', sans-serif;
 }
 
-.listaNotificaciones, .listaHistorial, .listaSesiones {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    font-family: 'Poppins', sans-serif;
+/* Notificaciones recientes (contenedor) */
+.listaNotificaciones {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--white1);
 }
 
-.listaNotificaciones li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 9px 0;
-    border-bottom: 1px solid #e0e0e0;
-    font-size: 15px;
-    font-family: 'Poppins', sans-serif;
+/* Override específico para nuestros <li> nuevos */
+.listaNotificaciones li.notifItem {
+  display: grid;
+  grid-template-columns: 20px 1fr 220px;
+  gap: 8px 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid #eef1f5;
+}
+.listaNotificaciones li.notifItem:nth-child(even) { background: var(--white); }
+.listaNotificaciones li.notifItem:last-child { border-bottom: none; }
+.listaNotificaciones li.notifItem:hover { background: #b2c6a62b; }
+
+/* Punto de estado por tipo */
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+  box-shadow: 0 0 0 2px #fff;
+}
+.dotInspeccion   { background: #2fb344; }  /* verde */
+.dotPlanificacion{ background: #0b63c8; }  /* azul */
+.dotSolicitud    { background: #7b61ff; }  /* violeta */
+.dotSistema      { background: #ffb020; }  /* ámbar */
+
+/* Mensaje multilinea con clamp */
+.msg {
+  color: var(--black1);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;        /* máximo 2 líneas */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
 }
 
-.notificacionNoLeida {
-    background: var(--white);
-    font-weight: 500;
-}
-.notificacionLeida {
-    background: transparent;
-    color: #888;
-}
-
-.fechaNotificacion {
-    font-size: 13px;
-    color: var(--light-green);
-    margin-left: 16px;
+/* Fecha alineada a la derecha */
+.notifFecha {
+  text-align: right;
+  color: var(--light-green);
+  white-space: nowrap;
+  font-size: 13px;
 }
 
-.listaHistorial li {
-    padding: 8px 0;
-    border-bottom: 1px solid #e0e0e0;
-    font-size: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-family: 'Poppins', sans-serif;
-}
+/* Estado leído (suave) */
+.leida .msg { color: #626973; }
+.leida .notifFecha { color: #8aa391; }
+.leida { background: #fafafa; }
 
-.fechaHistorial {
-    font-size: 13px;
-    color: var(--light-green);
-    margin-left: 16px;
-    min-width: 160px;
-    text-align: right;
-}
-
-.listaSesiones li {
-    padding: 7px 0;
-    border-bottom: 1px solid #e0e0e0;
-    font-size: 15px;
-    color: var(--black1);
-    font-family: 'Poppins', sans-serif;
-}
 
 .btnFichaPDF {
     width: 20%;
@@ -293,3 +225,110 @@
     background: #508b32ac;
 }
 
+/* Contenedor del historial */
+.historialBox {
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--white1);
+}
+
+/* Encabezado */
+.historialHeader {
+  display: grid;
+  grid-template-columns: 160px 160px 1fr 190px;
+  gap: 8px 12px;
+  align-items: center;
+  background: var(--white);
+  color: var(--black1);
+  font-weight: 700;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e6e9ef;
+}
+.colFechaH { text-align: right; }
+
+/* Filas */
+.historialRow {
+  display: grid;
+  grid-template-columns: 160px 160px 1fr 190px;
+  gap: 8px 12px;
+  align-items: start;
+  padding: 10px 14px;
+  border-bottom: 1px solid #eef1f5;
+}
+.historialRow:nth-child(even) {
+  background: var(--white1);
+}
+.historialRow:last-child {
+  border-bottom: none;
+}
+
+.colModulo {
+  font-weight: 600;
+  color: var(--black1);
+}
+.colDescripcion {
+  color: var(--black1);
+  line-height: 1.35;
+}
+.colFecha {
+  text-align: right;
+  color: var(--light-green);
+  white-space: nowrap;
+}
+
+/* Badges por tipo de acción */
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.2px;
+  border: 1px solid transparent;
+}
+.badgeSuccess { background: #e7f5ec; color: #1e7d4f; border-color: #cfead9; }   /* REGISTRO */
+.badgeWarning { background: #fff5e6; color: #9a6b00; border-color: #ffe0b3; }   /* ACTUALIZO */
+.badgeDanger  { background: #fdecec; color: #b02a37; border-color: #f7c7cd; }   /* ELIMINO */
+.badgeInfo    { background: #e9f2ff; color: #0b63c8; border-color: #cfe2ff; }   /* Inicio/Cierre sesión */
+
+
+.accesosBox {
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--white1);
+}
+.accesosHeader {
+  display: grid;
+  grid-template-columns: 1fr 1fr 140px 140px;
+  gap: 8px 12px;
+  align-items: center;
+  background: var(--white1);
+  color: var(--black1);
+  font-weight: 700;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e6e9ef;
+}
+.colDurH, .colEstadoH { text-align: right; }
+
+.accesoRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 140px 140px;
+  gap: 8px 12px;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid #eef1f5;
+}
+.accesoRow:nth-child(even) { background: var(--white1); }
+.accesoRow:last-child { border-bottom: none; }
+
+.colInicio, .colFin { color: var(--black1); }
+.colDur { text-align: right; color: var(--light-green); font-weight: 600; }
+.colEstado { text-align: right; color: var(--light-green); display: inline-flex; gap: 8px; align-items: center; }
+.estadoDot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+.estadoOpen { background: #ffb020; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #ffe0b3; }
+.estadoClosed { background: #2fb344; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #cfead9; }
+
+
+/* Responsive */

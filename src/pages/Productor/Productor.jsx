@@ -13,6 +13,7 @@ import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 import { buildProductorFichaBlob } from '../../components/pdf/Ficha';
 import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
 import { usePermiso } from '../../hooks/usePermiso';
+import SingleSelect from '../../components/selectmulti/SingleSelect';
 
 function Productor() {
     const navigate = useNavigate();
@@ -25,7 +26,10 @@ function Productor() {
     const [loading, setLoading] = useState(false);
     const [currentModal, setCurrentModal] = useState(null);
     const [detalleModal, setDetalleModal] = useState({ abierto: false, productor: null });
-    const [pdfUrl, setPdfUrl] = useState(null)
+    const [pdfUrl, setPdfUrl] = useState(null);
+    const CEDULA_PREFIJOS = ['V-', 'E-', 'G-', 'J-', 'P-'];
+    const cedulaPrefijosOptions = CEDULA_PREFIJOS.map(p => ({ value: p, label: p }));
+    const [cedulaPrefijo, setCedulaPrefijo] = useState({ value: 'V-', label: 'V-' });
     const [pdfFileName, setPdfFileName] = useState('');
     const { fileName } = getPDFInfo();
     const excelFileName = fileName.replace('.pdf', '.xlsx');
@@ -49,6 +53,14 @@ function Productor() {
         maxPropiedades: 0,
         topProducers: [] 
     });
+
+    const splitCedula = (str) => {
+        const m = String(str || '').match(/^([VEGJP])[-]?(\d{1,15}(-\d{1,2})?)$/i);
+        return {
+            tipo: m ? `${m[1].toUpperCase()}-` : 'V-',
+            numero: m ? m[2] : ''
+        };
+    };
 
     // Columnas para PDF/Excel
     const columnsProductor = [
@@ -227,7 +239,7 @@ function Productor() {
         try {
             const payload = {
                 codigo: formData.codigo,
-                cedula: formData.cedula,
+                cedula: `${cedulaPrefijo.value}${formData.cedula}`.replace(/--+/g, '-').trim(),
                 nombre: formData.nombre,
                 apellido: formData.apellido,
                 contacto: formData.contacto || null,
@@ -267,7 +279,7 @@ function Productor() {
     try {
         const payload = {
         codigo: formData.codigo,
-        cedula: formData.cedula,
+        cedula: `${cedulaPrefijo.value}${formData.cedula}`.replace(/--+/g, '-').trim(),
         nombre: formData.nombre,
         apellido: formData.apellido,
         contacto: formData.contacto || null,
@@ -359,10 +371,12 @@ function Productor() {
     };
 
     const openEditModal = (productor) => {
+        const cedulaParts = splitCedula(productor.cedula || '');
+        setCedulaPrefijo({ value: cedulaParts.tipo, label: cedulaParts.tipo });
         setFormData({
             id: productor.id,
             codigo: productor.codigo || '',
-            cedula: productor.cedula || '',
+            cedula: cedulaParts.numero,
             nombre: productor.nombre || '',
             apellido: productor.apellido || '',
             contacto: productor.contacto || '',
@@ -544,7 +558,27 @@ function Productor() {
                                         </div>
                                         <div className='formGroup'>
                                             <label htmlFor="cedula"><span className='Unique' title='Campo Obligatorio'>*</span>Cédula:</label>
-                                            <input type="text" id="cedula" value={formData.cedula} onChange={handleChange} className='input' placeholder='Cédula'/>
+                                            <div style={{ display: 'flex', gap: 8 }}>
+                                                <SingleSelect
+                                                    options={cedulaPrefijosOptions}
+                                                    value={cedulaPrefijo}
+                                                    onChange={opt => setCedulaPrefijo(opt || { value: 'V-', label: 'V-' })}
+                                                    placeholder="Prefijo"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    id="cedula"
+                                                    value={formData.cedula}
+                                                    onChange={e => {
+                                                        // Solo números y guiones
+                                                        const v = e.target.value.replace(/[^0-9-]/g, '');
+                                                        setFormData(prev => ({ ...prev, cedula: v }));
+                                                    }}
+                                                    className='input'
+                                                    placeholder='Ej: 14897582'
+                                                    style={{ flex: 1 }}
+                                                />
+                                            </div>
                                             {errors.cedula && <span className='errorText'>{errors.cedula}</span>}
                                         </div>
                                         <div className='formGroup'>

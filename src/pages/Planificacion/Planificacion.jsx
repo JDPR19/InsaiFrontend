@@ -11,12 +11,13 @@ import { validateField, getValidationRule } from '../../utils/validation';
 import Spinner from '../../components/spinner/Spinner';
 import { BaseUrl } from '../../utils/constans';
 import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import AyudaTooltip from '../../components/ayudanteinfo/AyudaTooltip';
 import { usePermiso } from '../../hooks/usePermiso';
 
 
 function Planificacion() {
+    const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem('user'));
     const [datosOriginales, setDatosOriginales] = useState([]);
     const [datosFiltrados, setDatosFiltrados] = useState([]);
@@ -281,9 +282,12 @@ function Planificacion() {
         setCurrentModal('planificacion');
     };
 
-    const closeModal = () => {
+    const closeModal = (limpiarUrl = true) => {
         resetFormData();
         setCurrentModal(null);
+        if (limpiarUrl && window.location.search) {
+            navigate(window.location.pathname , { replace: true });
+        }
     };
 
     const openEditModal = async (item) => {
@@ -489,11 +493,13 @@ function Planificacion() {
             });
             addNotification('Planificación registrada con éxito', 'success');
             fetchPlanificaciones();
-            closeModal();
+            
+            navigate(window.location.pathname , { replace: true });
+            closeModal(false);
         } catch (error) {
             console.error('Error registrando la Planificación', error);
             if (error.response && error.response.data && error.response.data.error) {
-            addNotification(error.response.data.error, 'warning'); // O muestra el error como prefieras
+            addNotification(error.response.data.error, 'warning'); 
         } else {
             addNotification('Error inesperado al registrar la planificación', 'error');
         }
@@ -1044,8 +1050,8 @@ function Planificacion() {
                                 <td>{item.solicitud_codigo || item.solicitud_id}</td>
                                 <td>{item.fecha_programada}{item.hora ? ` ${item.hora.slice(0,5)}` : ''}</td>
                                 <td>
-                                    <span className={`badge-estado badge-${item.estado}`}>
-                                    {item.estado}
+                                    <span className={`badge-estado badge-${String(item.estado).toLowerCase().replace(/\s/g, '_')}`}>
+                                        {item.estado}
                                     </span>
                                 </td>
                                 <td>

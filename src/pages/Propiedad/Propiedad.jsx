@@ -1160,7 +1160,7 @@ const closeModal = (limpiarUrl = true) => {
                                     <td>{item.codigo}</td>
                                     <td>{item.nombre}</td>
                                     <td>
-                                        <span className={`badge-estado badge-${item.estado}`}>
+                                        <span className={`badge-estado badge-${String(item.estado).toLowerCase().replace(/\s/g, '_')}`}>
                                             {item.estado}
                                         </span>
                                     </td>
