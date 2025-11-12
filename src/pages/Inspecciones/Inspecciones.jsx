@@ -120,17 +120,66 @@ const estadosFinales = [
     ]
   }), []);
  
-  const columnsInspecciones = [
+ const columnsInspecciones = [
     { header: 'Código', key: 'codigo_inspeccion' },
     { header: 'N° Control', key: 'n_control' },
     { header: 'Fecha', key: 'fecha_inspeccion' },
     { header: 'Hora', key: 'hora_inspeccion' },
     { header: 'Estado', key: 'estado' },
-    { header: 'Solicitud', key: 'solicitud_codigo' },
     { header: 'Planificación', key: 'planificacion_codigo' },
+    { header: 'Área', key: 'area' },
+    { header: 'Norte', key: 'norte' },
+    { header: 'Este', key: 'este' },
+    { header: 'Zona', key: 'zona' },
     { header: 'Aspectos', key: 'aspectos' },
     { header: 'Ordenamientos', key: 'ordenamientos' },
+    { header: 'Responsable', key: 'responsable_e' },
+    { header: 'Cédula Resp.', key: 'cedula_res' },
+    { header: 'Teléfono', key: 'tlf' },
+    { header: 'Correo', key: 'correo' },
+    { header: 'Finalidades', key: 'finalidades_lista' },
+    { header: 'Inspectores', key: 'inspectores_lista' },
   ];
+
+  // Construye fila enriquecida (normalización)
+  const buildInspeccionExportRow = (i) => {
+    const finalidadesArr = Array.isArray(i.finalidades) ? i.finalidades : [];
+    const finalidades_lista = finalidadesArr
+      .map(f => {
+        const nom = f.finalidad || f.nombre || f.finalidad_nombre || 'Finalidad';
+        return `${nom}:${(f.objetivo || '').trim()}`;
+      })
+      .join(' | ');
+
+    const programasArr = Array.isArray(i.programas) ? i.programas
+                     : Array.isArray(i.programas_asociados) ? i.programas_asociados
+                     : [];
+    const programas_lista = programasArr
+      .map(p => p.programa_nombre || p.nombre || `Programa ${p.id}`)
+      .join(' | ');
+
+    const inspectoresArr = Array.isArray(i.inspectores) ? i.inspectores
+                       : Array.isArray(i.empleados) ? i.empleados
+                       : [];
+    const inspectores_lista = inspectoresArr
+      .map(e => `${e.cedula || e.rif || ''} - ${e.nombre || ''} ${e.apellido || ''}`.trim())
+      .join(' | ');
+
+    const imagenes_count = Array.isArray(i.imagenes) ? i.imagenes.length : (i.imagenes_count ?? 0);
+
+    return {
+      ...i,
+      finalidades_lista,
+      programas_lista,
+      inspectores_lista,
+      imagenes_count
+    };
+  };
+
+   const datosInspeccionesEnriched = useMemo(
+    () => (Array.isArray(datosFiltrados) ? datosFiltrados.map(buildInspeccionExportRow) : []),
+    [datosFiltrados]
+  );
 
   const frasesPorSeleccion = useMemo(() => {
     const labels = (selectedProgramas || []).map(s => s.label);
@@ -188,11 +237,13 @@ if (allEstadoIs('no atendida'))      return { fileName: 'Inspecciones_NoAtendida
   const handlePreviewPDF = () => {
     const { fileName, title } = getPDFInfo();
     const blob = exportToPDF({
-      data: datosFiltrados,
+      data: datosInspeccionesEnriched,
       columns: columnsInspecciones,
       fileName,
       title,
-      preview: true
+      preview: true,
+      orientation: 'landscape', 
+      fontSize: 9
     });
     const url = URL.createObjectURL(blob);
     setPdfUrl(url);
@@ -203,11 +254,11 @@ if (allEstadoIs('no atendida'))      return { fileName: 'Inspecciones_NoAtendida
     const { fileName } = getPDFInfo();
     const excelFileName = fileName.replace('.pdf', '.xlsx');
     exportToExcel({
-      data: datosFiltrados,
+      data: datosInspeccionesEnriched,
       columns: columnsInspecciones,
       fileName: excelFileName,
       count: true,
-      totalLabel: 'TOTAL REGISTROS'
+      totalLabel: 'TOTAL INSPECCIONES'
     });
   };
 
@@ -990,7 +1041,7 @@ const handleGuardarEstado = async () => {
                   </div>
 
                   <div className="formGroup">
-                    <label>Aspectos:</label>
+                    <label>Aspectos de la Inspeccion:</label>
                     <textarea
                       value={detalleModal.inspeccion.aspectos || ''}
                       disabled

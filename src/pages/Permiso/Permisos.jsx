@@ -182,19 +182,30 @@ function ActaSilos() {
             estado_nombre: det?.estado_nombre,
             municipio_nombre: det?.municipio_nombre,
             parroquia_nombre: det?.parroquia_nombre,
-            sector_nombre: det?.sector_nombre
+            sector_nombre: det?.sector_nombre,
+            tipo_propiedad_nombre: det?.tipo_propiedad_nombre || ''
             };
 
-            const propietario = {
-            id: det?.productor_id,
-            nombre: det?.productor_nombre,
-            apellido: det?.productor_apellido,
-            cedula: det?.productor_cedula,
-            telefono: det?.productor_telefono || ''
-            };
+             const productoresArr = Array.isArray(det?.productores) ? det.productores : [];
+            const owner = productoresArr.length ? productoresArr[0] : null;
+            const propietario = owner
+              ? {
+                  id: owner.id,
+                  nombre: owner.nombre,
+                  apellido: owner.apellido,
+                  cedula: owner.cedula,
+                  telefono: owner.telefono || ''
+                }
+              : {
+                  id: null,
+                  nombre: det?.responsable_e || '',
+                  apellido: '',
+                  cedula: det?.cedula_res || '',
+                  telefono: det?.tlf || ''
+                };
 
             const tecnicos = Array.isArray(det?.inspectores) ? det.inspectores : [];
-            const rubroProducto = Array.isArray(det?.cultivos) ? det.cultivos.join(' | ') : '';
+
             const plagasEnfermedades = Array.isArray(det?.plagas_enfermedades) ? det.plagas_enfermedades.join(', ') : '';
             const certificadoFitosanitario =
             det?.certificado_fitosanitario === true ? 'Sí'
@@ -203,13 +214,22 @@ function ActaSilos() {
 
             const programas = Array.isArray(det?.programas) ? det.programas.join(' | ') : '';
 
+            const cultivosDetalle = Array.isArray(det?.cultivos_detalle) ? det.cultivos_detalle : [];
+            const rubroProducto = cultivosDetalle.length
+              ? cultivosDetalle.map(c => c.nombre).join(' | ')
+              : (Array.isArray(det?.cultivos) ? det.cultivos.join(' | ') : '');
+
             const blob = await buildActaSilosBlob({
             acta,
             inspeccion: {
                 id: det?.inspeccion_id,
                 codigo_inspeccion: det?.codigo_inspeccion,
                 n_control: det?.n_control,
-                fecha_inspeccion: det?.fecha_inspeccion
+                fecha_inspeccion: det?.fecha_inspeccion,
+                responsable_e: det?.responsable_e || '',
+                cedula_res: det?.cedula_res || '',
+                tlf: det?.tlf || '',
+                correo: det?.correo || ''
             },
             propiedad,
             propietario,
@@ -220,6 +240,7 @@ function ActaSilos() {
             plagasEnfermedades,
             certificadoFitosanitario,
             tecnicos,
+            cultivos_detalle: cultivosDetalle,
             unidad: 'DIRECCIÓN GENERAL'
             });
 

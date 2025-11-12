@@ -623,7 +623,7 @@ function Solicitud() {
                             </p>
                             <p>¿Deseas continuar para programar la planificación?</p>
                             <div className='modalActions' style={{ marginTop: 16, display: 'flex', gap: 8 }}>
-                                <button className='btn-estandar' onClick={goToNextScreen}>Continuar</button>
+                                <button className='Button-btn' onClick={goToNextScreen}>Continuar</button>
                                 <button className='cancelButton' onClick={closeModal}>Más tarde</button>
                             </div>
                         </>

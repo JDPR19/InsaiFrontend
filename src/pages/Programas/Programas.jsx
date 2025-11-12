@@ -46,7 +46,7 @@ const columnsProgramas = [
     { header: 'Tipo de Programa', key: 'tipo_programa_nombre' },
     { header: 'Plagas', key: 'plagas', render: p => (p.plagas || []).map(x => x.nombre).join(', ') || 'N/A'},
     { header: 'Cultivos', key: 'cultivos', render: p => (p.cultivos || []).map(x => x.nombre).join(', ') || 'N/A'},
-    { header: 'Empleados', key: 'empleados', render: p => (p.empleados || []).map(x => x.nombre).join(', ') || 'N/A'},
+    { header: 'Jefe de Programa', key: 'empleados', render: p => (p.empleados || []).map(x => x.nombre).join(', ') || 'N/A'},
     { header: 'Descripción', key: 'descripcion' }
 ];
 
@@ -579,6 +579,15 @@ const getReportMeta = () => ({
             <div className='tableSection'>
                 <div className='filtersContainer'>
                     <div className='filtersButtons'>
+                        {tienePermiso('programa', 'crear') && (<button 
+                            type='button'
+                            onClick={openModal} 
+                            className='create'
+                            title='Registrar Programa'>
+                            <img src={icon.plus} alt="Crear" className='icon' />
+                            Agregar
+                        </button>
+                        )}
                         {tienePermiso('programa', 'exportar') && (
                             <button
                                 type='button'
@@ -621,15 +630,6 @@ const getReportMeta = () => ({
                                 <img src={icon.excel2} alt="Excel" className='icon' />
                                 Excel
                             </button>
-                        )}
-                        {tienePermiso('programa', 'crear') && (<button 
-                            type='button'
-                            onClick={openModal} 
-                            className='create'
-                            title='Registrar Programa'>
-                            <img src={icon.plus} alt="Crear" className='icon' />
-                            Agregar
-                        </button>
                         )}
                     </div>
 

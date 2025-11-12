@@ -468,6 +468,10 @@ function Planificacion() {
             addNotification('No puedes registrar en días/meses que ya pasaron.', 'warning');
             return;
         }
+        if (!formData.empleados_ids|| String(formData.empleados_ids).trim() === '') {
+            addNotification('Debe seleccionar empleado/s', 'warning');
+            return;
+        }
         if (!formData.actividad?.trim() || !formData.objetivo?.trim() ||
             !formData.convocatoria?.trim() || !formData.ubicacion?.trim() || !formData.aseguramiento?.trim()) {
             addNotification('Complete todos los campos obligatorios', 'warning');
@@ -493,6 +497,7 @@ function Planificacion() {
             });
             addNotification('Planificación registrada con éxito', 'success');
             fetchPlanificaciones();
+            fetchSolicitudes();
             
             navigate(window.location.pathname , { replace: true });
             closeModal(false);

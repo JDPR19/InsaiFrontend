@@ -161,6 +161,7 @@ function Menu() {
             localStorage.removeItem('seccionFiveTab');
             localStorage.removeItem('seccionSixTab');
             localStorage.removeItem('seccionSevenTab');
+            localStorage.removeItem('sid');
             window.history.replaceState(null, '', '/');
             navigate('/Login', { replace: true });
         } catch (error) {

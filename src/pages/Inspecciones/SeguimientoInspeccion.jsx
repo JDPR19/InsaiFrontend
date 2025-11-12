@@ -969,7 +969,7 @@ const confirmarEliminarPrograma = async () => {
         </div>
 
         <div className={`ss-right ${styles.headerCard}`}>
-          <h2 className="titleOne">Trazabilidad de Propiedad</h2>
+          <h2 className="titleOne">Trazabilidad de Propiedades y  Empresas</h2>
           <h3 className="titleTwo">
             Propiedad: {traza.propiedad?.propiedad_nombre || '—'} 
           </h3>
@@ -987,7 +987,7 @@ const confirmarEliminarPrograma = async () => {
         </div>
 
         <div className={`ss-right ${styles.headerCard}`}>
-          <h2 className="titleOne">RUNSAI y Cultivos</h2>
+          <h2 className="titleOne">RUNSAI - Cultivos/Rubros</h2>
           <h3 className="titleTwo">
             CÓDIGO RUNSAI {traza.productores?.length > 1 ? 'productores' : 'productor'}:
           </h3>

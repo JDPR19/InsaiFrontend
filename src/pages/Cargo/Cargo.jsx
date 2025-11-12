@@ -285,7 +285,7 @@ function Cargo() {
 
             <div className='tableSection'>
                 <div className='filtersContainer'>
-                    {tienePermiso('cargo', 'crear') && (<button 
+                    {tienePermiso('cargos', 'crear') && (<button 
                         type='button'
                         onClick={openModal} 
                         className='create'
@@ -315,14 +315,16 @@ function Cargo() {
                                 <td>{cargo.nombre}</td>
                                 <td>
                                     <div className='iconContainer'>
-                                        {tienePermiso('cargo', 'editar') && (<img
+                                        {tienePermiso('cargos', 'editar') && (
+                                            <img
                                             onClick={() => openEditModal(cargo)}
                                             src={icon.editar}
                                             className='iconeditar'
                                             title='Editar'
                                         />
                                         )}
-                                        {tienePermiso('cargo', 'eliminar') && (<img 
+                                        {tienePermiso('cargos', 'eliminar') && (
+                                            <img 
                                             onClick={() => openConfirmDeleteModal(cargo.id)} 
                                             src={icon.eliminar} 
                                             className='iconeliminar' 

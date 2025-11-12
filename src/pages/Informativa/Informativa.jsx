@@ -67,7 +67,7 @@ function Informativa() {
         setEnviando(true);
         setRespuesta('');
         try {
-            const res = await axios.post(`${BaseUrl}/api/contacto`, {
+            const res = await axios.post(`${BaseUrl}/informativa/contacto`, {
             ...form,
             valoracion
         });
@@ -106,13 +106,15 @@ function Informativa() {
             </header>
 
             <header className={styles.header}>
-                <button
+                <a
+                    href="/assets/manual S.I.C.I.C-INSAI.pdf"
+                    download
                     className={styles.btnHome}
-                    // onClick={() => navigate('/Home')}
+                    style={{textDecoration:'none'}}
                     title="Descargar Manual"
                 >
-                    Manual
-                </button>
+                Descargar Manual
+                </a>
             </header>
 
              {/* Guía rápida de uso */}

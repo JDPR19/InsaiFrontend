@@ -3,87 +3,83 @@ import { jwtDecode } from 'jwt-decode';
 import { notifyGlobal } from '../../utils/globalNotification';
 import { useNavigate } from 'react-router-dom';
 import { BaseUrl } from '../../utils/constans';
-import { io as ioClient } from 'socket.io-client';
+import { getSocket, closeSocket } from '../../utils/singleton';
 
-const API_URL = import.meta.env.VITE_API_URL || BaseUrl;
-const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutos
+const API_URL = BaseUrl;
+const INACTIVITY_LIMIT = 1 * 60 * 1000; // 15 min
+const HEARTBEAT_INTERVAL = 25 * 60 * 1000; // 25 min 
 
 const AutoLogout = () => {
   const navigate = useNavigate();
   const inactivityTimer = useRef(null);
   const tokenTimer = useRef(null);
+  const heartbeatTimer = useRef(null);
   const socketRef = useRef(null);
 
   const [token, setToken] = useState(() => localStorage.getItem('token'));
+  const [sid, setSid] = useState(() => localStorage.getItem('sid')); // NUEVO
 
   const logout = async (msg = 'Tu sesión ha expirado. Serás redirigido al login.') => {
     const currentToken = localStorage.getItem('token');
+    const currentSid = localStorage.getItem('sid');
     notifyGlobal(msg, 'warning');
 
-    let backendLogoutOk = false;
+    // Intento logout backend
     if (currentToken) {
       try {
-        const res = await fetch(`${API_URL}/auth/logout`, {
+        await fetch(`${API_URL}/auth/logout`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${currentToken}` },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`,
+            'x-session-id': currentSid || ''
+          }
         });
-        backendLogoutOk = res.ok;
       } catch (e) {
         console.error('Error cerrando sesión en backend:', e);
       }
     }
 
-    // Limpieza local
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('permisos');
+    localStorage.removeItem('sid'); 
+    setSid(null);
+    setToken(null);
 
-    if (!backendLogoutOk) {
-      notifyGlobal('No se pudo cerrar sesión en el servidor. Tu sesión se cerró localmente.', 'error');
-    }
-
-    // Cerrar socket
-    if (socketRef.current) {
-      socketRef.current.disconnect();
-      socketRef.current = null;
-    }
+    // Cerrar el socket global SOLO en logout explícito
+    closeSocket();
 
     navigate('/Login');
   };
 
-  // Escuchar cambios del token (otras pestañas/ventanas)
+  // Storage listener (token o sid cambiaron en otra pestaña)
   useEffect(() => {
     const onStorage = (e) => {
       if (e.key === 'token') setToken(e.newValue);
+      if (e.key === 'sid') setSid(e.newValue);
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  // Timers + socket en función del token
   useEffect(() => {
-    // Limpieza previa
     if (tokenTimer.current) clearTimeout(tokenTimer.current);
     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+    if (heartbeatTimer.current) { clearInterval(heartbeatTimer.current); heartbeatTimer.current = null; }
 
-    // Si no hay token: desconectar socket y salir
     if (!token) {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
+      // No desconectar el socket aquí; otros componentes pueden seguir usándolo
       return;
     }
 
-    // Inactividad
+    // Inactividad local
     const resetInactivityTimer = () => {
       if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
-      inactivityTimer.current = setTimeout(() => {
-        logout('Sesión cerrada por inactividad. Serás redirigido al login.');
-      }, INACTIVITY_LIMIT);
+      inactivityTimer.current = setTimeout(() => logout('Sesión cerrada por inactividad.'), INACTIVITY_LIMIT);
     };
-    const events = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
-    events.forEach((ev) => window.addEventListener(ev, resetInactivityTimer, { passive: true }));
+    const activityEvents = ['mousemove','mousedown','keydown','scroll','touchstart'];
+    activityEvents.forEach(ev => window.addEventListener(ev, resetInactivityTimer, { passive: true }));
     resetInactivityTimer();
 
     // Expiración JWT
@@ -91,50 +87,54 @@ const AutoLogout = () => {
       const decoded = jwtDecode(token);
       const expMs = (decoded?.exp || 0) * 1000;
       const timeout = expMs - Date.now();
-      if (timeout > 0) {
-        tokenTimer.current = setTimeout(() => logout(), timeout);
-      } else {
-        logout();
-      }
-    } catch (error) {
-        console.error(error);
-      console.warn('Token inválido, cerrando sesión.');
-      logout();
+      if (timeout > 0) tokenTimer.current = setTimeout(() => logout(), timeout);
+      else logout();
+    } catch {
+      console.warn('No se pudo decodificar el token; se mantiene la sesión.');
     }
 
-    // Socket.IO: unir al room user:<id> y escuchar expiración forzada
-    try {
-      if (socketRef.current) socketRef.current.disconnect();
-      const socket = ioClient(API_URL, { transports: ['websocket'], autoConnect: true });
-      socketRef.current = socket;
+    // Heartbeat
+    const sendHeartbeat = () => {
+      const t = localStorage.getItem('token');
+      const s = localStorage.getItem('sid');
+      if (!t || !s) return;
+      fetch(`${API_URL}/sesion/heartbeat`, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', Authorization: `Bearer ${t}`, 'x-session-id': s },
+        body: JSON.stringify({ session_id: s }),
+        keepalive: true
+      }).catch(()=>{});
+    };
+    sendHeartbeat();
+    heartbeatTimer.current = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL);
 
-      const doJoin = () => {
-        const u = JSON.parse(localStorage.getItem('user'));
+    // Socket.IO (usar singleton global)
+    const socket = getSocket();
+    socketRef.current = socket;
+
+    const doJoin = () => {
+      try {
+        const u = JSON.parse(localStorage.getItem('user') || '{}');
         if (u?.id) socket.emit('join', u.id);
-      };
+      } catch (error) {('error en autologout'), error}
+    };
+    const onExpired = () => logout('Sesión cerrada desde el servidor.');
 
-      socket.on('connect', doJoin); // re-join en reconexiones
-      doJoin();
+    socket.on('connect', doJoin);
+    doJoin();
+    socket.on('session:expired', onExpired);
 
-      socket.on('session:expired', () => {
-        logout('Sesión cerrada desde el servidor.');
-      });
-    } catch (e) {
-      console.error('Socket init error:', e);
-    }
-
-    // Cleanup al cambiar token o desmontar
     return () => {
+      activityEvents.forEach(ev => window.removeEventListener(ev, resetInactivityTimer));
       if (tokenTimer.current) clearTimeout(tokenTimer.current);
       if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
-      events.forEach((ev) => window.removeEventListener(ev, resetInactivityTimer));
+      if (heartbeatTimer.current) { clearInterval(heartbeatTimer.current); heartbeatTimer.current = null; }
       if (socketRef.current) {
-        socketRef.current.off('session:expired');
-        socketRef.current.off('connect');
-        // No desconectar aquí para mantener conexión mientras el token siga activo.
+        socketRef.current.off('connect', doJoin);
+        socketRef.current.off('session:expired', onExpired);
       }
     };
-  }, [token]); // navigate no es necesario en deps porque es estable
+  }, [token, sid]);
 
   return null;
 };

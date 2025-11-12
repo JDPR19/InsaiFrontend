@@ -22,6 +22,7 @@
     overflow-x: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--light-green) #e9ecef;
+    /* flex-wrap: wrap; */
 }
 
 .tabsContainer::-webkit-scrollbar {
@@ -142,9 +143,9 @@
 }
 
 :global(.dark) .tabsContainer {
-    background: var(--table-header-bg);
-    border-bottom: 1px solid var(--grey4);
-    box-shadow: 0px 4px 10px rgba(0,0,0,0.6);
+    /* background: var(--table-header-bg); */
+    /* border-bottom: 1px solid var(--grey4); */
+    /* box-shadow: 0px 4px 10px rgba(0,0,0,0.6); */
 }
 
 :global(.dark) .tabsTitle {

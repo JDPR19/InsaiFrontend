@@ -17,7 +17,7 @@ import { usePermiso } from '../../hooks/usePermiso';
 
 
 function Propiedad() {
-    const UNIDADES_MEDIDA = ['kg', 't', 'sacos', 'm³', 'L', 'unid'];
+    const UNIDADES_MEDIDA = ['m²','km²'];
     const RIF_PREFIJOS = ['V-', 'E-', 'J-', 'G-', 'P-'];
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -54,19 +54,21 @@ function Propiedad() {
         hectareas: '',
         sitios_asociados: '',
         ubicacion: '',
-        posee_certificado: 'NO',
-        cultivos_ids: [],
         productores_ids: [],     
         tipo_propiedad_id: null,
         estado_id: null,
         municipio_id: null,
         parroquia_id: null,
         sector_id: null,
+        cultivos_detalle: [],
+        posee_certificado: 'NO'
     });
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
     const [selectedPropiedadId, setSelectedPropiedadId] = useState(null);
     const { addNotification } = useNotification();
     const itemsPerPage = 8;
+    const [cultivosModalAbierto, setCultivosModalAbierto] = useState(false);
+    const [tempCultivos, setTempCultivos] = useState([]);
     const [errors, setErrors] = useState({});
     const [step, setStep] = useState(1);
     const [recentPropiedad, setRecentPropiedad] = useState(null);
@@ -80,6 +82,48 @@ function Propiedad() {
         tipo: m ? `${m[1].toUpperCase()}-` : 'J-',
         numero: m ? m[2] : ''
         };
+    };
+
+
+    const getCultivoNameById = (id) =>
+        cultivosOptions.find(o => String(o.value) === String(id))?.label || 'Cultivo';
+
+    const openCultivosModal = () => {
+        setTempCultivos(formData.cultivos_detalle?.map(r => ({ ...r })) || []);
+        setCultivosModalAbierto(true);
+    };
+    const closeCultivosModal = () => setCultivosModalAbierto(false);
+
+    const addTempFila = () => setTempCultivos(prev => [...prev, { cultivo_id: '', superficie: '', cantidad: '' }]);
+    const updateTempFila = (idx, field, value) => {
+        setTempCultivos(prev => {
+            const arr = [...prev];
+            arr[idx] = { ...arr[idx], [field]: value };
+            return arr;
+        });
+    };
+    const removeTempFila = (idx) => setTempCultivos(prev => prev.filter((_, i) => i !== idx));
+
+    // Carga masiva desde MultiSelect (evita duplicados por cultivo_id)
+    const handleBulkSelectCultivos = (selected) => {
+        const ids = new Set((selected || []).map(o => String(o.value)));
+        const actuales = new Set((tempCultivos || []).map(r => String(r.cultivo_id)));
+        const nuevos = [...ids].filter(id => !actuales.has(id)).map(id => ({ cultivo_id: id, superficie: '', cantidad: '' }));
+        setTempCultivos(prev => [...prev, ...nuevos]);
+    };
+    
+    const guardarCultivosModal = () => {
+        // Normaliza y guarda
+        const normalizado = (tempCultivos || [])
+          .filter(r => r.cultivo_id) // solo filas con cultivo elegido
+          .map(r => ({
+            cultivo_id: String(r.cultivo_id),
+            superficie: r.superficie === '' ? '' : r.superficie,
+            cantidad: r.cantidad === '' ? '' : r.cantidad
+          }));
+        setFormData(prev => ({ ...prev, cultivos_detalle: normalizado }));
+        setErrors(prev => ({ ...prev, cultivos_detalle: normalizado.length ? '' : 'Agregue al menos un cultivo' }));
+        closeCultivosModal();
     };
 
     // Opciones para selects
@@ -114,23 +158,76 @@ function Propiedad() {
 };
 
     // Definición de columnas para PDF/Excel
-    const columnsPropiedad = [
-        { header: 'Código', key: 'codigo' },
-        { header: 'RIF', key: 'rif' },
-        { header: 'Nombre', key: 'nombre' },
-        { header: 'Ubicación', key: 'ubicacion' },
-        { header: 'Sector', key: 'sector_nombre' },
-        { header: 'Parroquia', key: 'parroquia_nombre' },
-        { header: 'Municipio', key: 'municipio_nombre' },
-        { header: 'Estado (Geo)', key: 'estado_nombre' },
-        { header: 'Hectáreas', key: 'hectareas' },
-        { header: 'Tipo Propiedad', key: 'tipo_propiedad_nombre' },
-        { header: 'Estatus', key: 'estado' }
-    ];
+   const columnsPropiedad = [
+    { header: 'Código', key: 'codigo' },
+    { header: 'RIF', key: 'rif' },
+    { header: 'Nombre', key: 'nombre' },
+    { header: 'Tipo Propiedad', key: 'tipo_propiedad_nombre' },
+    { header: 'Estatus', key: 'estado' },
+
+    { header: 'Hectáreas', key: 'hectareas' },
+    { header: 'Sup. Cultivada (campo)', key: 'c_cultivo' },
+    { header: 'Punto referencia', key: 'sitios_asociados' },
+    { header: 'Ubicación exacta', key: 'ubicacion' },
+
+    { header: 'Estado', key: 'estado_nombre' },
+    { header: 'Municipio', key: 'municipio_nombre' },
+    { header: 'Parroquia', key: 'parroquia_nombre' },
+    { header: 'Sector', key: 'sector_nombre' },
+
+    { header: 'Productores', key: 'productores_lista' },
+
+    // Cultivos detallados (tabla puente)
+    { header: 'Cultivos (detalle)', key: 'cultivos_lista' },
+    { header: 'Total Sup. Cultivos', key: 'cultivos_total_superficie' },
+    { header: 'Total Cant. Cultivos', key: 'cultivos_total_cantidad' }
+];
+
+    const normalizeCultivosForExport = (p) => {
+    const base = Array.isArray(p.cultivos) && p.cultivos.length
+        ? p.cultivos
+        : (Array.isArray(p.cultivos_detalle) ? p.cultivos_detalle : []);
+    return base.map(c => ({
+        id: c.id ?? c.cultivo_id,
+        nombre: c.nombre ?? getCultivoNameById(c.cultivo_id),
+        superficie: c.superficie ?? null,
+        cantidad: c.cantidad ?? null
+    }));
+    };
+
+    const buildExportRow = (p) => {
+    const cultivosArr = normalizeCultivosForExport(p);
+    const productoresArr = Array.isArray(p.productores) ? p.productores : [];
+    const productores_lista = productoresArr
+        .map(pr => `${pr.cedula || pr.rif || ''} - ${pr.nombre || ''} ${pr.apellido || ''}`.trim())
+        .filter(Boolean)
+        .join(' | ');
+    const cultivos_lista = cultivosArr
+        .map(c => {
+        const sup = c.superficie != null ? ` sup:${c.superficie}` : '';
+        const cant = c.cantidad != null ? ` cant:${c.cantidad}` : '';
+        return `${c.nombre}${sup}${cant}`;
+        })
+        .join(' | ');
+    const cultivos_total_superficie = cultivosArr.reduce((a,x)=>a+(x.superficie?Number(x.superficie):0),0);
+    const cultivos_total_cantidad = cultivosArr.reduce((a,x)=>a+(x.cantidad?Number(x.cantidad):0),0);
+    return {
+        ...p,
+        productores_lista,
+        cultivos_lista,
+        cultivos_total_superficie,
+        cultivos_total_cantidad
+    };
+    };
+
+    const enrichedFiltrados = React.useMemo(
+        () => (Array.isArray(datosFiltrados) ? datosFiltrados.map(buildExportRow) : []),
+        [datosFiltrados]
+    );
 
     function getPDFInfo() {
         if (datosFiltrados.length === datosOriginales.length) {
-            return { fileName: 'Total_Propiedades.pdf', title: 'Listado de Todas las Propiedades' };
+            return { fileName: 'Total_Propiedades.pdf', title: 'Listado de Todas las Propiedades Y Empresas' };
         }
         const allSameEstado = (est) => datosFiltrados.length > 0 && datosFiltrados.every(p => p.estado === est);
         if (allSameEstado('registrada'))      return { fileName: 'Propiedades_Registradas.pdf',   title: 'Listado de Propiedades Registradas' };
@@ -147,7 +244,7 @@ function Propiedad() {
     const handlePreviewPDF = () => {
         const { fileName, title } = getPDFInfo();
         const blob = exportToPDF({
-            data: datosFiltrados,
+            data: enrichedFiltrados,
             columns: columnsPropiedad,
             fileName,
             title,
@@ -320,45 +417,6 @@ function Propiedad() {
         }
     }, [searchParams, setSearchParams]);
     
-    // Selects dependientes
-    const handleEstadoChange = (opt) => {
-        const id = opt ? opt.value : null;
-        setFormData(prev => ({
-            ...prev,
-            estado_id: id,
-            municipio_id: null,
-            parroquia_id: null,
-            sector_id: null
-        }));
-        if (id) fetchMunicipios(id); else setMunicipios([]);
-    };
-
-    const handleMunicipioChange = (opt) => {
-        const id = opt ? opt.value : null;
-        setFormData(prev => ({
-            ...prev,
-            municipio_id: id,
-            parroquia_id: null,
-            sector_id: null
-        }));
-        if (id) fetchParroquias(id); else setParroquias([]);
-    };
-
-    const handleParroquiaChange = (opt) => {
-        const id = opt ? opt.value : null;
-        setFormData(prev => ({
-            ...prev,
-            parroquia_id: id,
-            sector_id: null
-        }));
-        if (id) fetchSectores(id); else setSectores([]);
-    };
-
-    const handleSectorChange = (opt) => {
-        const id = opt ? opt.value : null;
-        setFormData(prev => ({ ...prev, sector_id: id }));
-    };
-
     const selectedFrom = (options, id) =>
         options.find(o => String(o.value) === String(id)) || null;
 
@@ -370,7 +428,7 @@ function Propiedad() {
         setFormData({
             id: '',
             rif: '',
-            rif_tipo: '',
+            rif_tipo: 'J-',
             rif_numero: '',
             nombre: '',
             c_cultivo: '',
@@ -378,43 +436,125 @@ function Propiedad() {
             hectareas: '',
             sitios_asociados: '',
             ubicacion: '',
-            cultivos_ids: [],
+            cultivos_detalle: [],
             productores_ids: [],
             tipo_propiedad_id: null,
             estado_id: null,
             municipio_id: null,
             parroquia_id: null,
             sector_id: null,
-            productor_id: null
+            productor_id: null,
+            posee_certificado: 'NO'
         });
         setErrors({});
     };
 
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-        setFormData(prev => ({ ...prev, [id]: value }));
+    // Helper: RIF completo
+  const rifCompleto = () => `${String(formData.rif_tipo || '').trim()}${String(formData.rif_numero || '').trim()}`;
 
-        const rule = getValidationRule(id);
-        if (rule && rule.regex) {
-            const { regex, errorMessage } = rule;
-            const { valid, message } = validateField(value, regex, errorMessage);
-            setErrors(prev => ({ ...prev, [id]: valid ? '' : message }));
+  // Validadores simples
+  const isPositive = (v) => {
+    const n = Number(String(v).replace(',', '.'));
+    return Number.isFinite(n) && n > 0;
+  };
+
+const RIF_REGEX = /^(?:V|E|J|G|P)-\d{7,15}(?:-\d)?$/;
+
+  // Valida todo el formulario y bloquea si hay errores
+const validateForm = () => {
+  const next = {};
+  const rif = rifCompleto();
+  if (!formData.rif_tipo || !String(formData.rif_numero || '').trim())
+    next.rif = 'Debe seleccionar prefijo y número';
+  else if (!RIF_REGEX.test(rif))
+    next.rif = 'RIF inválido. Ej: J-12345678 o J-12345678-9';
+
+  if (!String(formData.nombre || '').trim()) next.nombre = 'No puede dejar el campo vacío';
+  if (!String(formData.sitios_asociados || '').trim()) next.sitios_asociados = 'No puede dejar el campo vacío';
+  if (!String(formData.ubicacion || '').trim()) next.ubicacion = 'No puede dejar el campo vacío';
+
+  if (!isPositive(formData.hectareas)) next.hectareas = 'Ingrese un número mayor a 0';
+  if (!String(formData.c_cultivo || '').trim()) next.c_cultivo = 'Ingrese una cantidad';
+  else if (!isPositive(formData.c_cultivo)) next.c_cultivo = 'La cantidad debe ser numérica y mayor a 0';
+  if (!String(formData.c_cultivo_unidad || '').trim()) next.c_cultivo_unidad = 'Seleccione una unidad';
+
+  ['tipo_propiedad_id','estado_id','municipio_id','parroquia_id','sector_id']
+    .forEach(f => { if (!formData[f]) next[f] = 'Seleccione una opción'; });
+
+  if (!Array.isArray(formData.productores_ids) || formData.productores_ids.length === 0)
+    next.productores_ids = 'Seleccione al menos un productor';
+
+  if (!formData.cultivos_detalle.length)
+    next.cultivos_detalle = 'Agregue al menos un cultivo';
+  else {
+    formData.cultivos_detalle.forEach(f => {
+      if (!f.cultivo_id) next.cultivos_detalle = 'Seleccione al menos un cultivo';
+      if (f.superficie && (isNaN(Number(f.superficie)) || Number(f.superficie) <= 0))
+        next.cultivos_detalle = 'Seleccione una superficie';
+      if (f.cantidad && (isNaN(Number(f.cantidad)) || Number(f.cantidad) <= 0))
+        next.cultivos_detalle = 'Seleccione una cantidad';
+    });
+  }
+
+  setErrors(next);
+  if (Object.keys(next).length) {
+    addNotification('Corrige los campos obligatorios.', 'warning');
+    return false;
+  }
+  return true;
+};
+
+const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id]: value }));
+
+    // Validación instantánea por regla existente
+    const rule = getValidationRule(id);
+    if (rule && rule.regex) {
+        const { regex, errorMessage } = rule;
+        const { valid, message } = validateField(value, regex, errorMessage);
+        setErrors(prev => ({ ...prev, [id]: valid ? '' : message }));
+        }
+
+    // Campos obligatorios simples
+    if (['nombre','sitios_asociados','ubicacion'].includes(id)) {
+        setErrors(prev => ({ ...prev, [id]: String(value).trim() ? '' : 'No puede dejar el campo vacío' }));
+        }
+        if (id === 'hectareas') {
+        setErrors(prev => ({ ...prev, hectareas: isPositive(value) ? '' : 'Ingrese un número mayor a 0' }));
+        }
+        if (id === 'c_cultivo') {
+        setErrors(prev => ({ ...prev, c_cultivo: isPositive(value) ? '' : 'La cantidad debe ser numérica y mayor a 0' }));
         }
     };
 
-
-    const handleCultivosChange = (selected) => {
-        setFormData(prev => ({
-            ...prev,
-            cultivos_ids: selected ? selected.map(opt => opt.value) : []
-        }));
+    const handleProductoresMultiChange = (selected) => {
+        setFormData(prev => ({ ...prev, productores_ids: selected ? selected.map(o => o.value) : [] }));
+        setErrors(prev => ({ ...prev, productores_ids: selected && selected.length ? '' : 'Seleccione al menos un productor' }));
     };
 
-    const handleProductoresMultiChange = (selected) => {
-        setFormData(prev => ({
-            ...prev,
-            productores_ids: selected ? selected.map(opt => opt.value) : []
-        }));
+    const handleEstadoChange = (opt) => {
+        const id = opt ? opt.value : null;
+        setFormData(prev => ({ ...prev, estado_id: id, municipio_id: null, parroquia_id: null, sector_id: null }));
+        setErrors(prev => ({ ...prev, estado_id: id ? '' : 'Seleccione una opción', municipio_id: 'Seleccione un municipio', parroquia_id: 'Seleccione una parroquia', sector_id: 'Seleccione un sector' }));
+        if (id) fetchMunicipios(id); else setMunicipios([]);
+    };
+    const handleMunicipioChange = (opt) => {
+        const id = opt ? opt.value : null;
+        setFormData(prev => ({ ...prev, municipio_id: id, parroquia_id: null, sector_id: null }));
+        setErrors(prev => ({ ...prev, municipio_id: id ? '' : 'Seleccione una opción', parroquia_id: 'Seleccione una parroquia', sector_id: 'Seleccione un sector' }));
+        if (id) fetchParroquias(id); else setParroquias([]);
+    };
+    const handleParroquiaChange = (opt) => {
+        const id = opt ? opt.value : null;
+        setFormData(prev => ({ ...prev, parroquia_id: id, sector_id: null }));
+        setErrors(prev => ({ ...prev, parroquia_id: id ? '' : 'Seleccione una opción', sector_id: 'Seleccione un sector' }));
+        if (id) fetchSectores(id); else setSectores([]);
+    };
+    const handleSectorChange = (opt) => {
+        const id = opt ? opt.value : null;
+        setFormData(prev => ({ ...prev, sector_id: id }));
+        setErrors(prev => ({ ...prev, sector_id: id ? '' : 'Seleccione una opción' }));
     };
 
     const clearMultiSelect = (campo) => {
@@ -441,18 +581,9 @@ function Propiedad() {
         // Si pasa la validación, limpia el error:
         setErrors(prev => ({ ...prev, rif_numero: '' }));
 
-        for (const field in formData) {
-            const rule = getValidationRule(field);
-            if (!rule || !rule.regex) continue;
-            const { regex, errorMessage } = rule;
-            const { valid, message } = validateField(formData[field], regex, errorMessage);
-            if (!valid) {
-                addNotification(message, 'warning');
-                setErrors(prev => ({ ...prev, [field]: message }));
-                setLoading(false);
-                return;
-            }
-        }
+        if (!validateForm()) return;
+
+        
         setLoading(true);
         try {
             const cCultivoConcat = [formData.c_cultivo, formData.c_cultivo_unidad].filter(Boolean).join(' ').trim();
@@ -464,13 +595,19 @@ function Propiedad() {
                 hectareas: formData.hectareas || null,
                 sitios_asociados: formData.sitios_asociados || null,
                 ubicacion: formData.ubicacion || null,
-                posee_certificado: formData.posee_certificado || 'NO',
+                posee_certificado: formData.posee_certificado,
                 tipo_propiedad_id: formData.tipo_propiedad_id ? Number(formData.tipo_propiedad_id) : null,
                 estado_id: formData.estado_id ? Number(formData.estado_id) : null,
                 municipio_id: formData.municipio_id ? Number(formData.municipio_id) : null,
                 parroquia_id: formData.parroquia_id ? Number(formData.parroquia_id) : null,
                 sector_id: formData.sector_id ? Number(formData.sector_id) : null,
-                cultivos_ids: formData.cultivos_ids.map(Number),
+                cultivos_detalle: formData.cultivos_detalle
+                .filter(r => r.cultivo_id)
+                .map(r => ({
+                    cultivo_id: Number(r.cultivo_id),
+                    superficie: r.superficie !== '' ? Number(r.superficie) : null,
+                    cantidad: r.cantidad !== '' ? Number(r.cantidad) : null
+                })),
                 productores_ids: formData.productores_ids.map(Number)
                 };
                 // console.log(payload)
@@ -494,59 +631,54 @@ function Propiedad() {
         }
     };
 
-    const handleEdit = async () => {
-        if (!formData.rif_tipo || !formData.rif_numero) {
-            addNotification('Debe seleccionar el prefijo y colocar el número de RIF', 'warning');
-            return;
-        }
-        
-        for (const field in formData) {
-            const rule = getValidationRule(field);
-            if (!rule || !rule.regex) continue;
-            const { regex, errorMessage } = rule;
-            const { valid, message } = validateField(formData[field], regex, errorMessage);
-            if (!valid) {
-                addNotification(message, 'warning');
-                setErrors(prev => ({ ...prev, [field]: message }));
-                setLoading(false);
-                return;
-            }
-        }
-        setLoading(true);
-        try {
-            const cCultivoConcat = [formData.c_cultivo, formData.c_cultivo_unidad].filter(Boolean).join(' ').trim();
+   const handleEdit = async () => {
+  if (!formData.rif_tipo || !formData.rif_numero) {
+    addNotification('Debe seleccionar el prefijo y colocar el número de RIF', 'warning');
+    return;
+  }
+  if (!validateForm()) return;
 
-            const payload = {
-                rif: `${formData.rif_tipo}${formData.rif_numero}`.trim(),
-                nombre: formData.nombre,
-                c_cultivo: cCultivoConcat || null,
-                hectareas: formData.hectareas || null,
-                sitios_asociados: formData.sitios_asociados || null,
-                ubicacion: formData.ubicacion || null,
-                tipo_propiedad_id: formData.tipo_propiedad_id ? Number(formData.tipo_propiedad_id) : null,
-                sector_id: formData.sector_id ? Number(formData.sector_id) : null,
-                posee_certificado: formData.posee_certificado || 'NO',
-                cultivos_ids: formData.cultivos_ids,
-                productores_ids: formData.productores_ids
-            };
-
-            await axios.put(`${BaseUrl}/propiedad/${formData.id}`, payload, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            addNotification('Propiedad actualizada con éxito', 'success');
-            fetchPropiedades();
-            closeModal();
-        } catch (error) {
-            console.error('error actualizando la propiedad', error);
-            if (error?.response?.status === 409) {
-                addNotification('RIF o Código ya existen', 'error');
-            } else {
-                addNotification('Error al actualizar propiedad', 'error');
-            }
-        } finally {
-            setLoading(false);
-        }
+  setLoading(true);
+  try {
+    const cCultivoConcat = [formData.c_cultivo, formData.c_cultivo_unidad].filter(Boolean).join(' ').trim();
+    const payload = {
+      rif: `${formData.rif_tipo}${formData.rif_numero}`.trim(),
+      nombre: formData.nombre,
+      c_cultivo: cCultivoConcat || null,
+      hectareas: formData.hectareas ? Number(formData.hectareas) : null,
+      sitios_asociados: formData.sitios_asociados || null,
+      ubicacion: formData.ubicacion || null,
+      tipo_propiedad_id: formData.tipo_propiedad_id ? Number(formData.tipo_propiedad_id) : null,
+      estado_id: formData.estado_id ? Number(formData.estado_id) : null,          // <- NUEVO
+      municipio_id: formData.municipio_id ? Number(formData.municipio_id) : null,  // <- NUEVO
+      parroquia_id: formData.parroquia_id ? Number(formData.parroquia_id) : null,  // <- NUEVO
+      sector_id: formData.sector_id ? Number(formData.sector_id) : null,
+      productor_id: formData.productores_ids[0] ? Number(formData.productores_ids[0]) : null, // <- NUEVO
+      posee_certificado: formData.posee_certificado,
+      cultivos_detalle: formData.cultivos_detalle
+        .filter(r => r.cultivo_id)
+        .map(r => ({
+          cultivo_id: Number(r.cultivo_id),
+          superficie: r.superficie !== '' ? Number(r.superficie) : null,
+          cantidad: r.cantidad !== '' ? Number(r.cantidad) : null
+        })),
+      productores_ids: formData.productores_ids.map(Number) // normalizar
     };
+
+    await axios.put(`${BaseUrl}/propiedad/${formData.id}`, payload, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
+    addNotification('Propiedad actualizada con éxito', 'success');
+    fetchPropiedades();
+    closeModal();
+  } catch (error) {
+    console.error('error actualizando la propiedad', error);
+    if (error?.response?.status === 409) addNotification('RIF o Código ya existen', 'error');
+    else addNotification('Error al actualizar propiedad', 'error');
+  } finally {
+    setLoading(false);
+  }
+};
 
     const handleDelete = async (id) => {
         setLoading(true);
@@ -632,8 +764,12 @@ const closeModal = (limpiarUrl = true) => {
             hectareas: propiedad.hectareas || '',
             sitios_asociados: propiedad.sitios_asociados || '',
             ubicacion: propiedad.ubicacion || '',
-            posee_certificado: propiedad.posee_certificado || 'NO',
-            cultivos_ids: (propiedad.cultivos || []).map(c => String(c.id)),
+            posee_certificado:'NO',
+            cultivos_detalle: (propiedad.cultivos || []).map(c => ({
+                cultivo_id: String(c.id),
+                superficie: c.superficie ?? '',
+                cantidad: c.cantidad ?? ''
+            })),
             productores_ids: (propiedad.productores || []).map(p => String(p.id)),
             tipo_propiedad_id: propiedad.tipo_propiedad_id ? String(propiedad.tipo_propiedad_id) : null,
             estado_id: propiedad.estado_id ? String(propiedad.estado_id) : null,
@@ -671,6 +807,8 @@ const closeModal = (limpiarUrl = true) => {
         closeModal(false);
     };
 
+ const fmtNum = (v) => (v == null || v === '' ? '—' : Number(v).toLocaleString('es-VE', { maximumFractionDigits: 2 }));
+
     return (
         <div className='mainContainer'>
             {loading && <Spinner text="Procesando..." />}
@@ -707,356 +845,380 @@ const closeModal = (limpiarUrl = true) => {
                     </div>
                 </div>
 
+
             {/* Modal Detalle */}
             {detalleModal.abierto && detalleModal.propiedad && (
-                <div className='modalOverlay'>
-                    <div className='modal_tree'>
-                        <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
-                        <h2>Detalles de la propiedad</h2>
-                        <form className='modalForm'>
-                            <div className='formColumns_tree'>
-                                <div className='formGroup'>
-                                    <label>Código:</label>
-                                    <input type="text" value={detalleModal.propiedad.codigo || ''} className='input' disabled />
-                                </div>
-                                <div className='formGroup'>
-                                    <label><span className='Unique'>*</span>Productor asociado:</label>
-                                    <MultiSelect
-                                        options={productoresOptions}
-                                        value={productoresOptions.filter(opt =>
-                                            (detalleModal.propiedad.productores || [])
-                                                .map(p => String(p.id))
-                                                .includes(String(opt.value))
-                                        )}
-                                        isDisabled={true}
-                                        placeholder="Sin productores asociados"
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>RIF:</label>
-                                    <input type="text" value={detalleModal.propiedad.rif || ''} className='input' disabled />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Nombre:</label>
-                                    <input type="text" value={detalleModal.propiedad.nombre || ''} className='input' disabled />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Tipo de Propiedad:</label>
-                                    <SingleSelect
-                                        options={tiposOptions}
-                                        value={tiposOptions.find(opt => String(opt.value) === String(detalleModal.propiedad.tipo_propiedad_id)) || null}
-                                        isDisabled={true}
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Hectáreas:</label>
-                                    <input type="number" value={detalleModal.propiedad.hectareas || ''} className='input' disabled />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Cantidad de Cultivos:</label>
-                                    <input type="text" value={detalleModal.propiedad.c_cultivo || ''} className='input' disabled />  
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Cultivos:</label>
-                                    <MultiSelect
-                                        options={cultivosOptions}
-                                        value={cultivosOptions.filter(opt =>
-                                            (detalleModal.propiedad.cultivos || []).map(c => String(c.id)).includes(String(opt.value))
-                                        )}
-                                        isDisabled={true}
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Sitios Asociados:</label>
-                                    <input type="text" value={detalleModal.propiedad.sitios_asociados || ''} className='input' disabled />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Ubicación:</label>
-                                    <input type="text" value={detalleModal.propiedad.ubicacion || ''} className='input' disabled />
-                                </div>
-
-                                <div className='formGroup'>
-                                    <label>Estatus de la Propiedad:</label>
-                                    <span className={`badge-estado badge-${detalleModal.propiedad.estado}`}>
-                                        {detalleModal.propiedad.estado}
-                                    </span>
-                                </div>
-
-                                <div className='formGroup'>
-                                    <label>Estado:</label>
-                                    <SingleSelect
-                                        options={estadosOptions}
-                                        value={estadosOptions.find(opt => String(opt.value) === String(detalleModal.propiedad.estado_id)) || null}
-                                        isDisabled={true}
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Municipio:</label>
-                                    <SingleSelect
-                                        options={municipiosOptions}
-                                        value={municipiosOptions.find(opt => String(opt.value) === String(detalleModal.propiedad.municipio_id)) || null}
-                                        isDisabled={true}
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Parroquia:</label>
-                                    <SingleSelect
-                                        options={parroquiasOptions}
-                                        value={parroquiasOptions.find(opt => String(opt.value) === String(detalleModal.propiedad.parroquia_id)) || null}
-                                        isDisabled={true}
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>Sector:</label>
-                                    <SingleSelect
-                                        options={sectoresOptions}
-                                        value={sectoresOptions.find(opt => String(opt.value) === String(detalleModal.propiedad.sector_id)) || null}
-                                        isDisabled={true}
-                                    />
-                                </div>
-                                <div className='formGroup'>
-                                    <label>¿Posee Certificado?</label>
-                                    <div className="radio-group">
-                                        <label style={{ marginLeft: '1em' }}>
-                                            <input
-                                                type="radio"
-                                                className="radio-input"
-                                                name="posee_certificado_detalle"
-                                                value="SI"
-                                                checked={detalleModal.propiedad.posee_certificado === 'SI'}
-                                                disabled
-                                            /> SI
-                                        </label>
-                                        <label>
-                                            <input
-                                                type="radio"
-                                                className="radio-input"
-                                                name="posee_certificado_detalle"
-                                                value="NO"
-                                                checked={detalleModal.propiedad.posee_certificado === 'NO'}
-                                                disabled
-                                            /> NO
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
+            <div className='modalOverlay'>
+                <div className='modal_tree'>
+                <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
+                <h2>Detalles de la Propiedad/Empresa</h2>
+                <form className='modalForm'>
+                    <div className='formColumns_tree'>
+                    <div className='formGroup'>
+                        <label>Código Propiedad/Empresa:</label>
+                        <input type="text" value={detalleModal.propiedad.codigo || ''} className='input' disabled />
                     </div>
+                    <div className='formGroup'>
+                        <label><span className='Unique'>*</span>Productor/Representante legal asociado:</label>
+                        <MultiSelect
+                        options={productoresOptions}
+                        value={productoresOptions.filter(opt =>
+                            (detalleModal.propiedad.productores || [])
+                            .map(p => String(p.id))
+                            .includes(String(opt.value))
+                        )}
+                        isDisabled
+                        placeholder="Sin productores asociados"
+                        />
+                    </div>
+                    <div className='formGroup'>
+                        <label>RIF Personal/Empresarial:</label>
+                        <input type="text" value={detalleModal.propiedad.rif || ''} className='input' disabled />
+                    </div>
+                    <div className='formGroup'>
+                        <label>Nombre Propiedad/Empresa:</label>
+                        <input type="text" value={detalleModal.propiedad.nombre || ''} className='input' disabled />
+                    </div>
+                    <div className='formGroup'>
+                        <label>Tipo de Propiedad/Empresa:</label>
+                        <SingleSelect
+                        options={tiposOptions}
+                        value={tiposOptions.find(opt => String(opt.value) === String(detalleModal.propiedad.tipo_propiedad_id)) || null}
+                        isDisabled
+                        />
+                    </div>
+                    <div className='formGroup'>
+                        <label>Hectáreas totales:</label>
+                        <input type="number" value={detalleModal.propiedad.hectareas || ''} className='input' disabled />
+                    </div>
+                    <div className='formGroup'>
+                        <label>Superficie cultivada:</label>
+                        <input type="text" value={detalleModal.propiedad.c_cultivo || ''} className='input' disabled />
+                    </div>
+                    <div className='formGroup span-full'>
+                        <label>Cultivos (detalle):</label>
+                        <div className='cultivosDetalleBox'>
+                            <table className='miniTable'>
+                                <thead>
+                                    <tr>
+                                        <th style={{width:'50%'}}>Cultivo</th>
+                                        <th style={{width:'25%'}}>Superficie</th>
+                                        <th style={{width:'25%'}}>Cantidad</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {(detalleModal.propiedad.cultivos || []).length === 0 && (
+                                        <tr><td colSpan={3} className='muted'>Sin cultivos</td></tr>
+                                    )}
+                                    {(detalleModal.propiedad.cultivos || []).map(c => (
+                                        <tr key={c.id}>
+                                            <td>{c.nombre}</td>
+                                            <td>{fmtNum(c.superficie)}</td>
+                                            <td>{fmtNum(c.cantidad)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                                {(detalleModal.propiedad.cultivos || []).length > 0 && (
+                                    <tfoot>
+                                        <tr>
+                                            <td style={{fontWeight:600}}>Totales</td>
+                                            <td style={{fontWeight:600}}>
+                                                {fmtNum((detalleModal.propiedad.cultivos || []).reduce((a,x)=>a+(x.superficie?Number(x.superficie):0),0))}
+                                            </td>
+                                            <td style={{fontWeight:600}}>
+                                                {fmtNum((detalleModal.propiedad.cultivos || []).reduce((a,x)=>a+(x.cantidad?Number(x.cantidad):0),0))}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                )}
+                            </table>
+                        </div>
+                    </div>
+                    <div className='formGroup'>
+                        <label>Sitio de Referencia:</label>
+                        <input type="text" value={detalleModal.propiedad.sitios_asociados || ''} className='input' disabled />
+                    </div>
+                    <div className='formGroup'>
+                        <label>Ubicación exacta:</label>
+                        <input type="text" value={detalleModal.propiedad.ubicacion || ''} className='input' disabled />
+                    </div>
+                    <div className='formGroup'>
+                        <label>Estatus de la Propiedad/Empresa:</label>
+                        <span className={`badge-estado badge-${detalleModal.propiedad.estado}`}>
+                        {detalleModal.propiedad.estado}
+                        </span>
+                    </div>
+                    <div className='formGroup'>
+                        <label>Estado:</label>
+                        <SingleSelect
+                        options={estadosOptions}
+                        value={estadosOptions.find(opt => String(opt.value) === String(detalleModal.propiedad.estado_id)) || null}
+                        isDisabled
+                        />
+                    </div>
+                    <div className='formGroup'>
+                        <label>Municipio:</label>
+                        <SingleSelect
+                        options={municipiosOptions}
+                        value={municipiosOptions.find(opt => String(opt.value) === String(detalleModal.propiedad.municipio_id)) || null}
+                        isDisabled
+                        />
+                    </div>
+                    <div className='formGroup'>
+                        <label>Parroquia:</label>
+                        <SingleSelect
+                        options={parroquiasOptions}
+                        value={parroquiasOptions.find(opt => String(opt.value) === String(detalleModal.propiedad.parroquia_id)) || null}
+                        isDisabled
+                        />
+                    </div>
+                    <div className='formGroup'>
+                        <label>Sector:</label>
+                        <SingleSelect
+                        options={sectoresOptions}
+                        value={sectoresOptions.find(opt => String(opt.value) === String(detalleModal.propiedad.sector_id)) || null}
+                        isDisabled
+                        />
+                    </div>
+                    <div className='formGroup'>
+                    <label>Posee certificado sanitario:</label>
+                    <input type="text" value={(detalleModal.propiedad.posee_certificado || 'NO').toUpperCase()} className='input' disabled />
+                    </div>
+                    </div>
+                </form>
                 </div>
+            </div>
             )}
 
-            {/* Modal registro y editar */}
+            {/* Modal Registro / Edición */}
             {currentModal === 'propiedad' && (
-                <div className='modalOverlay'>
-                    <div className={step === 2 ? 'modal' : 'modal_tree'}>
-                        <button className='closeButton' onClick={closeModal}>&times;</button>
-                        {step === 1 ? (
-                            <>
-                                <h2>{formData.id ? 'Editar Propiedad' : 'Registrar Propiedad'}</h2>
-                                <form className='modalForm'>
-                                    <div className='formColumns_tree'>
-                                        <div className='formGroup'>
-                                            <label><span className='Unique'>*</span>Productor Asociado:</label>
-                                            <MultiSelect
-                                                options={productoresOptions}
-                                                value={productoresOptions.filter(opt => formData.productores_ids.includes(opt.value))}
-                                                onChange={handleProductoresMultiChange}
-                                                placeholder="Seleccione productores"
-                                            />
-                                            {formData.productores_ids.length > 0 && (
-                                                <button type="button" onClick={() => clearMultiSelect('productores_ids')} className='btn-limpiar'>Limpiar</button>
-                                            )}
-                                        </div>
-                                        <div className='formGroup'>
-                                            <label htmlFor="rif_numero"><span className='Unique' title='Campos Obligatorios'>*</span>RIF:</label>
-                                            <div style={{ display: 'flex', gap: 8 }}>
-                                                <SingleSelect
-                                                options={prefijosOptions}
-                                                value={formData.rif_tipo ? { value: formData.rif_tipo, label: formData.rif_tipo } : null}
-                                                onChange={(opt) => setFormData(prev => ({ ...prev, rif_tipo: opt?.value || 'J-' }))}
-                                                placeholder="Prefijo"
+            <div className='modalOverlay'>
+                <div className={step === 2 ? 'modal' : 'modal_tree'}>
+                <button className='closeButton' onClick={closeModal}>&times;</button>
+                {step === 1 ? (
+                    <>
+                    <h2>{formData.id ? 'Editar Propiedad/Empresa' : 'Registrar Propiedad/Empresa'}</h2>
+                    <form className='modalForm'>
+                        <div className='formColumns_tree'>
+                        <div className='formGroup'>
+                            <label><span className='Unique'>*</span>Productor/Representante Legal:</label>
+                            <MultiSelect
+                            options={productoresOptions}
+                            value={productoresOptions.filter(opt => formData.productores_ids.includes(opt.value))}
+                            onChange={handleProductoresMultiChange}
+                            placeholder="Seleccione Productores/Representantes"
+                            />
+                            {formData.productores_ids.length > 0 && (
+                            <button type="button" onClick={() => clearMultiSelect('productores_ids')} className='btn-limpiar'>Limpiar</button>
+                            )}
+                        </div>
+                        <div className='formGroup'>
+                            <label htmlFor="rif_numero"><span className='Unique'>*</span>RIF Personal/Empresarial:</label>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                            <SingleSelect
+                                options={prefijosOptions}
+                                value={formData.rif_tipo ? { value: formData.rif_tipo, label: formData.rif_tipo } : null}
+                                onChange={(opt) => setFormData(prev => ({ ...prev, rif_tipo: opt?.value || 'J-' }))}
+                                placeholder="Prefijo"
+                            />
+                            <input
+                                type="text"
+                                id="rif_numero"
+                                className='input'
+                                placeholder="Ej: 12345678 o 12345678-9"
+                                value={formData.rif_numero}
+                                onChange={(e) => {
+                                const digits = e.target.value.replace(/\D/g, '').slice(0, 16);
+                                const formatted = digits.length > 8
+                                    ? `${digits.slice(0, -1)}-${digits.slice(-1)}`
+                                    : digits;
+                                setFormData(prev => ({ ...prev, rif_numero: formatted }));
+                                setErrors(prev => ({ ...prev, rif: '' }));
+                                }}
+                                style={{ flex: 1 }}
+                            />
+                            </div>
+                            {errors.rif && <span className='errorText'>{errors.rif}</span>}
+                        </div>
+                        <div className='formGroup'>
+                            <label htmlFor="nombre"><span className='Unique'>*</span>Nombre Propiedad/Empresa:</label>
+                            <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} placeholder="Nombre de la Propiedad" className='input' />
+                            {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
+                        </div>
+                        <div className='formGroup'>
+                            <label><span className='Unique'>*</span>Tipo de Propiedad/Empresa:</label>
+                            <SingleSelect
+                            options={tiposOptions}
+                            value={selectedFrom(tiposOptions, formData.tipo_propiedad_id)}
+                            onChange={(opt) => handleSelectChange('tipo_propiedad_id', opt)}
+                            placeholder="Tipo de Propiedad"
+                            />
+                        </div>
+                        <div className='formGroup'>
+                            <label><span className='Unique'>*</span>Cultivos/Rubros</label>
+                            <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
+                                <button
+                                type="button"
+                                className='btn-estandar'
+                                onClick={openCultivosModal}
+                                title='Gestionar cultivos'
+                                style={{height:30}}
+                                >
+                                Seleccionar Rubros
+                                </button>
+                                {errors.cultivos_detalle && (
+                                <span className='errorText' style={{marginLeft:6}}>{errors.cultivos_detalle}</span>
+                                )}
+                            </div>
 
-                                                />
-                                                <input
-                                                    type="text"
-                                                    id="rif_numero"
-                                                    className='input'
-                                                    placeholder="Ej: 12345678"
-                                                    value={formData.rif_numero}
-                                                    onChange={(e) => {
-                                                        const v = e.target.value.replace(/[^0-9-]/g, '');
-                                                        setFormData(prev => ({ ...prev, rif_numero: v }));
-                                                    }}
-                                                    style={{ flex: 1 }}
-                                                />
-                                            </div>
-                                            {errors.rif && <span className='errorText'>{errors.rif}</span>}
-                                            </div>
-                                        <div className='formGroup'>
-                                            <label htmlFor="nombre"><span className='Unique'  title='Campos Obligatorios'>*</span>Nombre:</label>
-                                            <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Nombre'/>
-                                            {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
-                                        </div>
-                                        
-                                        <div className='formGroup'>
-                                            <label htmlFor="tipo_propiedad_id"><span className='Unique'  title='Campos Obligatorios'>*</span>Tipo de Propiedad:</label>
-                                            <SingleSelect
-                                                options={tiposOptions}
-                                                value={selectedFrom(tiposOptions, formData.tipo_propiedad_id)}
-                                                onChange={(opt) => handleSelectChange('tipo_propiedad_id', opt)}
-                                                placeholder="Tipo de Propiedad"
-                                            />
-                                        </div>
-                                        <div className='formGroup'>
-                                            <label htmlFor="hectareas"><span className='Unique'  title='Campos Obligatorios'>*</span>Hectáreas:</label>
-                                            <input type="number" id="hectareas" value={formData.hectareas} onChange={handleChange} className='input' placeholder='Hectáreas'/>
-                                        </div>
-                                        <div className='formGroup'>
-                                            <label htmlFor="c_cultivo">
-                                                <span className='Unique' title='Campos Obligatorios'>*</span>
-                                                Cantidad de Cultivos:
-                                            </label>
-                                            <div style={{ display: 'flex', gap: 8 }}>
-                                                <input
-                                                    type="text"
-                                                    id="c_cultivo"
-                                                    className="input"
-                                                    placeholder="Ej: 1000"
-                                                    value={formData.c_cultivo}
-                                                    onChange={handleChange}
-                                                    style={{ flex: 1 }}
-                                                />
-                                                <SingleSelect
-                                                    options={unidadesOptions}
-                                                    value={selectedFrom(unidadesOptions, formData.c_cultivo_unidad)}
-                                                    onChange={(opt) =>
-                                                        setFormData(prev => ({ ...prev, c_cultivo_unidad: opt?.value || '' }))
-                                                    }
-                                                    placeholder="Unidad"
-                                                    isClearable
-                                                />
-                                            </div>
-                                            {errors.c_cultivo && <span className='errorText'>{errors.c_cultivo}</span>}
-                                            </div>
-                                        <div className='formGroup'>
-                                            <label><span className='Unique'  title='Campos Obligatorios'>*</span>Cultivos:</label>
-                                            <MultiSelect
-                                                options={cultivosOptions}
-                                                value={cultivosOptions.filter(opt => formData.cultivos_ids.includes(opt.value))}
-                                                onChange={handleCultivosChange}
-                                                placeholder="Seleccione cultivos"
-                                            />
-                                            {formData.cultivos_ids.length > 0 && (
-                                                <button type="button" onClick={() => clearMultiSelect('cultivos_ids')} className='btn-limpiar'>Limpiar</button>
-                                            )}
-                                        </div>
-                                        <div className='formGroup'>
-                                            <label htmlFor="sitios_asociados"><span className='Unique'  title='Campos Obligatorios'>*</span>Sitios Asociados:</label>
-                                            <input type="text" id="sitios_asociados" value={formData.sitios_asociados} onChange={handleChange} className='input' placeholder='Sitios asociados'/>
-                                            {errors.sitios_asociados && <span className='errorText'>{errors.sitios_asociados}</span>}
-                                        </div>
-                                        <div className='formGroup'>
-                                            <label htmlFor="ubicacion"><span className='Unique'  title='Campos Obligatorios'>*</span>Ubicación:</label>
-                                            <input type="text" id="ubicacion" value={formData.ubicacion} onChange={handleChange} className='input' placeholder='Ubicación'/>
-                                            {errors.ubicacion && <span className='errorText'>{errors.ubicacion}</span>}
-                                        </div>
-                                        <div className='formGroup'>
-                                            <label htmlFor="estado_id"><span className='Unique'  title='Campos Obligatorios'>*</span>Estado:</label>
-                                            <SingleSelect
-                                                options={estadosOptions}
-                                                value={estadosOptions.find(o => o.value === String(formData.estado_id)) || null}
-                                                onChange={handleEstadoChange}
-                                                placeholder="Seleccione un estado"
-                                            />
-                                        </div>
-                                        <div className='formGroup'>
-                                            <label htmlFor="municipio_id"><span className='Unique'  title='Campos Obligatorios'>*</span>Municipio:</label>
-                                            <SingleSelect
-                                                options={municipiosOptions}
-                                                value={municipiosOptions.find(o => o.value === String(formData.municipio_id)) || null}
-                                                onChange={handleMunicipioChange}
-                                                isDisabled={!formData.estado_id || municipiosOptions.length === 0}
-                                                placeholder="Seleccione un municipio"
-                                            />
-                                        </div>
-                                        <div className='formGroup'>
-                                            <label htmlFor="parroquia_id"><span className='Unique'  title='Campos Obligatorios'>*</span>Parroquia:</label>
-                                            <SingleSelect
-                                                options={parroquiasOptions}
-                                                value={parroquiasOptions.find(o => o.value === String(formData.parroquia_id)) || null}
-                                                onChange={handleParroquiaChange}
-                                                isDisabled={!formData.municipio_id || parroquiasOptions.length === 0}
-                                                placeholder="Seleccione una parroquia"
-                                            />
-                                        </div>
-                                        <div className='formGroup'>
-                                            <label htmlFor="sector_id"><span className='Unique'  title='Campos Obligatorios'>*</span>Sector:</label>
-                                            <SingleSelect
-                                                options={sectoresOptions}
-                                                value={sectoresOptions.find(o => o.value === String(formData.sector_id)) || null}
-                                                onChange={handleSectorChange}
-                                                isDisabled={!formData.parroquia_id || sectoresOptions.length === 0}
-                                                placeholder="Seleccione un sector"
-                                            />
-                                        </div>
-                                        <div className='formGroup'>
-                                            <label><span className='Unique'  title='Campos Obligatorios'>*</span>¿Posee Certificado?</label>
-                                            <div className="radio-group">
-                                                <label style={{ marginLeft: '1em' }}>
-                                                    <input
-                                                        type="radio"
-                                                        className="radio-input"
-                                                        name="posee_certificado"
-                                                        value="SI"
-                                                        checked={formData.posee_certificado === 'SI'}
-                                                        onChange={() => setFormData(prev => ({ ...prev, posee_certificado: 'SI' }))}
-                                                    /> SI
-                                                </label>
-                                                <label>
-                                                    <input
-                                                        type="radio"
-                                                        className="radio-input"
-                                                        name="posee_certificado"
-                                                        value="NO"
-                                                        checked={formData.posee_certificado === 'NO'}
-                                                        onChange={() => setFormData(prev => ({ ...prev, posee_certificado: 'NO' }))}
-                                                    /> NO
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <button 
-                                        type="button" 
-                                        className='saveButton' 
-                                        onClick={formData.id ? handleEdit : handleSave}
-                                        title={formData.id ? 'Actualizar Propiedad' : 'Registrar Propiedad'}
-                                        disabled={loading}
-                                    >
-                                        {loading ? 'Procesando...' : 'Guardar'}
-                                    </button>
-                                </form>
-                            </>
-                        ) : (
-                            <>
-                                <h2>Propiedad registrada</h2>
-                                <p>
-                                    Se creó correctamente la propiedad
-                                    {` ${recentPropiedad?.codigo ? `(${recentPropiedad.codigo})` : ''} ${recentPropiedad?.nombre || ''}`}.
-                                </p>
-                                <p>¿Deseas continuar para empezar la solicitud asociada?</p>
-                                <div className='modalActions' style={{ marginTop: 16, display: 'flex', gap: 8 }}>
-                                    <button className='btn-estandar' onClick={goToNextScreen}>
-                                        Continuar
-                                    </button>
-                                    <button className='cancelButton' onClick={closeModal}>
-                                        Más tarde
-                                    </button>
-                                </div>
-                            
-                            </>
-                        )}
+                            <div className='chipsContainer'>
+                            {(formData.cultivos_detalle || []).map((r, idx) => (
+                                <span
+                                key={idx}
+                                className='chip'
+                                title={`${getCultivoNameById(r.cultivo_id)}${r.superficie!==''?` · sup:${r.superficie}`:''}${r.cantidad!==''?` · cant:${r.cantidad}`:''}`}
+                                >
+                                {getCultivoNameById(r.cultivo_id)}
+                                {r.superficie !== '' ? ` · sup:${r.superficie}` : ''}
+                                {r.cantidad !== '' ? ` · cant:${r.cantidad}` : ''}
+                                </span>
+                            ))}
+                            {(!formData.cultivos_detalle || formData.cultivos_detalle.length === 0) && (
+                                <span style={{color:'#888', fontSize:12}}>Sin cultivos/Rubros seleccionados</span>
+                            )}
+                            </div>
+                        </div>
+                        <div className='formGroup'>
+                            <label><span className='Unique'>*</span>Hectáreas totales:</label>
+                            <input type="input" id="hectareas" value={formData.hectareas} onChange={handleChange} placeholder="Ej: 321" className='number' />
+                        </div>
+                        <div className='formGroup'>
+                            <label><span className='Unique'>*</span>Superficie cultivada:</label>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                            <input
+                                type="input"
+                                id="c_cultivo"
+                                className='input'
+                                value={formData.c_cultivo}
+                                onChange={handleChange}
+                                placeholder="Ej: 321"
+                                style={{ flex: 1 }}
+                            />
+                            <SingleSelect
+                                options={unidadesOptions}
+                                value={selectedFrom(unidadesOptions, formData.c_cultivo_unidad)}
+                                onChange={(opt) => setFormData(prev => ({ ...prev, c_cultivo_unidad: opt?.value || '' }))}
+                                placeholder="Unidad"
+                                isClearable
+                            />
+                            </div>
+                            {errors.c_cultivo && <span className='errorText'>{errors.c_cultivo}</span>}
+                        </div>
+                    
+                        <div className='formGroup'>
+                        <label><span className='Unique'>*</span>Punto de referencia:</label>
+                        <input type="text" id="sitios_asociados" value={formData.sitios_asociados} onChange={handleChange} placeholder="Lugar de referencia" className='input' />
+                        {errors.sitios_asociados && <span className='errorText'>{errors.sitios_asociados}</span>}
+                        </div>
+                        <div className='formGroup'>
+                        <label><span className='Unique'>*</span>Ubicación exacta:</label>
+                        <input type="text" id="ubicacion" value={formData.ubicacion} onChange={handleChange} placeholder="Ubicación" className='input' />
+                        {errors.ubicacion && <span className='errorText'>{errors.ubicacion}</span>}
+                        </div>
+                        <div className='formGroup'>
+                        <label><span className='Unique'>*</span>Estado:</label>
+                        <SingleSelect
+                            options={estadosOptions}
+                            value={estadosOptions.find(o => o.value === String(formData.estado_id)) || null}
+                            onChange={handleEstadoChange}
+                            placeholder="Seleccione un estado"
+                        />
+                        </div>
+                        <div className='formGroup'>
+                        <label><span className='Unique'>*</span>Municipio:</label>
+                        <SingleSelect
+                            options={municipiosOptions}
+                            value={municipiosOptions.find(o => o.value === String(formData.municipio_id)) || null}
+                            onChange={handleMunicipioChange}
+                            isDisabled={!formData.estado_id || municipiosOptions.length === 0}
+                            placeholder="Seleccione un municipio"
+                            />
+                        </div>
+                        <div className='formGroup'>
+                        <label><span className='Unique'>*</span>Parroquia:</label>
+                        <SingleSelect
+                            options={parroquiasOptions}
+                            value={parroquiasOptions.find(o => o.value === String(formData.parroquia_id)) || null}
+                            onChange={handleParroquiaChange}
+                            isDisabled={!formData.municipio_id || parroquiasOptions.length === 0}
+                            placeholder="Seleccione una parroquia"
+                            />
+                        </div>
+                        <div className='formGroup'>
+                        <label><span className='Unique'>*</span>Sector:</label>
+                        <SingleSelect
+                            options={sectoresOptions}
+                            value={sectoresOptions.find(o => o.value === String(formData.sector_id)) || null}
+                            onChange={handleSectorChange}
+                            isDisabled={!formData.parroquia_id || sectoresOptions.length === 0}
+                            placeholder="Seleccione un sector"
+                        />
+                        </div>
+                        <div className='formGroup'>
+                            <label><span className='Unique'>*</span>Posee certificado sanitario:</label>
+                            <div className='radio-group'>{/* <- aplica estilos */}
+                                <label className='radio-label'>
+                                    <input
+                                        type="radio"
+                                        className="radio-input"
+                                        name="posee_certificado"
+                                        value="SI"
+                                        checked={formData.posee_certificado === 'SI'}
+                                        onChange={() => setFormData(prev => ({ ...prev, posee_certificado: 'SI' }))}
+                                    />
+                                    <span>Si</span>
+                                </label>
+                                <label className='radio-label'>
+                                    <input
+                                        type="radio"
+                                        className="radio-input"
+                                        name="posee_certificado"
+                                        value="NO"
+                                        checked={formData.posee_certificado === 'NO'}   // <- siempre queda marcado por defecto
+                                        onChange={() => setFormData(prev => ({ ...prev, posee_certificado: 'NO' }))}
+                                    />
+                                    <span>No</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
+                        <button
+                            type="button"
+                            className='saveButton'
+                            onClick={formData.id ? handleEdit : handleSave}
+                            disabled={loading}
+                            title={formData.id ? 'Actualizar Propiedad' : 'Registrar Propiedad'}
+                            >
+                            {loading ? 'Procesando...' : 'Guardar'}
+                        </button>
+                        </form>
+                    </>
+                ) : (
+                    <>
+                    <h2>Propiedad registrada</h2>
+                    <p>
+                        Se creó correctamente la propiedad
+                        {` ${recentPropiedad?.codigo ? `(${recentPropiedad.codigo})` : ''} ${recentPropiedad?.nombre || ''}`}.
+                    </p>
+                        <p>¿Deseas continuar para empezar la solicitud asociada?</p>
+                    <div className='modalActions' style={{ marginTop: 16, display:'flex', gap:8 }}>
+                        <button className='Button-btn' onClick={goToNextScreen}>Continuar</button>
+                        <button className='cancelButton' onClick={closeModal}>Más tarde</button>
+                    </div>
+                    </>
+                )}
                 </div>
+            </div>
             )}
 
             {/* Modal de confirmación para eliminar */}
@@ -1071,6 +1233,63 @@ const closeModal = (limpiarUrl = true) => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Sub‑modal Cultivos */}
+            {cultivosModalAbierto && (
+            <div className='modalOverlay'>
+                <div className='modal_mono'>
+                <button className='closeButton' onClick={closeCultivosModal}>&times;</button>
+                <h2>Gestionar cultivos</h2>
+                <div className='formGroup'>
+                    <label>Agregar varios cultivos rápidamente:</label>
+                    <MultiSelect
+                    options={cultivosOptions}
+                    value={cultivosOptions.filter(o =>
+                        (tempCultivos || []).some(r => String(r.cultivo_id) === String(o.value))
+                    )}
+                    onChange={handleBulkSelectCultivos}
+                    placeholder="Seleccione uno o varios cultivos"
+                    />
+                </div>
+                <div className='formGroup' style={{marginTop:10}}>
+                    <label>Detalles de los cultivos:</label>
+                    <div style={{display:'flex', flexDirection:'column', gap:8, marginTop:6, maxHeight:'42vh', overflow:'auto'}}>
+                    {(tempCultivos || []).map((fila, idx) => (
+                        <div key={idx} style={{display:'grid', gridTemplateColumns:'1fr 110px 110px 40px', gap:8}}>
+                        <SingleSelect
+                            options={cultivosOptions}
+                            value={cultivosOptions.find(o => String(o.value) === String(fila.cultivo_id)) || null}
+                            onChange={(opt)=>updateTempFila(idx,'cultivo_id',opt?opt.value:'')}
+                            placeholder="Cultivo"
+                        />
+                        <input
+                            type="number"
+                            className='input'
+                            placeholder="Sup."
+                            value={fila.superficie}
+                            onChange={(e)=>updateTempFila(idx,'superficie',e.target.value)}
+                        />
+                        <input
+                            type="number"
+                            className='input'
+                            placeholder="Cant."
+                            value={fila.cantidad}
+                            onChange={(e)=>updateTempFila(idx,'cantidad',e.target.value)}
+                        />
+                            <div style={{position:'relative', top:20, right:20}}>
+                                <button type="button" className='closeButton2' onClick={()=>removeTempFila(idx)} title='Eliminar fila'>&times;</button>
+                            </div>
+                        </div>
+                    ))}
+                    </div>
+                </div>
+                <div className='modalActions' style={{marginTop:12}}>
+                    <button type="button" className='btn-estandar' onClick={addTempFila}>Agregar fila</button>
+                    <button className='cancelButton' onClick={guardarCultivosModal}>Guardar</button>
+                </div>
+                </div>
+            </div>
             )}
 
             {pdfUrl && (
@@ -1119,7 +1338,7 @@ const closeModal = (limpiarUrl = true) => {
                         {tienePermiso('propiedad','exportar') && (<button
                             type='button'
                             onClick={() => exportToExcel({
-                                data: datosFiltrados,
+                                data: enrichedFiltrados,
                                 columns: columnsPropiedad,
                                 fileName: excelFileName,
                                 count: true,

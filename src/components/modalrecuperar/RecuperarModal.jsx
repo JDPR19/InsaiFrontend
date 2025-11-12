@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import '../../main.css';
 import Spinner from '../spinner/Spinner';
 import { useNotification } from '../../utils/NotificationContext';
+import { BaseUrl } from '../../utils/constans.js';
 
 function RecuperarModal({ onClose }) {
     const [step, setStep] = useState(1);
@@ -15,7 +16,7 @@ function RecuperarModal({ onClose }) {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:4000/recuperacion/solicitar-codigo', {
+            const res = await fetch(`${BaseUrl}/recuperacion/solicitar-codigo`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })
@@ -38,7 +39,7 @@ function RecuperarModal({ onClose }) {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:4000/recuperacion/verificar-codigo', {
+            const res = await fetch(`${BaseUrl}/recuperacion/verificar-codigo`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, code })
@@ -61,7 +62,7 @@ function RecuperarModal({ onClose }) {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:4000/recuperacion/cambiar-password', {
+            const res = await fetch(`${BaseUrl}/recuperacion/cambiar-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, code, newPassword })

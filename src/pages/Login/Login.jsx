@@ -149,6 +149,7 @@ function Login() {
             if (response.ok) {
                 // Guardar token y redirigir
                 localStorage.setItem('token', data.token);
+                localStorage.setItem('sid', String(data.session_id));
                 localStorage.setItem('user', JSON.stringify({
                     id: data.user.id,
                     username: data.user.username,

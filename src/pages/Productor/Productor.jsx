@@ -35,7 +35,7 @@ function Productor() {
     const excelFileName = fileName.replace('.pdf', '.xlsx');
     const [formData, setFormData] = useState({
         id: '',
-        codigo: '',
+        codigo: 'C-Runsai-Opcional',
         cedula: '',
         nombre: '',
         apellido: '',
@@ -75,7 +75,7 @@ function Productor() {
 
     function getPDFInfo() {
         if (datosFiltrados.length === datosOriginales.length) {
-            return { fileName: 'Productores_Total.pdf', title: 'Listado de Todos los Productores' };
+            return { fileName: 'Productores_Total.pdf', title: 'Listado de Todos los Productores y Representantes' };
         }
         if (datosFiltrados.length > 0 && datosFiltrados.every(p => (p.total_propiedades || 0) === 0)) {
             return { fileName: 'Productores_Sin_Propiedades.pdf', title: 'Productores sin Propiedades' };
@@ -103,64 +103,60 @@ function Productor() {
         setPdfFileName(fileName);
     };
 
-    const handleFichaPDF = async (prod) => {
-        try {
-            // 1) Traer productor completo + propiedades
-            const { data } = await axios.get(`${BaseUrl}/productor/${prod.id}`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
+  const handleFichaPDF = async (prod) => {
+    try {
+        const { data } = await axios.get(`${BaseUrl}/productor/${prod.id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
 
-            const productorDet = data || prod;
-            const props = Array.isArray(data?.propiedades) ? data.propiedades : [];
+        const productorDet = data || prod;
+        const props = Array.isArray(data?.propiedades) ? data.propiedades : [];
 
-            // 2) Normalizar propiedades para el PDF
-            const propiedades = props.map((p) => {
-            const ubicacion = [
-                p.estado_nombre,
-                p.municipio_nombre,
-                p.parroquia_nombre,
-                p.sector_nombre,
-                p.ubicacion || p.direccion
-            ].filter(Boolean).join(' / ');
+        // normaliza arreglo de cultivos por propiedad
+        const toCultivos = (p) => {
+        const arr = Array.isArray(p.cultivos) && p.cultivos.length
+            ? p.cultivos
+            : (Array.isArray(p.cultivos_detalle) ? p.cultivos_detalle : []);
+        return arr.map(c => ({
+            id: c.id ?? c.cultivo_id,
+            nombre: c.nombre ?? '',
+            superficie: c.superficie ?? null,
+            cantidad: c.cantidad ?? null
+        }));
+        };
 
-            const cultivosDetalle = [
-                p.cultivos_nombres || '',
-            ].filter(Boolean).join(' ');
+        const propiedades = props.map((p) => {
+        const ubicacion = [
+            p.estado_nombre, p.municipio_nombre, p.parroquia_nombre, p.sector_nombre, p.ubicacion || p.direccion
+        ].filter(Boolean).join(' / ');
+        const cultivos = toCultivos(p);
 
-            return {
-                id: p.id,
-                codigo: p.codigo || p.id,
-                rif: p.rif || '',
-                nombre: p.nombre || '',
-                tipo: p.tipo_propiedad_nombre || '',
-                cultivo: cultivosDetalle,                       
-                cultivos_cientificos: p.cultivos_cientificos || '',
-                tipos_cultivo: p.tipos_cultivo_nombres || '',
-                hectareas: p.hectareas ?? '',
-                ubicacion,
-                sitios_asociados: p.sitios_asociados || '',
-                posee_certificado: p.posee_certificado || '',
-                estado_propiedad: p.estado_propiedad || ''
-            };
-            });
+        return {
+            id: p.id,
+            codigo: p.codigo || p.id,
+            rif: p.rif || '',
+            nombre: p.nombre || '',
+            tipo: p.tipo_propiedad_nombre || '',
+            hectareas: p.hectareas ?? '',
+            ubicacion,
+            sitios_asociados: p.sitios_asociados || '',
+            posee_certificado: p.posee_certificado || '',
+            estado_propiedad: p.estado_propiedad || '',
+            // NUEVO: enviar al PDF
+            cultivos
+        };
+        });
 
-            // 3) Generar PDF
-            const blob = await buildProductorFichaBlob({
-            productor: productorDet,
-            propiedades,
-            // logoUrl: '/assets/logo-sisic.png'
-            });
-
-            // 4) Liberar blob previo y abrir visor
-            const url = URL.createObjectURL(blob);
-            try { if (pdfUrl) URL.revokeObjectURL(pdfUrl); } catch (error) {console.error(error);}
-            setPdfUrl(url);
-            setPdfFileName(`Ficha_Productor_${productorDet.codigo || productorDet.cedula || productorDet.id}.pdf`);
-        } catch (e) {
-            console.error('Error generando ficha PDF', e);
-            addNotification('No se pudo generar la ficha PDF', 'error');
-        }
-    };
+        const blob = await buildProductorFichaBlob({ productor: productorDet, propiedades });
+        const url = URL.createObjectURL(blob);
+        try { if (pdfUrl) URL.revokeObjectURL(pdfUrl); } catch (error){'Error mostrando el pdf de productores', error};
+        setPdfUrl(url);
+        setPdfFileName(`Ficha_Productor_${productorDet.codigo || productorDet.cedula || productorDet.id}.pdf`);
+    } catch (e) {
+        console.error('Error generando ficha PDF', e);
+        addNotification('No se pudo generar la ficha PDF', 'error');
+    }
+};
 
     const fetchProductores = async () => {
         setLoading(true);
@@ -204,7 +200,7 @@ function Productor() {
     const resetFormData = () => {
         setFormData({
             id: '',
-            codigo: '',
+            codigo: 'No Especificado',
             cedula: '',
             nombre: '',
             apellido: '',
@@ -214,14 +210,49 @@ function Productor() {
         setErrors({});
     };
 
+    // Helper: arma cédula completa con el prefijo seleccionado
+    const buildCedulaCompleta = () =>
+    `${cedulaPrefijo.value}${String(formData.cedula || '').trim()}`;
+
+  // Validación completa del formulario (bloquea guardado si falla)
+    const validateForm = () => {
+    const next = {};
+
+    // Requeridos estándar
+    const required = ['nombre', 'apellido', 'contacto', 'email'];
+        required.forEach((f) => {
+        const v = String(formData[f] ?? '').trim();
+        if (!v) next[f] = 'No Puede Dejar El Campo Vacío';
+        else if (validationRules[f]?.regex && !validationRules[f].regex.test(v)) {
+            next[f] = validationRules[f].errorMessage;
+        }
+        });
+
+        // Cédula compuesta (prefijo + número)
+        const cedulaFull = buildCedulaCompleta();
+        const cedulaRegex = /^(V-|E-|G-|J-|P-)\d{7,10}(-\d{1,2})?$/; // admite V/E/G/J/P
+        if (!String(formData.cedula || '').trim()) {
+        next.cedula = 'No Puede Dejar El Campo Vacío';
+        } else if (!cedulaRegex.test(cedulaFull)) {
+        next.cedula = 'Cédula/RIF inválido para el prefijo seleccionado';
+        }
+
+        setErrors(next);
+        if (Object.keys(next).length) {
+        addNotification('Corrige los campos marcados.', 'warning');
+        return false;
+        }
+        return true;
+    };
+
     const handleChange = (e) => {
         const { id, value } = e.target;
-        setFormData(prev => ({ ...prev, [id]: value }));
+        setFormData((prev) => ({ ...prev, [id]: value }));
 
-        if (validationRules[id]) {
-            const { regex, errorMessage } = validationRules[id];
-            const { valid, message } = validateField(value, regex, errorMessage);
-            setErrors(prev => ({ ...prev, [id]: valid ? '' : message }));
+        if (validationRules[id]?.regex) {
+        const { regex, errorMessage } = validationRules[id];
+        const { valid, message } = validateField(value, regex, errorMessage);
+        setErrors((prev) => ({ ...prev, [id]: valid ? '' : message }));
         }
     };
 
@@ -235,6 +266,7 @@ function Productor() {
     };
 
     const handleSave = async () => {
+        if (!validateForm()) return;
         setLoading(true);
         try {
             const payload = {
@@ -249,9 +281,9 @@ function Productor() {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             addNotification('Productor registrado', 'success');
-            setRecentProductor(resp.data); // guardar el creado
-            await fetchProductores();       // refrescar listado
-            setStep(2);                     // pasar a la segunda sección del modal
+            setRecentProductor(resp.data); 
+            await fetchProductores();       
+            setStep(2);                     
         } catch (err) {
             const backendMessage = err?.response?.data?.message;
             const status = err?.response?.status;
@@ -275,6 +307,7 @@ function Productor() {
 
     const handleEdit = async () => {
     if (!formData.id) { addNotification('Falta ID de productor', 'warning'); return; }
+    if (!validateForm()) return;
     setLoading(true);
     try {
         const payload = {
@@ -425,15 +458,6 @@ function Productor() {
                     <p>Total</p>
                 </div>
 
-                {/* <div
-                    className='card'
-                    title='Productores sin propiedades asociadas'
-                    onClick={() => setDatosFiltrados(datosOriginales.filter(p => (p.total_propiedades || 0) === 0))}
-                >
-                    <span className='cardNumber'>{totales.sinPropiedad}</span>
-                    <p>Sin Propiedad</p>
-                </div> */}
-
                 <div
                     className='card'
                     title={
@@ -450,7 +474,7 @@ function Productor() {
                     <span className='cardNumber'>
                         {totales.maxPropiedades}
                     </span>
-                    <p>Propiedades Asociadas</p>
+                    <p>Mayor número (Propiedades)</p>
                 </div>
             </div>
 
@@ -472,7 +496,7 @@ function Productor() {
                 <div className='modalOverlay'>
                     <div className='modal'>
                         <button className='closeButton' onClick={closeDetalleModal}>&times;</button>
-                        <h2>Detalles del Productor</h2>
+                        <h2>Detalles del Productor - Representante Legal</h2>
                         <form className='modalForm'>
                             <div className='formColumns'>
                                 <div className='formGroup'>
@@ -548,16 +572,16 @@ function Productor() {
                         <button className='closeButton' onClick={closeModal}>&times;</button>
                         {step === 1 ? (
                             <>
-                                <h2>{formData.id ? 'Editar Productor' : 'Registrar Productor'}</h2>
+                                <h2>{formData.id ? 'Editar Productor - Representante legal' : 'Registrar Productor - Representante legal'}</h2>
                                 <form className='modalForm'>
                                     <div className='formColumns'>
                                         <div className='formGroup'>
                                             <label htmlFor="codigo"><span className='Unique' title='Campo Obligatorio'>*</span>Código Runsai:</label>
-                                            <input type="text" id="codigo" value={formData.codigo} onChange={handleChange} className='input' placeholder='Código único'/>
+                                            <input type="text" id="codigo" value={formData.codigo} onChange={handleChange} className='input' placeholder='Código único (Si se requiere)'/>
                                             {errors.codigo && <span className='errorText'>{errors.codigo}</span>}
                                         </div>
                                         <div className='formGroup'>
-                                            <label htmlFor="cedula"><span className='Unique' title='Campo Obligatorio'>*</span>Cédula:</label>
+                                            <label htmlFor="cedula"><span className='Unique' title='Campo Obligatorio'>*</span>Cédula Productor/Representante legal:</label>
                                             <div style={{ display: 'flex', gap: 8 }}>
                                                 <SingleSelect
                                                     options={cedulaPrefijosOptions}
@@ -582,22 +606,22 @@ function Productor() {
                                             {errors.cedula && <span className='errorText'>{errors.cedula}</span>}
                                         </div>
                                         <div className='formGroup'>
-                                            <label htmlFor="nombre"><span className='Unique' title='Campo Obligatorio'>*</span>Nombre:</label>
+                                            <label htmlFor="nombre"><span className='Unique' title='Campo Obligatorio'>*</span>Nombre Productor/Representante:</label>
                                             <input type="text" id="nombre" value={formData.nombre} onChange={handleChange} className='input' placeholder='Nombre'/>
                                             {errors.nombre && <span className='errorText'>{errors.nombre}</span>}
                                         </div>
                                         <div className='formGroup'>
-                                            <label htmlFor="apellido"><span className='Unique' title='Campo Obligatorio'>*</span>Apellido:</label>
+                                            <label htmlFor="apellido"><span className='Unique' title='Campo Obligatorio'>*</span>Apellido Productor/Representante:</label>
                                             <input type="text" id="apellido" value={formData.apellido} onChange={handleChange} className='input' placeholder='Apellido'/>
                                             {errors.apellido && <span className='errorText'>{errors.apellido}</span>}
                                         </div>
                                         <div className='formGroup'>
-                                            <label htmlFor="contacto"><span className='Unique' title='Campo Obligatorio'>*</span>Contacto:</label>
+                                            <label htmlFor="contacto"><span className='Unique' title='Campo Obligatorio'>*</span>Contacto Productor/Representante:</label>
                                             <input type="text" id="contacto" value={formData.contacto} onChange={handleChange} className='input' placeholder='Teléfono'/>
                                             {errors.contacto && <span className='errorText'>{errors.contacto}</span>}
                                         </div>
                                         <div className='formGroup'>
-                                            <label htmlFor="email"><span className='Unique' title='Campo Obligatorio'>*</span>Correo:</label>
+                                            <label htmlFor="email"><span className='Unique' title='Campo Obligatorio'>*</span>Correo Productor/Representante:</label>
                                             <input type="email" id="email" value={formData.email} onChange={handleChange} className='input' placeholder='Correo electrónico'/>
                                             {errors.email && <span className='errorText'>{errors.email}</span>}
                                         </div>
@@ -615,14 +639,14 @@ function Productor() {
                             </>
                         ) : (
                             <>
-                                <h2>Productor registrado</h2>
+                                <h2>Productor/Representante legal registrado</h2>
                                 <p>
-                                    Se creó correctamente el productor
+                                    Se creó correctamente el productor/Representante
                                     {` ${recentProductor?.codigo ? `(${recentProductor.codigo})` : ''} ${recentProductor?.nombre || ''} ${recentProductor?.apellido || ''}`}.
                                 </p>
                                 <p>¿Deseas continuar para seguir el proceso en la siguiente pantalla?</p>
                                 <div className='modalActions' style={{ marginTop: 16, display: 'flex', gap: 8 }}>
-                                    <button className='btn-estandar' onClick={goToNextScreen}>
+                                    <button className='Button-btn' onClick={goToNextScreen}>
                                         Continuar
                                     </button>
                                     <button className='cancelButton' onClick={closeModal}>
@@ -745,7 +769,7 @@ function Productor() {
                                         {tienePermiso('propiedad', 'exportar') && (
                                             <img
                                             onClick={() => handleFichaPDF(prod)}
-                                            src={icon.cliente}
+                                            src={icon.pdf2}
                                             className='iconver'
                                             title='Ficha PDF'
                                             alt='Ficha PDF'

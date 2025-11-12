@@ -8,6 +8,7 @@ import { filterData } from '../../utils/filterData';
 import SearchBar from "../../components/searchbart/SearchBar";
 import { useNotification } from '../../utils/NotificationContext';
 import { BaseUrl } from '../../utils/constans'; 
+import Spinner from '../../components/spinner/Spinner';
 
 function Bitacora() {
     const [datosOriginales, setDatosOriginales] = useState([]); 
@@ -15,26 +16,30 @@ function Bitacora() {
     const [currentPage, setCurrentPage] = useState(1); 
     const [registroSeleccionado, setRegistroSeleccionado] = useState(null); 
     const { addNotification } = useNotification();
+    const [loading, setLoading] = useState(false);
     const itemsPerPage = 8; 
 
     // Obtener datos de la bitácora al cargar el componente
     useEffect(() => {
+        setLoading(true);
         axios.get(`${BaseUrl}/bitacora`, {
             headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                Authorization: `Bearer ${localStorage.getItem('token')}`
             }
         })
-            .then((response) => {
-                console.log('Datos de la bitácora:', response.data);
-                setDatosOriginales(response.data); // Guardar los datos originales
-                setDatosFiltrados(response.data); // Inicializar los datos filtrados
-            })
-            .catch((error) => {
-                console.error('Error al obtener los datos de la bitácora:', error);
-                addNotification('Error al cargar los datos de la bitácora', 'error'); // Mostrar notificación de error
-            } 
-        );
-    }, []); // Se ejecuta solo una vez al montar el componente
+        .then((response) => {
+            console.log('Datos de la bitácora:', response.data);
+            setDatosOriginales(response.data);
+            setDatosFiltrados(response.data);
+        })
+        .catch((error) => {
+            console.error('Error al obtener los datos de la bitácora:', error);
+            addNotification('Error al cargar los datos de la bitácora', 'error');
+        })
+        .finally(() => {
+            setLoading(false);
+        });
+    }, []);
 
 
     // Manejar la búsqueda y filtrar datos
@@ -78,6 +83,7 @@ function Bitacora() {
 
     return (
         <div className='mainContainer'>
+            {loading && <Spinner text="Procesando..." />}
             <div className='tableSection'>
                 <div className='filtersContainer'>
                     <h2>Bitácora</h2>

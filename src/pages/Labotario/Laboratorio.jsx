@@ -276,14 +276,6 @@ function Laboratorio() {
             addNotification('Debe seleccionar un municipio', 'warning');
             return;
         }
-        if (!formData.parroquia_id || !formData.parroquia_id.value) {
-            addNotification('Debe seleccionar una parroquia', 'warning');
-            return;
-        }
-        if (!formData.sector_id || !formData.sector_id.value) {
-            addNotification('Debe seleccionar un sector', 'warning');
-            return;
-        }
         for (const field in formData) {
             const rule = getValidationRule(field);
             if (!rule || !rule.regex) continue;

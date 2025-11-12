@@ -10,7 +10,7 @@ function SeccionFive () {
     
     // Tabs principales
         const tabs = [
-        tienePermiso('permiso', 'ver') && { key: 'permiso', label: 'Actas Silos' },
+        tienePermiso('permiso', 'ver') && { key: 'permiso', label: 'Reportes de Silos y Almacenes'},
     ].filter(Boolean);
 
      // Obtiene el tab guardado y verifica que exista en los tabs permitidos

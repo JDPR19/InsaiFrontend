@@ -81,7 +81,6 @@ function TipoPropiedad() {
 
     // Crear cargo
     const handleSave = async () => {
-        setLoading(true);
         for (const field in formData) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -93,7 +92,7 @@ function TipoPropiedad() {
                 }
             }
         }
-
+            setLoading(true);
         try {
             const response = await axios.post(`${BaseUrl}/tipopropiedad`, {
                 ...formData,
@@ -116,7 +115,6 @@ function TipoPropiedad() {
     };
 
     const handleEdit = async () => {
-        setLoading(true);
         const camposObligatorios = ['nombre'];
         for (const field of camposObligatorios) {
             const { regex, errorMessage } = validationRules[field];
@@ -126,7 +124,7 @@ function TipoPropiedad() {
                 return;
             }
         }
-
+            setLoading(true);
         try {
             const response = await axios.put(`${BaseUrl}/tipopropiedad/${formData.id}`, {
                 ...formData,

@@ -80,8 +80,6 @@ function TipoUsuario() {
     // Crear tipo de usuario
     const handleSave = async () => {
 
-        setLoading(true);
-
         for (const field in formData) {
             if (!validationRules[field]) continue;
             const { regex, errorMessage } = validationRules[field];
@@ -93,6 +91,9 @@ function TipoUsuario() {
                 }
             }
         }
+
+             setLoading(true);
+
         try {
             await axios.post(`${BaseUrl}/roles`, formData, {
                 headers: {
@@ -113,7 +114,6 @@ function TipoUsuario() {
 
     // Editar tipo de usuario
     const handleEdit = async () => {
-        setLoading(true);
         const camposObligatorios = ['nombre'];
         for (const field of camposObligatorios) {
             const { regex, errorMessage } = validationRules[field];
@@ -123,6 +123,7 @@ function TipoUsuario() {
                 return;
             }
         }
+             setLoading(true);
         try {
             await axios.put(`${BaseUrl}/roles/${formData.id}`, formData, {
                 headers: {

@@ -119,7 +119,6 @@ function Plagas() {
     const handleSave = async () => {
         if (!formData.tipo_plaga_fito_id || !formData.tipo_plaga_fito_id.value) {
             addNotification('Debe seleccionar un tipo de plaga', 'warning');
-            setLoading(false);
             return;
         }
         for (const field in formData) {
@@ -130,7 +129,6 @@ function Plagas() {
             if (!valid) {
                 addNotification(message, 'warning');
                 setErrors(prev => ({ ...prev, [field]: message }));
-                setLoading(false);
                 return;
             }
         }
@@ -160,7 +158,6 @@ function Plagas() {
     const handleEdit = async () => {
         if (!formData.tipo_plaga_fito_id || !formData.tipo_plaga_fito_id.value) {
             addNotification('Debe seleccionar un tipo de plaga', 'warning');
-            setLoading(false);
             return;
         }
         for (const field in formData) {
@@ -171,7 +168,6 @@ function Plagas() {
             if (!valid) {
                 addNotification(message, 'warning');
                 setErrors(prev => ({ ...prev, [field]: message }));
-                setLoading(false);
                 return;
             }
         }

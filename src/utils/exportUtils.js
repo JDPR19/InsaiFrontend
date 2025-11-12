@@ -3,7 +3,7 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import sisic from '../../public/assets/logo-sisic5.png';
-import cintillo from '../../public/assets/cintillo insai.png'
+import cintillo from '../../public/assets/cintillo nuevo.png'
 
 function getRowValues(data, columns) {
     return data.map(row =>
@@ -47,11 +47,10 @@ export function exportToPDF({
     const pageHeight = doc.internal.pageSize.getHeight();
     const usableWidth = pageWidth - (margin.left + margin.right);
 
-    // Configura alturas/posiciones del header y tabla
     const CINTILLO_Y = 6;
-    const CINTILLO_HEIGHT = 15;     // más flaco
-    const TITLE_Y = 30;           
-    const TABLE_START_Y = 40;       // más espacio antes de la tabla
+    const CINTILLO_HEIGHT = 18;    
+    const TITLE_Y = 28;           
+    const TABLE_START_Y = 40;       
 
     // Cabecera: cintillo + título
     const drawHeader = () => {
@@ -129,6 +128,11 @@ export function exportToPDF({
         widths = widths.map(w => Math.max(minColW, Math.min(maxColW, w * factor)));
     }
 
+    const tableWidth = widths.reduce((a, b) => a + b, 0);
+    const canCenter = tableWidth <= usableWidth;
+    const centerLeft = canCenter ? Math.max(10, (pageWidth - tableWidth) / 2) : margin.left;
+    const centerRight = canCenter ? centerLeft : margin.right;
+
     const columnStyles = {};
     columns.forEach((col, idx) => {
         columnStyles[idx] = {
@@ -148,8 +152,8 @@ export function exportToPDF({
         body: tableRows,
         startY: TABLE_START_Y,
         theme: 'grid',
-        tableWidth: 'auto',
-        margin,
+        tableWidth: canCenter ? tableWidth : 'auto',
+        margin: { ...margin, left: centerLeft, right: centerRight },
         styles: {
             font: 'helvetica',
             fontSize,
