@@ -173,7 +173,7 @@ function ActaPage1({
       <View style={[styles.table, { marginTop: 6 }]}>
         <View style={styles.row}>
           <View style={[styles.cellNoRight, { width: '100%' }]}>
-            <Text style={styles.sectionTitle}>1. ÁREA A LA CUAL PERTENECE LA INSPECCIÓN (seleccione lo a las opciones pertinentes)</Text>
+            <Text style={styles.sectionTitle}>1. ÁREA A LA CUAL PERTENECE LA INSPECCIÓN (seleccione las opciones pertinentes)</Text>
             <View style={styles.chips}>
               {areaChecks.map((a, i) => (
                 <View key={i} style={styles.chip}>

@@ -397,7 +397,7 @@ const planificacionOptionsFiltradas = useMemo(() => {
     return planificacionOptions;
   }
   // Si es inspector, solo muestra las planificaciones donde él está asignado
-  if (rol === 'inspector' && empleadoId) {
+  if (rol === 'Inspector' && empleadoId) {
     return planificacionOptions.filter(opt =>
       Array.isArray(opt.empleados) &&
       opt.empleados.some(e => String(e.id) === String(empleadoId))
