@@ -10,6 +10,7 @@ function RecuperarModal({ onClose }) {
     const [code, setCode] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [codigoGenerado, setCodigoGenerado] = useState(''); 
     const { addNotification } = useNotification();
 
     const handleSendCode = async (e) => {
@@ -24,6 +25,7 @@ function RecuperarModal({ onClose }) {
             const data = await res.json();
             if (res.ok) {
                 addNotification(data.message, 'success');
+                setCodigoGenerado(data.code);
                 setStep(2);
             } else {
                 addNotification(data.message, 'error');
@@ -104,6 +106,43 @@ function RecuperarModal({ onClose }) {
                         </div>
                         <button type="submit" className="saveButton" title='Enviar'>Enviar código</button>
                     </form>
+                )}
+                {codigoGenerado && (
+                    <div
+                        style={{
+                            margin: '18px 0',
+                            padding: '16px',
+                            background: 'var(--white1)',
+                            border: '2px solid var(--green5)',
+                            borderRadius: '10px',
+                            color: 'var(--black2)',
+                            fontWeight: 600,
+                            fontSize: '1.15rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            boxShadow: '0 2px 8px var(--modal-shadow)',
+                            letterSpacing: '1px'
+                        }}
+                    >
+                        <svg width="26" height="26" fill="var(--light-green)" viewBox="0 0 24 24">
+                            <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                        </svg>
+                        <span>
+                            Tu código de recuperación es:&nbsp;
+                            <span style={{
+                                fontFamily: 'monospace',
+                                fontSize: '1.3em',
+                                background: 'var(--white2)',
+                                padding: '2px 10px',
+                                borderRadius: '6px',
+                                color: 'var(--vino-red)',
+                                border: '1.5px dashed var(--vino-red)'
+                            }}>
+                                {codigoGenerado}
+                            </span>
+                        </span>
+                    </div>
                 )}
                 {step === 2 && (
                     <form className="modalForm" onSubmit={handleVerifyCode}>
