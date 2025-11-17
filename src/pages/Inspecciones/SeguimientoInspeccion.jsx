@@ -288,7 +288,8 @@ const generarActaPDF = async (inspeccionId) => {
       estado_nombre: det?.estado_nombre,
       municipio_nombre: det?.municipio_nombre,
       parroquia_nombre: det?.parroquia_nombre,
-      sector_nombre: det?.sector_nombre
+      sector_nombre: det?.sector_nombre,
+      tipo_propiedad_nombre: det?.tipo_propiedad_nombre
     };
 
     const propietario = {

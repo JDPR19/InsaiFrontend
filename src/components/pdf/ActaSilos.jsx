@@ -206,8 +206,16 @@ export function ActaSilosPDF({
                 {cultivosArr.map((c, i) => (
                   <View key={i} style={styles.row}>
                     <View style={[styles.cell, { width: '50%' }]}><Text>{safe(c.nombre)}</Text></View>
-                    <View style={[styles.cell, { width: '25%' }]}><Text>{c.superficie != null ? fmt(c.superficie) : '—'}</Text></View>
-                    <View style={[styles.cellNoRight, { width: '25%' }]}><Text>{c.cantidad != null ? fmt(c.cantidad) : '—'}</Text></View>
+                    <View style={[styles.cell, { width: '25%' }]}>
+                      <Text>
+                        {c.superficie != null ? fmt(c.superficie) : '—'} {c.superficie_unidad || ''}
+                      </Text>
+                    </View>
+                    <View style={[styles.cellNoRight, { width: '25%' }]}>
+                      <Text>
+                        {c.cantidad != null ? fmt(c.cantidad) : '—'} {c.cantidad_unidad || ''}
+                      </Text>
+                    </View>
                   </View>
                 ))}
                 <View style={styles.row}>

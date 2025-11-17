@@ -17,7 +17,7 @@ import { usePermiso } from '../../hooks/usePermiso';
 
 
 function Propiedad() {
-    const UNIDADES_MEDIDA = ['m²','km²'];
+    const UNIDADES_MEDIDA = ['m²','km²', 'ha'];
     const RIF_PREFIJOS = ['V-', 'E-', 'J-', 'G-', 'P-'];
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -68,6 +68,12 @@ function Propiedad() {
     const { addNotification } = useNotification();
     const itemsPerPage = 8;
     const [cultivosModalAbierto, setCultivosModalAbierto] = useState(false);
+    const UNIDADES_SUPERFICIE = [
+        'm²', 'ha', 'km²', 'ac', 'ft²', 'yd²', 'cm²', 'mm²', 'in²', 'mi²', 'tarea', 'caballería'
+        ];
+    const UNIDADES_CANTIDAD = [
+        'kg', 'ton', 'g', 'mg', 'lb', 'oz', 'qq', 'saco', 'bulto', 'unid', 'docena', 'ciento', 'litro', 'ml', 'galón', 'arroba'
+        ];
     const [tempCultivos, setTempCultivos] = useState([]);
     const [errors, setErrors] = useState({});
     const [step, setStep] = useState(1);
@@ -75,15 +81,14 @@ function Propiedad() {
     const prefijosOptions = RIF_PREFIJOS.map(p => ({ value: p, label: p }));
 
     const splitRif = (str) => {
-    const s = String(str || '').trim();
-    // Acepta "J-123...", "G123...", etc.
-        const m = s.match(/^([VEJGP])[-\s]?(\d{1,15})$/i);
+        const s = String(str || '').trim();
+        // Acepta "J-123...", "G123...", "J-12345678-9", etc.
+        const m = s.match(/^([VEJGP])[-\s]?(\d{7,15}(?:-\d)?)$/i);
         return {
-        tipo: m ? `${m[1].toUpperCase()}-` : 'J-',
-        numero: m ? m[2] : ''
+            tipo: m ? `${m[1].toUpperCase()}-` : 'J-',
+            numero: m ? m[2] : ''
         };
     };
-
 
     const getCultivoNameById = (id) =>
         cultivosOptions.find(o => String(o.value) === String(id))?.label || 'Cultivo';
@@ -116,11 +121,13 @@ function Propiedad() {
         // Normaliza y guarda
         const normalizado = (tempCultivos || [])
           .filter(r => r.cultivo_id) // solo filas con cultivo elegido
-          .map(r => ({
+        .map(r => ({
             cultivo_id: String(r.cultivo_id),
             superficie: r.superficie === '' ? '' : r.superficie,
-            cantidad: r.cantidad === '' ? '' : r.cantidad
-          }));
+            superficie_unidad: r.superficie_unidad || '',
+            cantidad: r.cantidad === '' ? '' : r.cantidad,
+            cantidad_unidad: r.cantidad_unidad || ''
+        }));
         setFormData(prev => ({ ...prev, cultivos_detalle: normalizado }));
         setErrors(prev => ({ ...prev, cultivos_detalle: normalizado.length ? '' : 'Agregue al menos un cultivo' }));
         closeCultivosModal();
@@ -602,12 +609,14 @@ const handleChange = (e) => {
                 parroquia_id: formData.parroquia_id ? Number(formData.parroquia_id) : null,
                 sector_id: formData.sector_id ? Number(formData.sector_id) : null,
                 cultivos_detalle: formData.cultivos_detalle
-                .filter(r => r.cultivo_id)
-                .map(r => ({
-                    cultivo_id: Number(r.cultivo_id),
-                    superficie: r.superficie !== '' ? Number(r.superficie) : null,
-                    cantidad: r.cantidad !== '' ? Number(r.cantidad) : null
-                })),
+                    .filter(r => r.cultivo_id)
+                    .map(r => ({
+                        cultivo_id: Number(r.cultivo_id),
+                        superficie: r.superficie !== '' ? Number(r.superficie) : null,
+                        superficie_unidad: r.superficie_unidad || null,
+                        cantidad: r.cantidad !== '' ? Number(r.cantidad) : null,
+                        cantidad_unidad: r.cantidad_unidad || null
+                    })),
                 productores_ids: formData.productores_ids.map(Number)
                 };
                 // console.log(payload)
@@ -655,12 +664,14 @@ const handleChange = (e) => {
       sector_id: formData.sector_id ? Number(formData.sector_id) : null,
       productor_id: formData.productores_ids[0] ? Number(formData.productores_ids[0]) : null, // <- NUEVO
       posee_certificado: formData.posee_certificado,
-      cultivos_detalle: formData.cultivos_detalle
+     cultivos_detalle: formData.cultivos_detalle
         .filter(r => r.cultivo_id)
         .map(r => ({
-          cultivo_id: Number(r.cultivo_id),
-          superficie: r.superficie !== '' ? Number(r.superficie) : null,
-          cantidad: r.cantidad !== '' ? Number(r.cantidad) : null
+            cultivo_id: Number(r.cultivo_id),
+            superficie: r.superficie !== '' ? Number(r.superficie) : null,
+            superficie_unidad: r.superficie_unidad || null,
+            cantidad: r.cantidad !== '' ? Number(r.cantidad) : null,
+            cantidad_unidad: r.cantidad_unidad || null
         })),
       productores_ids: formData.productores_ids.map(Number) // normalizar
     };
@@ -768,7 +779,9 @@ const closeModal = (limpiarUrl = true) => {
             cultivos_detalle: (propiedad.cultivos || []).map(c => ({
                 cultivo_id: String(c.id),
                 superficie: c.superficie ?? '',
-                cantidad: c.cantidad ?? ''
+                superficie_unidad: c.superficie_unidad || '',
+                cantidad: c.cantidad ?? '',
+                cantidad_unidad: c.cantidad_unidad || ''
             })),
             productores_ids: (propiedad.productores || []).map(p => String(p.id)),
             tipo_propiedad_id: propiedad.tipo_propiedad_id ? String(propiedad.tipo_propiedad_id) : null,
@@ -826,10 +839,6 @@ const closeModal = (limpiarUrl = true) => {
                     <span className='cardNumber'>{totales.inspeccionando}</span>
                     <p>Inspeccionando</p>
                 </div>
-                {/* <div className='card' onClick={() => setDatosFiltrados(datosOriginales.filter(p => p.estado === 'rechazada'))} title='Rechazadas'>
-                    <span className='cardNumber'>{totales.rechazadas}</span>
-                    <p>Rechazadas</p>
-                </div> */}
             </div>
 
             {/*/////////////////// Tabla ///////////*/}
@@ -913,8 +922,8 @@ const closeModal = (limpiarUrl = true) => {
                                     {(detalleModal.propiedad.cultivos || []).map(c => (
                                         <tr key={c.id}>
                                             <td>{c.nombre}</td>
-                                            <td>{fmtNum(c.superficie)}</td>
-                                            <td>{fmtNum(c.cantidad)}</td>
+                                            <td>{fmtNum(c.superficie)} {c.superficie_unidad || ''}</td>
+                                            <td>{fmtNum(c.cantidad)} {c.cantidad_unidad || ''}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -997,7 +1006,7 @@ const closeModal = (limpiarUrl = true) => {
                 <button className='closeButton' onClick={closeModal}>&times;</button>
                 {step === 1 ? (
                     <>
-                    <h2>{formData.id ? 'Editar Propiedad/Empresa' : 'Registrar Propiedad/Empresa'}</h2>
+                    <h2>{formData.id ? 'Editar Propiedad - Empresa' : 'Registrar Propiedad - Empresa'}</h2>
                     <form className='modalForm'>
                         <div className='formColumns_tree'>
                         <div className='formGroup'>
@@ -1074,15 +1083,19 @@ const closeModal = (limpiarUrl = true) => {
                             <div className='chipsContainer'>
                             {(formData.cultivos_detalle || []).map((r, idx) => (
                                 <span
-                                key={idx}
-                                className='chip'
-                                title={`${getCultivoNameById(r.cultivo_id)}${r.superficie!==''?` · sup:${r.superficie}`:''}${r.cantidad!==''?` · cant:${r.cantidad}`:''}`}
+                                    key={idx}
+                                    className='chip'
+                                    title={
+                                    `${getCultivoNameById(r.cultivo_id)}`
+                                    + (r.superficie !== '' ? ` · sup:${r.superficie} ${r.superficie_unidad || ''}` : '')
+                                    + (r.cantidad !== '' ? ` · cant:${r.cantidad} ${r.cantidad_unidad || ''}` : '')
+                                    }
                                 >
-                                {getCultivoNameById(r.cultivo_id)}
-                                {r.superficie !== '' ? ` · sup:${r.superficie}` : ''}
-                                {r.cantidad !== '' ? ` · cant:${r.cantidad}` : ''}
+                                    {getCultivoNameById(r.cultivo_id)}
+                                    {r.superficie !== '' ? ` · sup: ${r.superficie} ${r.superficie_unidad || ''}` : ''}
+                                    {r.cantidad !== '' ? ` · cant: ${r.cantidad} ${r.cantidad_unidad || ''}` : ''}
                                 </span>
-                            ))}
+                                ))}
                             {(!formData.cultivos_detalle || formData.cultivos_detalle.length === 0) && (
                                 <span style={{color:'#888', fontSize:12}}>Sin cultivos/Rubros seleccionados</span>
                             )}
@@ -1238,7 +1251,7 @@ const closeModal = (limpiarUrl = true) => {
             {/* Sub‑modal Cultivos */}
             {cultivosModalAbierto && (
             <div className='modalOverlay'>
-                <div className='modal_mono'>
+                <div className='modal'>
                 <button className='closeButton' onClick={closeCultivosModal}>&times;</button>
                 <h2>Gestionar cultivos</h2>
                 <div className='formGroup'>
@@ -1256,32 +1269,46 @@ const closeModal = (limpiarUrl = true) => {
                     <label>Detalles de los cultivos:</label>
                     <div style={{display:'flex', flexDirection:'column', gap:8, marginTop:6, maxHeight:'42vh', overflow:'auto'}}>
                     {(tempCultivos || []).map((fila, idx) => (
-                        <div key={idx} style={{display:'grid', gridTemplateColumns:'1fr 110px 110px 40px', gap:8}}>
-                        <SingleSelect
+                        <div key={idx} style={{display:'grid', gridTemplateColumns:'1fr 110px 110px 110px 110px 40px', gap:8}}>
+                            <SingleSelect
                             options={cultivosOptions}
                             value={cultivosOptions.find(o => String(o.value) === String(fila.cultivo_id)) || null}
                             onChange={(opt)=>updateTempFila(idx,'cultivo_id',opt?opt.value:'')}
                             placeholder="Cultivo"
-                        />
-                        <input
+                            />
+                            <input
                             type="number"
                             className='input'
                             placeholder="Sup."
                             value={fila.superficie}
                             onChange={(e)=>updateTempFila(idx,'superficie',e.target.value)}
-                        />
-                        <input
+                            />
+                            <SingleSelect
+                            options={UNIDADES_SUPERFICIE.map(u => ({ value: u, label: u }))}
+                            value={fila.superficie_unidad ? { value: fila.superficie_unidad, label: fila.superficie_unidad } : null}
+                            onChange={opt => updateTempFila(idx, 'superficie_unidad', opt ? opt.value : '')}
+                            placeholder="Unidad"
+                            isClearable
+                            />
+                            <input
                             type="number"
                             className='input'
                             placeholder="Cant."
                             value={fila.cantidad}
                             onChange={(e)=>updateTempFila(idx,'cantidad',e.target.value)}
-                        />
+                            />
+                            <SingleSelect
+                            options={UNIDADES_CANTIDAD.map(u => ({ value: u, label: u }))}
+                            value={fila.cantidad_unidad ? { value: fila.cantidad_unidad, label: fila.cantidad_unidad } : null}
+                            onChange={opt => updateTempFila(idx, 'cantidad_unidad', opt ? opt.value : '')}
+                            placeholder="Unidad"
+                            isClearable
+                            />
                             <div style={{position:'relative', top:20, right:20}}>
-                                <button type="button" className='closeButton2' onClick={()=>removeTempFila(idx)} title='Eliminar fila'>&times;</button>
+                            <button type="button" className='closeButton2' onClick={()=>removeTempFila(idx)} title='Eliminar fila'>&times;</button>
                             </div>
                         </div>
-                    ))}
+                        ))}
                     </div>
                 </div>
                 <div className='modalActions' style={{marginTop:12}}>

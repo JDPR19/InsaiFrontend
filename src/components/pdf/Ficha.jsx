@@ -194,12 +194,20 @@ export function ProductorFichaPDF({ productor, propiedades = [], logoUrl = img.l
                           <Text style={styles.cMuted}>Sin cultivos registrados</Text>
                         ) : (
                           cultivos.map(c => (
-                            <View key={c.id} style={styles.cRow}>
-                              <View style={styles.cCell}><Text style={styles.cCellText}>{safe(c.nombre)}</Text></View>
-                              <View style={styles.cCell}><Text style={styles.cCellText}>{num(c.superficie)}</Text></View>
-                              <View style={[styles.cCell, styles.cCellLast]}><Text style={styles.cCellText}>{num(c.cantidad)}</Text></View>
+                          <View key={c.id} style={styles.cRow}>
+                            <View style={styles.cCell}><Text style={styles.cCellText}>{safe(c.nombre)}</Text></View>
+                            <View style={styles.cCell}>
+                              <Text style={styles.cCellText}>
+                                {num(c.superficie)} {c.superficie_unidad || ''}
+                              </Text>
                             </View>
-                          ))
+                            <View style={[styles.cCell, styles.cCellLast]}>
+                              <Text style={styles.cCellText}>
+                                {num(c.cantidad)} {c.cantidad_unidad || ''}
+                              </Text>
+                            </View>
+                          </View>
+                        ))
                         )}
                       </View>
                       {/* Totales */}

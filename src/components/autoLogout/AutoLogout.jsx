@@ -6,7 +6,7 @@ import { BaseUrl } from '../../utils/constans';
 import { getSocket, closeSocket } from '../../utils/singleton';
 
 const API_URL = BaseUrl;
-const INACTIVITY_LIMIT = 1 * 60 * 1000; // 15 min
+const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 min
 const HEARTBEAT_INTERVAL = 25 * 60 * 1000; // 25 min 
 
 const AutoLogout = () => {

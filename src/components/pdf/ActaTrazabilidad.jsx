@@ -114,7 +114,6 @@ const ActaTrazabilidadDoc = ({
   plagas = [],
   medidas = '',
   observaciones = '',
-  // Párrafo exclusivo opcional
   notaReporte,
   fechaEmision = new Date().toISOString().slice(0,10),
   coordinador = 'ING. GUSTAVO MUJICA',

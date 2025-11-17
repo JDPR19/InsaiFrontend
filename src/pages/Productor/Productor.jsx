@@ -112,18 +112,19 @@ function Productor() {
         const productorDet = data || prod;
         const props = Array.isArray(data?.propiedades) ? data.propiedades : [];
 
-        // normaliza arreglo de cultivos por propiedad
         const toCultivos = (p) => {
-        const arr = Array.isArray(p.cultivos) && p.cultivos.length
-            ? p.cultivos
-            : (Array.isArray(p.cultivos_detalle) ? p.cultivos_detalle : []);
-        return arr.map(c => ({
-            id: c.id ?? c.cultivo_id,
-            nombre: c.nombre ?? '',
-            superficie: c.superficie ?? null,
-            cantidad: c.cantidad ?? null
-        }));
-        };
+            const arr = Array.isArray(p.cultivos) && p.cultivos.length
+                ? p.cultivos
+                : (Array.isArray(p.cultivos_detalle) ? p.cultivos_detalle : []);
+            return arr.map(c => ({
+                id: c.id ?? c.cultivo_id,
+                nombre: c.nombre ?? '',
+                superficie: c.superficie ?? null,
+                superficie_unidad: c.superficie_unidad ?? '',
+                cantidad: c.cantidad ?? null,
+                cantidad_unidad: c.cantidad_unidad ?? ''
+            }));
+            };
 
         const propiedades = props.map((p) => {
         const ubicacion = [
@@ -142,7 +143,6 @@ function Productor() {
             sitios_asociados: p.sitios_asociados || '',
             posee_certificado: p.posee_certificado || '',
             estado_propiedad: p.estado_propiedad || '',
-            // NUEVO: enviar al PDF
             cultivos
         };
         });
