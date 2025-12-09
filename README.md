@@ -1,45 +1,51 @@
-# Proyecto-INSAI
+# Frontend-SICIC-INSAI
 
-Sistema Integral de Control e Información para INSAI
+Este es el frontend de la aplicación Proyecto-INSAI, desarrollado con React y Vite. Proporciona la interfaz de usuario para la gestión de información, reportes, usuarios, inspecciones y otros módulos del sistema INSAI.
 
-Este repositorio contiene el desarrollo de una aplicación web para la gestión de información y procesos internos del INSAI, incluyendo módulos de administración, reportes, usuarios, inspecciones y más.
+## Tecnologías principales
 
-## Estructura del Proyecto
+- React
+- Vite
+- CSS Modules
+- Context API
+- Axios (para peticiones HTTP)
 
-- **Backend/**: API RESTful en Node.js, Express y conexión a base de datos.
-- **Frontend/**: Aplicación web en React con Vite.
-- **DataBase/**: Scripts SQL para la creación y gestión de la base de datos.
-- **scripts/**: Scripts de automatización y administración del entorno.
+## Estructura de Carpetas
+
+- **public/**: Archivos estáticos y recursos.
+- **src/**: Código fuente principal.
+  - **components/**: Componentes reutilizables (modales, menús, gráficos, formularios, etc).
+  - **hooks/**: Custom hooks para lógica reutilizable.
+  - **pages/**: Vistas principales de cada módulo.
+  - **utils/**: Utilidades y helpers.
+  - **main.jsx**: Punto de entrada de la aplicación.
+  - **App.jsx**: Componente raíz y rutas.
 
 ## Instalación
 
-1- Clona el repositorio:
+1. Instala las dependencias:
    ```bash
-   git clone https://github.com/ProBadOmens/Proyecto-INSAI.git
+   npm install
 
--2 Instala dependencias en Backend y Frontend:
+-2 Inicia el servidor de desarrollo
+   npm run dev
 
-cd Backend
-npm install
-cd ../Frontend
-npm install
+-3 Accede a la aplicación en el navegador en la URL indicada por Vite (por defecto http://localhost:5173).
 
--3 Configura las variables de entorno en Backend/.env.
-Importa la base de datos desde los scripts en DataBase/.
-Uso
-Inicia el servidor backend:
+Scripts útiles
 
-npm start
+npm run dev: Inicia el servidor de desarrollo.
 
-Inicia el frontend:
-npm run dev
+npm run build: Compila la aplicación para producción.
 
-Accede a la aplicación desde tu navegador en la URL indicada por Vite.
+npm run preview: Previsualiza la versión de producción.
+
 Contribución
+
 Haz un fork del repositorio.
 Crea una rama (git checkout -b feature/nueva-funcionalidad).
 Realiza tus cambios y haz commit.
 Envía un pull request.
 Licencia
-Este proyecto está bajo la licencia MIT.
+MIT
 
